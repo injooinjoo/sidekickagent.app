@@ -50,8 +50,14 @@ a:hover { opacity: 0.78; }
   justify-content: space-between;
   gap: 20px;
 }
-.brand { color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: -0.03em; }
-.header-end { display: flex; align-items: center; gap: 16px; }
+/* The brand is one word and must never be split. On the membership page the
+   header also carries the account pill, and at 390px the squeeze broke
+   "사이드킥" across two lines and doubled the header height. */
+.brand { color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: -0.03em; white-space: nowrap; }
+/* Account state is the last thing on a wide header and the first thing worth
+   seeing next to the brand on a narrow one, so it is ordered rather than
+   wrapped in a container the other pages do not have. */
+.account-pill { order: 3; }
 .nav { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
 .nav a { color: var(--muted); font-size: 14px; text-decoration: none; }
 .nav a[aria-current="page"] { color: var(--ink); text-decoration: underline; }
@@ -107,12 +113,19 @@ small { color: var(--muted); }
 ul, ol { padding-left: 22px; }
 li + li { margin-top: 8px; }
 @media (max-width: 700px) {
-  .site-header { align-items: flex-start; }
-  .header-end { flex-wrap: wrap; gap: 8px 12px; }
-  .nav { gap: 10px 12px; }
+  /* Brand and account state share the first row; the menu takes the second one
+     rather than fighting them for the same 390px. */
+  .site-header { align-items: center; flex-wrap: wrap; row-gap: 10px; gap: 12px; }
+  .account-pill { order: 2; }
+  .nav { order: 3; width: 100%; gap: 10px 14px; justify-content: flex-start; }
   .policy, .home { padding-top: 34px; }
   .hero { padding-top: 34px; }
   .grid { grid-template-columns: 1fr; }
   .footer small { margin-left: 0; }
+}
+/* Touch devices only: a 24px-tall text link is a hard target for a thumb, but
+   forcing 44px on a mouse would just inflate the header. */
+@media (pointer: coarse) {
+  .brand, .nav a, .footer a { min-height: 44px; display: inline-flex; align-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
