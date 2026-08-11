@@ -2,11 +2,15 @@
   'use strict';
 
   const API_ORIGIN = 'https://api.sidekickagent.app';
+  // [첫 3개월, 이후] USD. Must equal PLAN_CATALOG in web_membership_billing.py,
+  // which is what Stripe actually charges; apps/site/test_domain_contract.py
+  // fails if the two drift. Store prices for the app live elsewhere and are
+  // higher, because the store takes its cut out of them.
   const PLANS = {
     free: { label: 'Free', storage: '500MB', included: [0, 0], connected: null },
-    birdie: { label: 'Birdie', storage: '5GB', included: [19, 19], connected: [9, 13] },
-    eagle: { label: 'Eagle', storage: '25GB', included: [49, 49], connected: [24, 29] },
-    albatross: { label: 'Albatross', storage: '100GB', included: [99, 99], connected: [44, 49] }
+    birdie: { label: 'Birdie', storage: '5GB', included: [14, 19], connected: [9, 13] },
+    eagle: { label: 'Eagle', storage: '25GB', included: [36, 49], connected: [21, 29] },
+    albatross: { label: 'Albatross', storage: '100GB', included: [74, 99], connected: [36, 49] }
   };
   const state = {
     plan: 'birdie',
@@ -41,6 +45,16 @@
     $(id).replaceChildren(strong, small);
   }
 
+  // One renderer for both AI-account options. The intro offer used to be
+  // connected-only, so `included` had a hardcoded "매월 동일" line; that would
+  // now hide the launch discount on exactly the option most people pick.
+  function setOptionPrice(id, pair, unavailableNote) {
+    if (!pair) return setPriceBlock(id, '—', unavailableNote);
+    const [first, after] = pair;
+    if (first === after) return setPriceBlock(id, money(after), unavailableNote || '/ 월 · 매월 동일');
+    setPriceBlock(id, `첫 3개월 ${money(first)}`, `이후 ${money(after)} / 월`);
+  }
+
   function publicCheckoutReady() {
     const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     return Boolean(state.billing.sales_enabled) && (state.billing.mode === 'live' || (local && state.billing.mode === 'test'));
@@ -57,16 +71,8 @@
 
     setSelected(planButtons, 'plan', state.plan);
     setSelected(fundingButtons, 'funding', state.funding);
-    setPriceBlock(
-      'included-price',
-      money(plan.included[0]),
-      state.plan === 'free' ? 'Free 포함' : '/ 월 · 매월 동일',
-    );
-    setPriceBlock(
-      'connected-price',
-      plan.connected ? `첫 3개월 ${money(plan.connected[0])}` : '—',
-      plan.connected ? `이후 ${money(plan.connected[1])} / 월` : 'Birdie 이상에서 사용',
-    );
+    setOptionPrice('included-price', plan.included, state.plan === 'free' ? 'Free 포함' : null);
+    setOptionPrice('connected-price', plan.connected, 'Birdie 이상에서 사용');
 
     const fundingLabel = state.funding === 'included' ? 'Sidekick AI' : '내 AI 계정';
     $('summary-line').textContent = `${plan.label} · ${fundingLabel} · Sidekick에 보관`;
