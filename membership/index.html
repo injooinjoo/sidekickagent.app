@@ -8,14 +8,27 @@
   <meta name="description" content="Sidekick 멤버십을 플랜, AI 계정, 데이터 보관 방식 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/membership/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="멤버십 구성 · Sidekick" />
+  <meta property="og:description" content="Sidekick 멤버십을 플랜, AI 계정, 데이터 보관 방식 순서로 구성하고 최종 가격을 확인하세요." />
+  <meta property="og:url" content="https://sidekickagent.app/membership/" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/membership/membership.css" />
   <script src="/membership/membership.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="back-link" href="/" aria-label="Sidekick 홈으로 돌아가기">‹ <span>홈으로</span></a>
-      <a class="brand" href="/" aria-label="Sidekick 홈">Sidekick <span>멤버십</span></a>
+  <header class="site-header">
+    <a class="brand" href="/"><strong>사이드킥</strong></a>
+    <div class="header-end">
+      <nav class="nav" aria-label="주요 메뉴">
+        <a href="/membership/" aria-current="page">멤버십</a>
+        <a href="/support/">도움말</a>
+        <a href="/privacy/">개인정보</a>
+        <a href="/terms/">이용약관</a>
+      </nav>
       <span class="account-pill" id="account-pill">로그인 전</span>
     </div>
   </header>
@@ -61,7 +74,7 @@
         <section class="step" aria-labelledby="ai-heading">
           <div class="step-heading">
             <span class="step-number" aria-hidden="true">2</span>
-            <div><h2 id="ai-heading">2. AI 계정</h2><p>AI 사용료를 누가 부담할지 골라요.</p></div>
+            <div><h2 id="ai-heading">2. AI 계정</h2><p>AI 사용료를 누가 부담할지 골라요. 직접 내시면 그만큼 멤버십 금액에서 빠져요.</p></div>
           </div>
           <div class="option-list" id="ai-options" role="radiogroup" aria-labelledby="ai-heading">
             <button class="option-card is-selected" type="button" data-funding="included" role="radio" aria-checked="true">
@@ -77,7 +90,8 @@
           </div>
           <div class="disclosure" role="note">
             <strong>내 AI 계정을 쓸 때 알아둘 점</strong>
-            <p>AI 제공업체가 사용료를 별도로 청구할 수 있어요. 연결이 끊기면 Sidekick 공용 AI로 자동 전환하지 않고 업무가 기다려요.</p>
+            <p>내려간 금액은 Sidekick이 대신 내던 AI 사용료예요. 그만큼은 AI 제공업체가 회원님께 직접 청구합니다.</p>
+            <p>연결이 끊기면 Sidekick 공용 AI로 자동 전환하지 않고 업무가 기다려요.</p>
           </div>
         </section>
 
@@ -87,6 +101,7 @@
             <div><h2 id="storage-heading">3. DB·클라우드</h2><p>업무 데이터를 어디에 보관할지 확인해요.</p></div>
           </div>
           <p class="section-note">실행은 Sidekick 클라우드에서 맡아요. 보관 위치가 바뀌어도 실행·보안·모니터링 주체는 그대로예요.</p>
+          <p class="section-note">본인 클라우드를 연결해도 원본 보관 비용만 빠지고 자료 추출·검색 색인 비용은 그대로 남아요. 그래서 이 축은 금액을 내리는 대신 자료함 용량 제한을 풀어 주는 방식으로 보상할 예정이에요.</p>
           <div class="option-list" role="radiogroup" aria-labelledby="storage-heading">
             <button class="option-card is-selected" type="button" role="radio" aria-checked="true">
               <span class="radio-mark" aria-hidden="true"></span>
@@ -135,14 +150,24 @@
             <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
           </div>
         </section>
-        <p class="summary-footnote">표시 금액은 USD 기준이며 세금과 최종 청구 금액은 결제 화면에서 확인해요. AI 제공업체 비용은 별도일 수 있어요.</p>
+        <p class="summary-footnote">표시 금액은 USD 기준이며 세금과 최종 청구 금액은 결제 화면에서 확인해요. AI 제공업체 비용은 별도일 수 있어요. 앱스토어에서 구독하면 스토어 수수료가 붙어 웹보다 금액이 높습니다.</p>
       </aside>
     </div>
-  </main>
 
-  <footer class="site-footer">
-    <div><strong>구독과 결제 관리는 구매한 플랫폼에서 할 수 있어요.</strong><p>웹 구독은 Stripe의 안전한 결제 화면과 구독 관리 화면을 사용해요.</p></div>
-    <nav aria-label="정책"><a href="/terms/">이용약관</a><a href="/privacy/">개인정보처리방침</a><a href="/support/">도움말</a></nav>
-  </footer>
+    <section class="platform-note">
+      <strong>구독과 결제 관리는 구매한 플랫폼에서 할 수 있어요.</strong>
+      <p>웹 구독은 Stripe의 안전한 결제 화면과 구독 관리 화면을 사용해요. 앱에서 구독한 경우에는 앱스토어의 구독 관리에서 변경·해지합니다.</p>
+    </section>
+
+    <footer class="footer">
+      <a href="/">홈</a>
+      <a href="/membership/" aria-current="page">멤버십</a>
+      <a href="/support/">도움말</a>
+      <a href="/privacy/">개인정보처리방침</a>
+      <a href="/terms/">이용약관</a>
+      <a href="/delete-account/">계정 및 데이터 삭제</a>
+      <small>© 2026 Sidekick</small>
+    </footer>
+  </main>
 </body>
 </html>
