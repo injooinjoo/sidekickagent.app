@@ -134,10 +134,14 @@
 
             <div class="auth-panel" id="auth-panel">
               <strong>이메일로 로그인</strong>
-              <p>처음이라면 이 이메일로 계정이 만들어져요. 앱에서도 같은 이메일로 로그인하면 같은 계정이에요.</p>
-              <p class="auth-warning">구글·애플로 시작했다면 같은 이메일이면 같은 계정이에요. 카카오·네이버·전화번호로 시작한 계정은 아직 연결되지 않아요. 연결이 준비되기 전까지 웹 결제는 열지 않습니다.</p>
+              <p>앱에서 쓰던 방법 그대로 로그인하면 같은 계정이에요.</p>
+              <div class="method-tabs" role="tablist" aria-label="로그인 방법">
+                <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
+                <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
+              </div>
+              <p class="auth-warning" id="auth-note">구글·애플·카카오로 시작했다면 같은 이메일을 넣으면 같은 계정이에요. 네이버로만 시작한 계정은 아직 연결되지 않아요.</p>
               <form id="email-form">
-                <label for="email">이메일</label>
+                <label for="email" id="value-label">이메일</label>
                 <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호 받기</button></div>
               </form>
               <form id="code-form" hidden>

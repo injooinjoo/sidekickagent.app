@@ -12,7 +12,32 @@
     eagle: { label: 'Eagle', storage: '25GB', included: [36, 49], connected: [21, 29] },
     albatross: { label: 'Albatross', storage: '100GB', included: [74, 99], connected: [36, 49] }
   };
+  // The app offers six ways in and each mints its own account id, so the web
+  // must offer the same door rather than guess which account a purchase belongs
+  // to. Email and phone are both plain OTP through /auth/start, so they cost one
+  // field each; the social providers redirect into the app and still need a web
+  // callback before they can appear here.
+  const AUTH_METHODS = {
+    email: {
+      label: '이메일',
+      inputType: 'email',
+      autocomplete: 'email',
+      placeholder: '',
+      note: '구글·애플·카카오로 시작했다면 같은 이메일을 넣으면 같은 계정이에요. 네이버로만 시작한 계정은 아직 연결되지 않아요.',
+      heading: '이메일로 로그인'
+    },
+    phone: {
+      label: '휴대폰',
+      inputType: 'tel',
+      autocomplete: 'tel',
+      placeholder: '010-1234-5678',
+      note: '앱에서 휴대폰 번호로 시작했다면 같은 번호로 로그인해요. 잇기가 필요 없는 같은 계정이에요.',
+      heading: '휴대폰으로 로그인'
+    }
+  };
+
   const state = {
+    method: 'email',
     plan: 'birdie',
     funding: 'included',
     storage: 'managed',
@@ -26,6 +51,7 @@
   const $ = (id) => document.getElementById(id);
   const planButtons = [...document.querySelectorAll('[data-plan]')];
   const fundingButtons = [...document.querySelectorAll('[data-funding]')];
+  const methodTabs = [...document.querySelectorAll('[data-method]')];
 
   function money(value) { return `$${value}`; }
 
@@ -127,6 +153,37 @@
     render();
   }
 
+  function applyAuthMethod(method) {
+    const chosen = AUTH_METHODS[method] ? method : 'email';
+    state.method = chosen;
+    state.challengeId = null;
+    const config = AUTH_METHODS[chosen];
+    const input = $('email');
+
+    methodTabs.forEach((tab) => {
+      const selected = tab.dataset.method === chosen;
+      tab.classList.toggle('is-selected', selected);
+      tab.setAttribute('aria-selected', String(selected));
+    });
+
+    $('auth-panel').querySelector('strong').textContent = config.heading;
+    $('value-label').textContent = config.label;
+    $('auth-note').textContent = config.note;
+    input.type = config.inputType;
+    input.autocomplete = config.autocomplete;
+    input.placeholder = config.placeholder;
+    input.value = '';
+    // Switching method abandons any code already sent, so the second form must
+    // not stay open offering to verify a code for the other identity.
+    $('code-form').hidden = true;
+    $('code').value = '';
+    $('auth-status').textContent = '';
+    $('auth-status').classList.remove('is-error');
+    input.focus();
+  }
+
+  methodTabs.forEach((tab) => tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method)));
+
   planButtons.forEach((button) => button.addEventListener('click', () => {
     state.plan = button.dataset.plan;
     render();
@@ -143,12 +200,12 @@
     try {
       const result = await api('/auth/start', {
         method: 'POST',
-        body: JSON.stringify({ method: 'email', value: $('email').value.trim() })
+        body: JSON.stringify({ method: state.method, value: $('email').value.trim() })
       });
       state.challengeId = result.challenge_id;
       $('code-form').hidden = false;
       $('code').focus();
-      $('auth-status').textContent = `${result.value_masked || '입력한 이메일'}로 인증번호를 보냈어요.`;
+      $('auth-status').textContent = `${result.value_masked || `입력한 ${AUTH_METHODS[state.method].label}`}로 인증번호를 보냈어요.`;
     } catch (_) {
       $('auth-status').classList.add('is-error');
       $('auth-status').textContent = '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.';

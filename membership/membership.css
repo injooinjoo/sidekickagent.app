@@ -63,6 +63,9 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); line-height: 1.18; letter-spa
 .auth-panel { padding: 15px; border: 1px solid #eae5da; border-radius: 16px; background: var(--sunken); }
 .auth-panel > strong { font-size: 14px; }
 .auth-panel > p { margin: 3px 0 10px; color: var(--muted); font-size: 12px; }
+.method-tabs { display: flex; gap: 6px; margin: 10px 0; }
+.method-tabs button { flex: 1; min-height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+.method-tabs button.is-selected { border-color: var(--ink); color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .auth-panel > p.auth-warning { padding: 8px 10px; border: 1px solid #f0dec4; border-radius: 10px; background: var(--warning-bg); color: var(--warning); }
 .auth-panel.is-authenticated { border-color: #d2dfce; background: var(--accent-soft); }
 .auth-panel.is-authenticated form, .auth-panel.is-authenticated > p:not(.form-status) { display: none; }
