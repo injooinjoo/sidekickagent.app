@@ -4,19 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:," />
-  <meta name="description" content="한국어로 일을 맡기고 결과까지 확인하는 사이드킥: AI 에이전트" />
+  <meta name="description" content="막막한 목표를, 지금 확인할 것과 첫 실행으로 바꿔주는 사이드킥. 복잡한 준비 없이 모바일에서 바로 시작하세요." />
   <title>사이드킥: AI 에이전트</title>
   <link rel="canonical" href="https://sidekickagent.app/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
   <meta property="og:title" content="사이드킥: AI 에이전트" />
-  <meta property="og:description" content="한국어로 일을 맡기고 결과까지 확인하는 사이드킥: AI 에이전트" />
+  <meta property="og:description" content="막막한 목표를, 지금 확인할 것과 첫 실행으로 바꿔주는 사이드킥." />
   <meta property="og:url" content="https://sidekickagent.app/" />
   <meta name="twitter:card" content="summary" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="landing">
 <header class="site-header">
   <a class="brand" href="/"><strong>사이드킥</strong></a>
   <nav class="nav" aria-label="주요 메뉴">
@@ -27,27 +27,179 @@
   </nav>
 </header>
 <main class="home">
-  <section class="hero">
-    <p class="eyebrow">사이드킥: AI 에이전트</p>
-    <h1>말로 맡기고,<br />결과에 집중하세요.</h1>
-    <p class="lead">해야 할 일을 한국어로 편하게 이야기하면 업무에 맞는 AI 직원이 진행 상황, 결과, 다음 행동을 한눈에 정리합니다.</p>
-    <div class="actions">
-      <a class="button" href="/membership/">멤버십 보기</a>
-      <a class="button secondary" href="/support/">도움말 보기</a>
-      <a class="button secondary" href="mailto:injooinjoo@gmail.com?subject=Sidekick%20문의">문의하기</a>
+
+  <!-- 1. Hero -->
+  <section class="hero landing-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">생각은 있는데, 시작이 막막할 때</p>
+      <h1>하고 싶은 건 많은데,<br />무엇부터 해야 할지<br />모르겠다면.</h1>
+      <p class="lead">온라인 판매를 준비할 때,<br />유튜브·인스타 콘텐츠를 시작할 때,<br />중요한 정보를 조사하고 계획을 세워야 할 때.</p>
+      <p class="lead strong">지금 상황을 말하면,<br />확인할 것과 첫 할 일부터 함께 정리합니다.</p>
+      <div class="actions">
+        <a class="button" href="#routes">내 목표부터 정리해보기</a>
+        <a class="button secondary" href="#first-result">예시 첫 단계 보기</a>
+      </div>
+      <ol class="hero-steps" id="hero-steps" aria-label="첫 대화가 진행되는 순서">
+        <li>“요즘 온라인으로 해볼 수 있는 일을 찾고 있어. 내 상황에서 먼저 확인할 것과 이번 주 첫 행동을 정리해줘.”</li>
+        <li>지금 상황과 목표를 먼저 정리해볼게요.</li>
+        <li>이번 주에 확인할 것 3가지 · 첫 실행 초안</li>
+      </ol>
+    </div>
+    <figure class="phone">
+      <img src="assets/screen-request.png" width="1206" height="2622"
+        alt="사이드킥 대화 화면: ‘내일 회의 준비해줘’ 요청에 담당 AI 직원 지수가 업무 분류와 진행 계획을 정리하고, 민서·준·수빈·다은이 함께 처리 중인 모습" />
+      <figcaption>말로 맡기면 담당과 진행 계획부터 정리됩니다.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 2. Preparation barrier -->
+  <section class="prep" aria-labelledby="prep-h">
+    <h2 class="section-h" id="prep-h">AI를 시작하려고<br />준비부터 할 필요는 없어요.</h2>
+    <div class="prep-cols">
+      <ul class="prep-doubts" aria-label="시작을 막는 흔한 고민">
+        <li>뭘 설치해야 하지?</li>
+        <li>어떤 AI를 써야 하지?</li>
+        <li>처음부터 복잡하게 준비해야 하나?</li>
+        <li>어떤 연결부터 해야 하나?</li>
+        <li>지난번에 한 이야기는 어디에 남지?</li>
+      </ul>
+      <div class="prep-start">
+        <ol class="start-seq" aria-label="사이드킥에서 시작하는 순서">
+          <li>사이드킥 앱 열기</li>
+          <li>목표와 상황 말하기</li>
+          <li>첫 할 일 정리하기</li>
+        </ol>
+        <p>복잡한 준비나 따로 관리할 환경 없이,<br />모바일에서 필요한 일부터 시작할 수 있어요.</p>
+        <p class="prep-close">준비를 관리하는 대신, 오늘 필요한 일을 시작하세요.</p>
+      </div>
     </div>
   </section>
 
-  <section class="grid" aria-label="주요 특징">
-    <article class="card"><h2>바로 맡기기</h2><p>긴 설정 없이 해야 할 일을 그대로 입력하거나 말할 수 있어요.</p></article>
-    <article class="card"><h2>한눈에 확인</h2><p>진행 상황과 핵심 결과, 다음 행동을 정돈된 형태로 확인해요.</p></article>
-    <article class="card"><h2>확인 후 실행</h2><p>외부 전송·게시·삭제처럼 중요한 행동은 먼저 확인해요.</p></article>
+  <!-- 3. Supported AI connections -->
+  <section class="connect" aria-labelledby="connect-h">
+    <h2 class="section-h" id="connect-h">별도 연결 없이 시작하고,<br />필요할 때 이어서 쓰세요.</h2>
+    <p class="connect-copy">처음에는 바로 업무를 맡길 수 있어요.<br />이미 쓰는 AI가 있다면,<br />필요할 때 지원되는 AI 연결을 사용할 수 있어요.</p>
+    <p class="connect-note">어떤 AI를 먼저 고를지보다,<br />지금 어떤 일을 맡길지가 더 중요하니까요.</p>
   </section>
 
-  <section class="notice">
-    <h2>현재 제공 안내</h2>
-    <p>일부 기능은 앱 안에서 순차적으로 제공될 수 있습니다. AI가 만든 결과에는 오류가 있을 수 있으므로 중요한 판단과 외부 실행 전에는 내용을 확인해 주세요.</p>
-    <p>앱 안에서는 아직 유료 결제를 제공하지 않고, 웹 멤버십 결제도 준비 중입니다. 플랜과 최종 금액은 <a href="/membership/">멤버십</a>에서 미리 비교할 수 있어요.</p>
+  <!-- 4. Route chooser -->
+  <section class="routes" id="routes" aria-labelledby="routes-h">
+    <h2 class="section-h" id="routes-h">지금, 어떤 걸 시작하고 싶으세요?</h2>
+    <p class="section-sub">아직 구체적이지 않아도 괜찮아요.<br />가장 가까운 곳에서 시작해보세요.</p>
+    <div class="route-list" role="group" aria-label="시작점 선택">
+      <button class="route" type="button" data-route="0" aria-pressed="true">온라인으로 수익을 만들고 싶어요</button>
+      <button class="route" type="button" data-route="1" aria-pressed="false">유튜브·인스타를 키우고 싶어요</button>
+      <button class="route" type="button" data-route="2" aria-pressed="false">투자·경매·부동산을 공부하고 싶어요</button>
+      <button class="route" type="button" data-route="3" aria-pressed="false">아직 목표가 흐릿해요</button>
+    </div>
+    <div class="route-preview">
+      <p class="route-label">이렇게 요청하게 돼요</p>
+      <p class="route-prompt" id="route-prompt">“아이템과 고객부터 정리하고, 이번 주에 할 일을 잡아줘.”</p>
+      <p class="route-note" id="route-note">수익을 보장하는 계획이 아니라, 먼저 확인할 것과 첫 실행을 정리하는 것부터 시작해요.</p>
+    </div>
+  </section>
+
+  <!-- 5. First useful result -->
+  <section class="first-result" id="first-result" aria-labelledby="result-h">
+    <h2 class="section-h" id="result-h">막연한 생각을,<br />확인할 수 있는 첫 초안으로.</h2>
+    <div class="result-tabs" role="group" aria-label="예시 선택">
+      <button class="tab" type="button" data-ex="0" aria-pressed="true">온라인 판매</button>
+      <button class="tab" type="button" data-ex="1" aria-pressed="false">콘텐츠</button>
+      <button class="tab" type="button" data-ex="2" aria-pressed="false">조사·공부</button>
+    </div>
+    <div class="result-flex">
+      <article class="result-doc" id="result-doc" aria-live="polite">
+        <p class="doc-tag" id="doc-tag">온라인 판매 · 초안</p>
+        <h3 id="doc-title">작게 시작하는 판매 준비</h3>
+        <dl id="doc-body">
+          <dt>아이템과 고객 가설</dt><dd>후보 품목 3개와 각각의 예상 구매자, 이미 파는 곳과 다른 점 한 줄씩.</dd>
+          <dt>확인할 질문</dt><dd>한 달에 쓸 수 있는 시간과 예산은? 재고 없이 시작할 수 있는 방식은?</dd>
+          <dt>이번 주 첫 행동</dt><dd>후보 품목 판매처 3곳 직접 둘러보고 메모하기.</dd>
+        </dl>
+      </article>
+      <figure class="phone phone-side">
+        <img src="assets/screen-done.png" width="1206" height="2622" loading="lazy"
+          alt="사이드킥 완료 화면: ‘회의 자료가 준비되었습니다’ 결과 카드에 요구 사항, 결과, 진행 방식, 준비된 자료 목록이 정리된 모습" />
+        <figcaption>결과는 읽기 쉬운 정리로 도착합니다.</figcaption>
+      </figure>
+    </div>
+    <p class="section-note">정답을 대신 정해주기보다,<br />다음 판단을 위해 필요한 내용을 함께 정리합니다.</p>
+  </section>
+
+  <!-- 6. Workflow -->
+  <section class="workflow" id="workflow" aria-labelledby="workflow-h">
+    <h2 class="section-h" id="workflow-h">말로 맡기고, 결과에 집중하세요.</h2>
+    <ol class="flow">
+      <li class="flow-step">
+        <p class="flow-num">01 말로 시작</p>
+        <p>지금 상황과 목표를 편하게 이야기합니다.</p>
+        <figure class="flow-shot"><img src="assets/screen-request.png" width="1206" height="2622" loading="lazy" alt="요청 한 문장으로 시작된 사이드킥 대화 화면" /></figure>
+      </li>
+      <li class="flow-step">
+        <p class="flow-num">02 방향과 기준 정리</p>
+        <p>무엇을 먼저 확인할지, 어떤 기준으로 볼지 함께 좁힙니다.</p>
+        <div class="flow-shot placeholder" role="img" aria-label="기준 정리 화면 캡처 준비 중"><span>기준 정리 화면<br />캡처 준비 중</span></div>
+      </li>
+      <li class="flow-step">
+        <p class="flow-num">03 조사·비교·초안 맡기기</p>
+        <p>자료를 붙이거나 파일을 보내고 필요한 정리를 요청합니다.</p>
+        <div class="flow-shot placeholder" role="img" aria-label="자료 첨부 요청 화면 캡처 준비 중"><span>자료 첨부 요청 화면<br />캡처 준비 중</span></div>
+      </li>
+      <li class="flow-step">
+        <p class="flow-num">04 진행과 결과 확인</p>
+        <p>작업 중인 일과 지금 확인이 필요한 일을 앱에서 봅니다.</p>
+        <figure class="flow-shot"><img src="assets/screen-home.png" width="1206" height="2622" loading="lazy" alt="사이드킥 홈 화면: 사장님 브리핑에 확인 1건·진행 1건·직원 5명이 요약되고, 확인 요청과 직원 현황이 보이는 모습" /></figure>
+      </li>
+      <li class="flow-step">
+        <p class="flow-num">05 중요한 일은 직접 결정</p>
+        <p>확인이 필요한 일은 결과를 먼저 보고 결정합니다.</p>
+        <figure class="flow-shot"><img src="assets/screen-approval.png" width="1206" height="2622" loading="lazy" alt="사이드킥 승인 화면: ‘참석자에게 전달하기’에 확인 필요 표시가 붙어 사용자의 확인을 기다리는 모습" /></figure>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 7. Continuity -->
+  <section class="continuity" aria-labelledby="cont-h">
+    <h2 class="section-h" id="cont-h">한 번 맡긴 일은,<br />다음 일을 위한 맥락이 됩니다.</h2>
+    <div class="cont-flex">
+      <div class="cont-copy">
+        <p>매번 처음부터 설명하지 않아도,<br />이전에 정한 기준과 결과를 이어 보며 다음 일을 맡길 수 있어요.</p>
+        <p class="trust-note">다음 업무에 적용할 조건은 직접 선택해 저장합니다.</p>
+      </div>
+      <div class="cont-thread" aria-label="이어지는 요청 예시">
+        <p class="thread-when">지난주</p>
+        <blockquote class="thread-req">회의 내용 정리하고 담당자별 할 일로 만들어줘.</blockquote>
+        <p class="thread-when">오늘</p>
+        <blockquote class="thread-req now">그중 이번 주 안에 끝내야 하는 일만 다시 정리해줘.</blockquote>
+        <p class="thread-res">이번 주 우선 작업과 확인할 항목을 정리했어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Trust / approval -->
+  <section class="trust" aria-labelledby="trust-h">
+    <div class="trust-flex">
+      <div class="trust-copy">
+        <h2 class="section-h" id="trust-h">맡기되,<br />중요한 결정은 직접.</h2>
+        <p>결과는 읽기 쉽게 정리하고,<br />확인이 필요한 일은 먼저 보고 결정할 수 있어요.</p>
+        <p class="boundary">투자 판단이나 매매를 대신하지 않습니다.<br />정보를 정리하고, 더 나은 판단을 위한 준비를 돕습니다.</p>
+      </div>
+      <figure class="phone phone-side">
+        <img src="assets/screen-approval.png" width="1206" height="2622" loading="lazy"
+          alt="사이드킥 확인 화면: 검수를 마친 회의 자료에 대해 ‘참석자에게 전달하기 — 확인 필요’ 승인을 기다리는 모습" />
+        <figcaption>확인 전에는 다음 단계로 넘어가지 않아요.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 9. Final CTA -->
+  <section class="final-cta" aria-labelledby="final-h">
+    <h2 class="section-h" id="final-h">오늘 머릿속에 남아 있는 일부터<br />말해보세요.</h2>
+    <p class="section-sub">목표가 아직 흐릿해도 괜찮아요.<br />지금 상황부터 이야기하면,<br />다음에 할 일을 함께 정리합니다.</p>
+    <div class="actions center">
+      <a class="button" href="#routes">내 목표부터 정리해보기</a>
+      <a class="button secondary" href="#first-result">예시 첫 단계 보기</a>
+    </div>
   </section>
 
   <footer class="footer">
@@ -60,5 +212,72 @@
     <small>© 2026 Sidekick</small>
   </footer>
 </main>
+
+<script>
+(function () {
+  var routes = [
+    { prompt: '“아이템과 고객부터 정리하고, 이번 주에 할 일을 잡아줘.”',
+      note: '수익을 보장하는 계획이 아니라, 먼저 확인할 것과 첫 실행을 정리하는 것부터 시작해요.' },
+    { prompt: '“내 상황에 맞는 콘텐츠 방향과 첫 아이디어를 정리해줘.”',
+      note: '구독자 수치를 약속하는 대신, 방향과 첫 아이디어를 함께 좁힙니다.' },
+    { prompt: '“이걸 보기 전에 확인할 기준과 자료부터 정리해줘.”',
+      note: '매수·매도 추천이 아니라, 판단 전에 볼 기준과 자료를 정리합니다.' },
+    { prompt: '“내 상황에서 가능한 선택지와 첫 단계를 같이 정리해줘.”',
+      note: '“잘 모르겠어요”도 좋은 시작이에요. 지금 상황을 말하는 것부터가 첫 단계예요.' }
+  ];
+  var examples = [
+    { tag: '온라인 판매 · 초안', title: '작게 시작하는 판매 준비', rows: [
+      ['아이템과 고객 가설', '후보 품목 3개와 각각의 예상 구매자, 이미 파는 곳과 다른 점 한 줄씩.'],
+      ['확인할 질문', '한 달에 쓸 수 있는 시간과 예산은? 재고 없이 시작할 수 있는 방식은?'],
+      ['이번 주 첫 행동', '후보 품목 판매처 3곳 직접 둘러보고 메모하기.']] },
+    { tag: '콘텐츠 · 초안', title: '유튜브·인스타 시작 방향', rows: [
+      ['콘텐츠 방향', '내가 꾸준히 말할 수 있는 주제 2가지와 비슷한 채널과의 차이.'],
+      ['첫 아이디어', '첫 영상·게시물 후보 5개 제목, 가장 만들기 쉬운 것 1개 표시.'],
+      ['가벼운 제작 계획', '이번 주 1개 촬영, 다음 주 올리고 반응 기록.']] },
+    { tag: '조사·공부 · 초안', title: '경매 공부 시작 기준', rows: [
+      ['핵심 질문', '어느 지역·금액대부터 볼 것인가? 권리관계에서 무엇을 먼저 확인하나?'],
+      ['비교 기준', '시세 대비 가격, 유찰 횟수, 명도 난이도.'],
+      ['자료 · 더 확인할 점', '기초 용어 정리 자료 목록. 예산 상한은 직접 정한 뒤 이어가기.']] }
+  ];
+  function bindGroup(selector, onPick) {
+    var btns = Array.prototype.slice.call(document.querySelectorAll(selector));
+    btns.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
+        onPick(i);
+      });
+    });
+  }
+  bindGroup('.route', function (i) {
+    document.getElementById('route-prompt').textContent = routes[i].prompt;
+    document.getElementById('route-note').textContent = routes[i].note;
+  });
+  bindGroup('.tab', function (i) {
+    var ex = examples[i];
+    document.getElementById('doc-tag').textContent = ex.tag;
+    document.getElementById('doc-title').textContent = ex.title;
+    var dl = document.getElementById('doc-body');
+    dl.innerHTML = '';
+    ex.rows.forEach(function (row) {
+      var dt = document.createElement('dt'); dt.textContent = row[0];
+      var dd = document.createElement('dd'); dd.textContent = row[1];
+      dl.appendChild(dt); dl.appendChild(dd);
+    });
+  });
+  // Hero sequence highlight — informational without motion; skipped entirely under reduced motion.
+  var steps = document.querySelectorAll('#hero-steps li');
+  if (steps.length && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+    var cur = 0;
+    steps[0].classList.add('on');
+    setInterval(function () {
+      steps[cur].classList.remove('on');
+      cur = (cur + 1) % steps.length;
+      steps[cur].classList.add('on');
+    }, 2600);
+  } else if (steps.length) {
+    steps.forEach(function (s) { s.classList.add('on'); });
+  }
+})();
+</script>
 </body>
 </html>
