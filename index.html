@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="landing">
+<div class="scroll-progress" aria-hidden="true"><span></span></div>
 <header class="site-header">
   <a class="brand" href="/"><strong>사이드킥</strong></a>
   <nav class="nav" aria-label="주요 메뉴">
@@ -29,7 +30,7 @@
 <main class="home">
 
   <!-- 1. Hero -->
-  <section class="hero landing-hero">
+  <section class="hero landing-hero" data-reveal-group>
     <div class="hero-copy">
       <p class="eyebrow">생각은 있는데, 시작이 막막할 때</p>
       <h1>하고 싶은 건 많은데,<br />무엇부터 해야 할지<br />모르겠다면.</h1>
@@ -53,7 +54,7 @@
   </section>
 
   <!-- 2. Preparation barrier -->
-  <section class="prep" aria-labelledby="prep-h">
+  <section class="prep" aria-labelledby="prep-h" data-reveal-group>
     <h2 class="section-h" id="prep-h">AI를 시작하려고<br />준비부터 할 필요는 없어요.</h2>
     <div class="prep-cols">
       <ul class="prep-doubts" aria-label="시작을 막는 흔한 고민">
@@ -274,9 +275,17 @@
       });
     });
   }
+  function animateSwap(selector) {
+    var el = document.querySelector(selector);
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.classList.remove('content-swap');
+    void el.offsetWidth;
+    el.classList.add('content-swap');
+  }
   bindGroup('.route', function (i) {
     document.getElementById('route-prompt').textContent = routes[i].prompt;
     document.getElementById('route-note').textContent = routes[i].note;
+    animateSwap('.route-preview');
   });
   bindGroup('.tab', function (i) {
     var ex = examples[i];
@@ -289,7 +298,56 @@
       var dd = document.createElement('dd'); dd.textContent = row[1];
       dl.appendChild(dt); dl.appendChild(dd);
     });
+    animateSwap('.result-doc');
   });
+
+  // Scroll-paced, staggered entrance. The observer only activates after every
+  // item is marked, so a script failure never leaves content hidden.
+  var motionQuery = window.matchMedia && window.matchMedia('(prefers-reduced-motion: no-preference)');
+  var motionEnabled = motionQuery && motionQuery.matches && 'IntersectionObserver' in window;
+  var observer;
+  function resetMotion() {
+    document.documentElement.classList.remove('motion-ready');
+    document.querySelectorAll('[data-reveal-item]').forEach(function (el) { el.classList.remove('is-visible'); el.style.removeProperty('--parallax-y'); });
+    document.documentElement.style.removeProperty('--scroll-progress');
+    if (observer) { observer.disconnect(); observer = null; }
+  }
+  function setupMotion() {
+    resetMotion();
+    if (!(motionQuery && motionQuery.matches && 'IntersectionObserver' in window)) return;
+    var groups = document.querySelectorAll('.landing section');
+    groups.forEach(function (section) {
+      var items = section.querySelectorAll(':scope > h2, :scope > .hero-copy, :scope > .phone, :scope > .prep-cols, :scope > p, :scope > .route-list, :scope > .route-preview, :scope > .result-tabs, :scope > .result-flex, :scope > .section-note, :scope > .flow, :scope > .cont-flex, :scope > .trust-flex, :scope > .start-guide-copy, :scope > .store-actions, :scope > .service-links, :scope > .actions');
+      items.forEach(function (item, index) { item.setAttribute('data-reveal-item', ''); item.style.setProperty('--reveal-delay', Math.min(index * 100, 460) + 'ms'); });
+      section.querySelectorAll('.flow-step, .prep-doubts li, .start-seq li, .service-links a').forEach(function (item, index) { item.setAttribute('data-reveal-item', ''); item.style.setProperty('--reveal-delay', Math.min(index * 110, 440) + 'ms'); });
+    });
+    document.documentElement.classList.add('motion-ready');
+    observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } });
+    }, { rootMargin: '0px 0px -9% 0px', threshold: 0.12 });
+    document.querySelectorAll('[data-reveal-item]').forEach(function (item) { observer.observe(item); });
+  }
+  var ticking = false;
+  function syncScrollMotion() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var root = document.documentElement;
+      var range = Math.max(root.scrollHeight - window.innerHeight, 1);
+      root.style.setProperty('--scroll-progress', String(Math.min(1, Math.max(0, window.scrollY / range))));
+      document.querySelectorAll('.landing .phone').forEach(function (phone) {
+        var rect = phone.getBoundingClientRect();
+        var ratio = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
+        phone.style.setProperty('--parallax-y', (Math.max(-1, Math.min(1, ratio)) * -13).toFixed(1) + 'px');
+      });
+      ticking = false;
+    });
+  }
+  setupMotion(); syncScrollMotion();
+  window.addEventListener('scroll', syncScrollMotion, { passive: true });
+  window.addEventListener('resize', syncScrollMotion, { passive: true });
+  if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', function () { setupMotion(); syncScrollMotion(); });
+
   // Hero sequence highlight — informational without motion; skipped entirely under reduced motion.
   var steps = document.querySelectorAll('#hero-steps li');
   if (steps.length && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
