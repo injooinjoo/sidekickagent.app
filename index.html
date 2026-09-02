@@ -57,7 +57,7 @@
       <div class="stage" aria-hidden="true">
         <div class="phone side">
           <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="scr-head"><span class="scr-avatar"><i></i></span><span class="scr-title">내 부업 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="scr-head"><span class="scr-title">내 부업</span><span class="scr-avatar" aria-hidden="true"><i></i></span></div>
           <div class="briefing">
             <div class="lbl">사장님 브리핑</div>
             <h4>오늘 확인할 일 1건이 있어요.</h4>
@@ -103,7 +103,7 @@
 
         <div class="phone side">
           <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="scr-head"><span class="scr-avatar"><i></i></span><span class="scr-titles"><span class="scr-title">받은 일</span><small>내 부업</small></span><span class="badge wait">1건</span></div>
+          <div class="scr-head"><span class="scr-title">받은 일</span><span class="scr-avatar" aria-hidden="true"><i></i></span></div>
           <div class="appr-stack">
           <div class="appr">
             <div class="top"><h5>리뷰 3편 예약 발행</h5><span class="badge wait">확인 필요</span></div>
@@ -125,7 +125,7 @@
 
   <!-- 2. Statement -->
   <section class="statement" id="how" aria-labelledby="how-h">
-    <div class="statement-card">
+    <div class="statement-card" data-reveal>
       <div class="statement-copy">
         <h2 class="section-h" id="how-h">직원에게 말하듯 맡기세요</h2>
         <p class="section-p">팀원에게 일을 넘기듯 앱에서 말로 맡기세요. <b>확인이 필요할 때만 돌아옵니다.</b></p>
@@ -143,12 +143,12 @@
   <!-- 3. Features -->
   <section class="features" id="features" aria-labelledby="features-h">
     <div class="wrap-wide">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <h2 class="section-h" id="features-h">사이드킥이 다른 이유</h2>
         <p class="section-p">부업에 필요한 네 가지를 앱 하나에 담았어요.</p>
       </div>
-      <div class="feature-grid">
-        <article class="feature" data-feature="models">
+      <div class="feature-grid" data-reveal-group>
+        <article class="feature" data-feature="models" data-reveal>
           <h3>모델은 내가 고른다</h3>
           <p><b>DeepSeek·<wbr>GPT·<wbr>Claude·<wbr>Grok·<wbr>Gemini 중 원하는 모델로 일해요.</b> 내 AI 계정을 연결하면 멤버십이 더 저렴해져요.</p>
           <figure>
@@ -162,7 +162,7 @@
           </figure>
         </article>
 
-        <article class="feature" data-feature="server">
+        <article class="feature" data-feature="server" data-reveal>
           <h3>서버는 알아서</h3>
           <p><b>맥미니도, 클라우드 세팅도 필요 없어요.</b> 가입하면 내 전용 실행 환경이 자동으로 준비돼요.</p>
           <figure>
@@ -178,7 +178,7 @@
           </figure>
         </article>
 
-        <article class="feature" data-feature="isolation">
+        <article class="feature" data-feature="isolation" data-reveal>
           <h3>내 서버, 내 것만</h3>
           <p><b>사용자마다 분리된 서버에서만 일해요.</b> 계정·파일·로그인이 밖으로 나가지 않아요.</p>
           <figure>
@@ -197,7 +197,7 @@
           </figure>
         </article>
 
-        <article class="feature" data-feature="routine">
+        <article class="feature" data-feature="routine" data-reveal>
           <h3>한 번 정하면 일과</h3>
           <p><b>아침 브리핑, 가격 감시처럼 정해진 시간에 스스로 돌아가요.</b> 결과만 카드로 도착해요.</p>
           <figure>
@@ -215,15 +215,15 @@
 
   <!-- 4. Roles -->
   <section class="roles" id="roles" aria-labelledby="roles-h">
-    <div class="wrap">
-      <div>
+    <div class="wrap" data-reveal-group>
+      <div data-reveal>
         <h2 class="section-h" id="roles-h">내 부업에 맞는 직원을 고르세요</h2>
         <p class="section-p">직무를 누르면 첫 지시부터 결과까지 재생돼요.</p>
         <div class="role-pills" role="group" aria-label="부업 시나리오 선택" id="role-pills"></div>
         <p class="role-desc" id="role-desc" aria-live="polite"></p>
         <a class="text-link role-more" id="role-more" href="/use/blog/">더 알아보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
-      <div class="role-card" id="role-card">
+      <div class="role-card" id="role-card" data-reveal>
         <div class="role-phone" aria-hidden="true">
           <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
           <div class="thread-head" id="role-head"></div>
@@ -235,7 +235,7 @@
 
   <!-- 5. Pricing -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-h">
-    <div class="pricing-head">
+    <div class="pricing-head" data-reveal>
       <div>
         <h2 class="section-h" id="pricing-h">멤버십</h2>
         <p class="section-p">업무량과 AI 사용료 방식만 고르세요.</p>
@@ -248,8 +248,8 @@
          apps/site/test_landing_contract.py reads these attributes and fails when
          the two drift. The buy links carry the plan and AI-account choice to the
          membership configurator, which is the only page that starts a checkout. -->
-    <div class="pricing-grid" id="plans">
-      <article class="plan" data-plan="birdie" data-included="14,19" data-connected="9,13" data-storage="5GB">
+    <div class="pricing-grid" id="plans" data-reveal-group>
+      <article class="plan" data-plan="birdie" data-reveal data-included="14,19" data-connected="9,13" data-storage="5GB">
         <div class="plan-top">
           <div class="plan-name">Birdie <em>추천</em><span class="plan-save" data-role="save" hidden></span></div>
           <div class="seg" role="group" aria-label="Birdie AI 사용료">
@@ -272,7 +272,7 @@
         </div>
       </article>
 
-      <article class="plan" data-plan="eagle" data-included="36,49" data-connected="21,29" data-storage="25GB">
+      <article class="plan" data-plan="eagle" data-reveal data-included="36,49" data-connected="21,29" data-storage="25GB">
         <div class="plan-top">
           <div class="plan-name">Eagle<span class="plan-save" data-role="save" hidden></span></div>
           <div class="seg" role="group" aria-label="Eagle AI 사용료">
@@ -295,7 +295,7 @@
         </div>
       </article>
 
-      <article class="plan" data-plan="albatross" data-included="74,99" data-connected="36,49" data-storage="100GB">
+      <article class="plan" data-plan="albatross" data-reveal data-included="74,99" data-connected="36,49" data-storage="100GB">
         <div class="plan-top">
           <div class="plan-name">Albatross<span class="plan-save" data-role="save" hidden></span></div>
           <div class="seg" role="group" aria-label="Albatross AI 사용료">
@@ -318,7 +318,7 @@
         </div>
       </article>
     </div>
-    <details class="pricing-more">
+    <details class="pricing-more" data-reveal>
       <summary>USD 기준 · 4개월째부터 정상가 · 앱스토어 결제는 수수료로 더 비쌈</summary>
       <p>Free는 결제 없이 앱에서 시작해요 · 자료함 500MB. 구독 중이면 <a href="/membership/">같은 계정으로 로그인</a>하세요.</p>
       <p id="pricing-closed">웹 결제는 준비 중이에요. 지금은 구성과 최종 금액만 미리 볼 수 있어요.</p>
@@ -328,12 +328,12 @@
 
   <!-- 6. Download -->
   <section class="download" id="download" aria-labelledby="download-h">
-    <div class="wrap-wide">
-      <div>
+    <div class="wrap-wide" data-reveal-group>
+      <div data-reveal>
         <h2 class="section-h" id="download-h">사이드킥 받기</h2>
         <p class="section-p"><b>휴대폰 하나면 돼요.</b> 말로 맡기고, 확인할 때만 알림을 받아요.</p>
       </div>
-      <div class="dl-cards">
+      <div class="dl-cards" data-reveal>
         <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="1.5" width="8" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 12.5h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>iPhone</b><small>App Store 출시 준비 중</small></div><span class="badge idle">준비 중</span></div>
         <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="1.5" width="9" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="12.3" r="0.9" fill="currentColor"/></svg></span><div><b>Android</b><small>Google Play 준비 중</small></div><span class="badge idle">준비 중</span></div>
       </div>
@@ -342,7 +342,7 @@
 
   <!-- 7. Guides -->
   <section class="guides" id="guides" aria-labelledby="guides-h">
-    <div class="wrap-wide">
+    <div class="wrap-wide" data-reveal>
       <div>
         <h2 id="guides-h">도움말</h2>
         <p>계정, 결제, 개인정보에 대해 자주 묻는 내용이에요.</p>
@@ -354,41 +354,41 @@
   <!-- 8. FAQ -->
   <section class="faq" id="faq" aria-labelledby="faq-h">
     <div class="wrap">
-      <h2 class="section-h" id="faq-h">자주 묻는 질문</h2>
-      <div>
-        <details open>
+      <h2 class="section-h" id="faq-h" data-reveal>자주 묻는 질문</h2>
+      <div data-reveal-group>
+        <details open data-reveal>
           <summary>AI 비서 앱과 뭐가 다른가요?</summary>
           <p>답만 주는 게 아니라 맡은 일을 끝까지 진행해요. 확인이 필요한 일만 보내기 전에 물어봅니다.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>어떤 AI 모델을 쓸 수 있나요?</summary>
           <p>DeepSeek, GPT, Claude, Grok, Gemini 중 작업마다 골라요. 내 AI 계정을 연결하면 멤버십이 더 저렴해져요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>서버를 따로 준비해야 하나요?</summary>
           <p>아니요, 가입하면 전용 실행 환경이 자동으로 만들어져요. 맥미니도 클라우드 세팅도 필요 없어요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>지금 누가 쓸 수 있나요?</summary>
           <p>iPhone 앱은 App Store 출시 준비 중이에요. 멤버십은 웹에서 미리 구성할 수 있어요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>어디서 직원과 대화하나요?</summary>
           <p>앱 안에서 말로 맡겨요. 직원마다 대화가 나뉘어 있어 지난 작업을 찾기 쉬워요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>비용은 얼마인가요?</summary>
           <p>Free는 무료, Birdie·Eagle·Albatross는 업무량으로 나뉘어요. 내 AI 계정을 연결하면 더 낮아져요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>직원이 내 계정으로 아무거나 하지 않나요?</summary>
           <p>보내기·결제·삭제처럼 되돌리기 어려운 일은 먼저 확인을 받아요. 연결은 언제든 끊을 수 있어요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>내 데이터는 어떻게 다뤄지나요?</summary>
           <p>사용자마다 분리된 내 서버에 보관되고, 삭제는 앱에서 직접 요청해요. 기준은 <a href="/privacy/">개인정보처리방침</a>에서 확인하세요.</p>
         </details>
-        <details>
+        <details data-reveal>
           <summary>투자 판단이나 매매도 대신하나요?</summary>
           <p>아니요, 매수·매도 추천이나 매매는 하지 않아요. 자료만 정리하고 결정은 직접 합니다.</p>
         </details>
@@ -398,9 +398,9 @@
 
   <!-- 9. Closing call -->
   <section class="start" id="start" aria-labelledby="start-h">
-    <h2 class="section-h" id="start-h">첫 직원을 만나보세요</h2>
-    <p class="section-p">내 부업을 굴려주는 AI 직원</p>
-    <div class="actions">
+    <h2 class="section-h" id="start-h" data-reveal>첫 직원을 만나보세요</h2>
+    <p class="section-p" data-reveal>내 부업을 굴려주는 AI 직원</p>
+    <div class="actions" data-reveal>
       <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <a class="button secondary" href="/support/">도움말</a>
     </div>

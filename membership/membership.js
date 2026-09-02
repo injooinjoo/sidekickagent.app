@@ -101,7 +101,7 @@
     setOptionPrice('connected-price', plan.connected, 'Birdie 이상에서 사용');
 
     const fundingLabel = state.funding === 'included' ? 'Sidekick AI' : '내 AI 계정';
-    $('summary-line').textContent = `${plan.label} · ${fundingLabel} · Sidekick에 보관`;
+    $('summary-line').textContent = `${plan.label} · ${fundingLabel}`;
     $('summary-storage').textContent = plan.storage;
     $('summary-ai-fee').textContent = state.funding === 'included' ? '멤버십에 포함' : '제공업체에서 별도 청구';
     $('price-label').textContent = prices[0] === prices[1] ? '매월' : '첫 3개월';

@@ -60,17 +60,24 @@ a:hover { color: var(--ink); }
 :focus-visible { outline: 3px solid rgba(255, 51, 13, 0.35); outline-offset: 3px; }
 h1, h2, h3, h4 { text-wrap: balance; }
 
-/* Site shell — identical markup on every page. */
-/* Same measure as the page body below it, so the brand lines up with the
-   headline instead of hanging 50px to its left. */
+/* Site shell — identical markup on every page, and one bar for all of them:
+   full width, sticky, brand on the left, the menu beside it, and one thing on
+   the right (the membership call-to-action, or the account pill on the
+   membership page). The landing, the policies and the membership page used to
+   each draw their own, which read as three different sites. */
 .site-header {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 22px 22px 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 64px;
+  padding: 0 max(20px, calc((100% - 1232px) / 2));
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
+  background: rgba(247, 248, 250, 0.86);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--hairline);
 }
 /* The brand is one word and must never be split. On the membership page the
    header also carries the account pill, and at 390px the squeeze broke
@@ -80,11 +87,25 @@ h1, h2, h3, h4 { text-wrap: balance; }
 /* Account state is the last thing on a wide header and the first thing worth
    seeing next to the brand on a narrow one, so it is ordered rather than
    wrapped in a container the other pages do not have. */
-.account-pill { order: 3; }
-.nav { display: flex; gap: 18px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
-.nav a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; }
+.account-pill { order: 3; margin-left: auto; }
+.nav { display: flex; gap: 22px; flex-wrap: wrap; justify-content: flex-start; align-items: center; margin-left: 24px; margin-right: auto; }
+.nav a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; padding: 8px 0; }
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current="page"] { color: var(--ink); }
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-cta:hover { background: #2b3036; color: #fff; }
 .account-pill {
   padding: 6px 11px;
   border-radius: 999px;
@@ -148,10 +169,11 @@ li + li { margin-top: 8px; }
 @media (max-width: 700px) {
   /* Brand and account state share the first row; the menu takes the second one
      rather than fighting them for the same 390px. */
-  .site-header { align-items: center; flex-wrap: wrap; row-gap: 10px; gap: 12px; }
-  .brand, .landing .nav a, .landing .footer a { min-height: 44px; display: inline-flex; align-items: center; }
+  .site-header { align-items: center; flex-wrap: wrap; row-gap: 10px; gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+  .brand, .nav a, .footer a { min-height: 44px; display: inline-flex; align-items: center; }
   .account-pill { order: 2; }
-  .nav { order: 3; width: 100%; gap: 10px 14px; justify-content: flex-start; }
+  .nav { order: 3; width: 100%; gap: 10px 14px; justify-content: flex-start; margin-left: 0; }
+  .header-cta { order: 2; }
   .policy, .home { padding-top: 34px; }
   .hero { padding-top: 34px; }
   .grid { grid-template-columns: 1fr; }
@@ -182,35 +204,6 @@ li + li { margin-top: 8px; }
  * signals (badge, mark, selected pill) — never on a surface. Every text/ground
  * pair below is held to 4.5:1 by test_landing_contract. */
 body.landing { background: var(--bg); }
-body.landing .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  max-width: none;
-  margin: 0;
-  min-height: 64px;
-  padding: 0 max(20px, calc((100% - 1232px) / 2));
-  background: rgba(247, 248, 250, 0.86);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--hairline);
-}
-.landing .nav { margin-left: 24px; margin-right: auto; justify-content: flex-start; gap: 22px; }
-.landing .nav a { padding: 8px 0; }
-.header-cta {
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.header-cta:hover { background: #2b3036; color: #fff; }
 
 body.landing .home { max-width: none; margin: 0; padding: 0; }
 /* Two tones, alternating: ground sections carry white cards, white sections
@@ -332,14 +325,11 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .sbar b span { width: 3px; background: var(--ink); border-radius: 1px; }
 /* The app's shared tab header (AppHeader): avatar with the usage ring on the
    left, a large title, an optional subtitle, hairline below. */
+/* Every tab shares one header, as in the app: title on the left, profile on the right. */
 .scr-head { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 2px 4px 8px; margin-bottom: 8px; border-bottom: 1px solid var(--hairline); }
 .scr-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--brand); border-right-color: var(--line); border-bottom-color: var(--line); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
 .scr-avatar i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--muted); display: block; }
-.scr-titles { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.scr-titles small { font-size: 10px; color: var(--muted); margin-top: -1px; }
 .scr-title { display: inline-flex; align-items: center; gap: 4px; font-size: 19px; line-height: 1.2; font-weight: 700; letter-spacing: -0.03em; flex: 1; min-width: 0; }
-.scr-titles .scr-title { flex: 0 0 auto; }
-.scr-title svg { width: 12px; height: 12px; color: var(--muted); }
 .scr-head .badge { margin-left: auto; }
 .pill-free { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--card); }
 /* The app's own briefing card is ink — the mock mirrors the app. */
@@ -580,9 +570,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .hero-media { height: 520px; }
 }
 @media (max-width: 700px) {
-  body.landing .site-header { padding-top: 8px; padding-bottom: 8px; }
-  .landing .nav { margin-left: 0; }
-  .header-cta { order: 2; }
   .landing section { padding-left: 20px; padding-right: 20px; }
   .guides .wrap-wide { flex-direction: column; align-items: flex-start; }
   .launch { font-size: 12px; }

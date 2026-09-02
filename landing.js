@@ -14,6 +14,7 @@
   // One toggle moves all three plan cards. Set false to let cards differ.
   var SYNC_FUNDING = true;
   var REDUCED = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (!REDUCED) document.documentElement.classList.add('js');
   var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function el(tag, className, text) {
@@ -188,11 +189,24 @@
       cards.forEach(function (card) { renderCard(card, true); });
     }).catch(function () { /* stays in preview */ });
   }
-  var pricingGrid = document.getElementById('plans');
-  if (pricingGrid) {
-    if (REDUCED) pricingGrid.classList.add('in');
-    else { pricingGrid.classList.add('pre'); observe(pricingGrid, function () { pricingGrid.classList.add('in'); }, null, 0.2); }
-  }
+
+  // ---- Scroll reveal ---------------------------------------------------------
+  // Everything marked data-reveal rises in as it enters the viewport and resets
+  // when it leaves, so scrolling back up plays it again. Group children stagger.
+  (function () {
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+    if (!targets.length || REDUCED || !('IntersectionObserver' in window)) { targets.forEach(function (t) { t.classList.add('in'); }); return; }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal-group]'), function (group) {
+      Array.prototype.forEach.call(group.querySelectorAll('[data-reveal]'), function (child, i) { child.style.setProperty('--reveal-delay', (i * 80) + 'ms'); });
+    });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) entry.target.classList.add('in');
+        else if (entry.boundingClientRect.top > 0) entry.target.classList.remove('in'); // left below the fold: arm again
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(function (t) { io.observe(t); });
+  })();
 
   // ---- Scenario renderer (shared by the roles phone and the hero phone) ------
   function bubble(kind, text, from) {

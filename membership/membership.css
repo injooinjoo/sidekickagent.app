@@ -6,9 +6,6 @@
  * different product. Keep additions scoped to the configurator and summary. */
 button, input { font: inherit; }
 
-/* The configurator needs a wider measure than the policy pages, so the shared
-   header widens with it rather than floating over a narrower column. */
-.site-header { max-width: 960px; }
 .page-shell { max-width: 960px; margin: 0 auto; padding: 40px 22px 74px; }
 .intro { max-width: 660px; margin-bottom: 34px; }
 .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .1em; }
