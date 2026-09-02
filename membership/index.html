@@ -3,7 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; object-src 'none'" />
+  <!-- js.tosspayments.com is the only third party this page may load, and the
+       script is fetched on demand rather than on every visit. The card window
+       Toss opens lives on its own domains, so those are the frame/form targets;
+       nothing else is reachable. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
   <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="Sidekick 멤버십을 플랜과 AI 계정 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
@@ -36,7 +40,6 @@
       <p class="eyebrow">SIDEKICK MEMBERSHIP</p>
       <h1 id="page-title">멤버십을 순서대로 구성해요</h1>
       <p>업무량과 AI 계정을 차례로 고르면 최종 금액이 바로 정리돼요. 자료 보관과 실행·보안·모니터링은 어떤 구성에서도 Sidekick 클라우드가 맡아요.</p>
-      <p class="promo-line"><strong>지금 시작하면 어떤 구성이든 첫 3개월 25% 할인</strong> — 4개월째부터 정상가로 돌아가요.</p>
     </section>
 
     <div class="purchase-layout">
@@ -79,12 +82,12 @@
             <button class="option-card is-selected" type="button" data-funding="included" role="radio" aria-checked="true">
               <span class="radio-mark" aria-hidden="true"></span>
               <span class="option-copy"><strong>Sidekick AI로 시작</strong><small>따로 준비할 것 없이 바로 시작해요.</small></span>
-              <span class="option-meta" id="included-price"><strong>첫 3개월 $14</strong><small>이후 $19 / 월</small></span>
+              <span class="option-meta" id="included-price"><strong>—</strong><small>금액 확인 중</small></span>
             </button>
             <button class="option-card" type="button" data-funding="connected" role="radio" aria-checked="false">
               <span class="radio-mark" aria-hidden="true"></span>
               <span class="option-copy"><span class="title-row"><strong>내 AI 계정 사용</strong><em class="warm-badge">연결 필요</em></span><small>이미 쓰는 AI 계정을 연결해 사용해요.</small></span>
-              <span class="option-meta" id="connected-price"><strong>첫 3개월 $9</strong><small>이후 $13 / 월</small></span>
+              <span class="option-meta" id="connected-price"><strong>—</strong><small>금액 확인 중</small></span>
             </button>
           </div>
           <div class="disclosure" role="note">
@@ -107,9 +110,9 @@
               <div><dt>AI 사용료</dt><dd id="summary-ai-fee">멤버십에 포함</dd></div>
             </dl>
             <div class="price-block">
-              <span id="price-label">첫 3개월</span>
-              <strong><span id="summary-price">$14</span><small>/ 월</small></strong>
-              <p id="after-price">4개월 이후 $19 / 월</p>
+              <span id="price-label">매월</span>
+              <strong><span id="summary-price">—</span><small>/ 월</small></strong>
+              <p id="after-price">금액을 불러오고 있어요.</p>
             </div>
 
             <div class="auth-panel" id="auth-panel">
@@ -132,19 +135,25 @@
               <p class="form-status" id="auth-status" aria-live="polite"></p>
             </div>
 
+            <section class="subscription-panel" id="subscription-panel" hidden aria-labelledby="subscription-heading">
+              <strong id="subscription-heading">현재 구독</strong>
+              <p id="subscription-line"></p>
+              <p id="subscription-renewal"></p>
+              <button class="cancel-button" id="cancel-button" type="button">다음 결제부터 해지</button>
+            </section>
+
             <button class="checkout-button" id="checkout-button" type="button" disabled>결제 준비 중</button>
-            <button class="portal-button" id="portal-button" type="button" hidden>구독 관리</button>
             <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
           </div>
         </section>
-        <p class="summary-footnote" id="annual-note" hidden>연간 결제로 바꾸면 열 달 요금으로 열두 달을 써요. 결제 화면에서 바로 고를 수 있어요.</p>
-        <p class="summary-footnote">표시 금액은 USD 기준이며 세금, 통화, 최종 청구 금액은 결제 화면에서 확인해요. AI 제공업체 비용은 별도일 수 있어요. 앱에서는 결제하지 않으며, 이 페이지가 유일한 결제 창구예요.</p>
+        <p class="summary-footnote">표시 금액은 원(KRW) 기준 월 정기결제 금액이에요. 카드 정보는 사이드킥이 아니라 토스페이먼츠 카드 등록창에 입력해요. AI 제공업체 비용은 별도일 수 있어요. 앱에서는 결제하지 않으며, 이 페이지가 유일한 결제 창구예요.</p>
+        <p class="summary-footnote">해지는 이 페이지에서 바로 할 수 있어요. 해지하면 다음 달부터 결제되지 않고, 이미 결제한 이번 달은 끝날 때까지 그대로 쓸 수 있어요.</p>
       </aside>
     </div>
 
     <section class="platform-note">
       <strong>앱 안에는 결제 화면이 없어요. 여기가 유일한 결제 창구예요.</strong>
-      <p>앱의 내 정보 &gt; 계정 &gt; 멤버십에서 '한도 변경'을 누르면 기본 브라우저로 이 페이지가 열려요. 결제와 구독 관리는 모두 Stripe의 안전한 결제 화면과 구독 관리 화면에서 해요.</p>
+      <p>앱의 내 정보 &gt; 계정 &gt; 멤버십에서 '한도 변경'을 누르면 기본 브라우저로 이 페이지가 열려요. 카드 등록은 토스페이먼츠 결제창에서 하고, 구독 확인과 해지는 로그인한 이 페이지에서 해요.</p>
     </section>
 
     <footer class="footer">

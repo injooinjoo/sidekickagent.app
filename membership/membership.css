@@ -74,10 +74,15 @@ label { display: block; margin-bottom: 5px; color: #5d574f; font-size: 12px; fon
 input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2c7; border-radius: 11px; background: white; color: var(--ink); }
 .form-row button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: #5f5a52; color: white; font-size: 12px; font-weight: 750; cursor: pointer; }
 .form-status { min-height: 18px; margin: 8px 0 0 !important; font-size: 12px; }
-.checkout-button, .portal-button { width: 100%; min-height: 52px; border: 0; border-radius: 15px; font-weight: 800; cursor: pointer; }
+.checkout-button, .cancel-button { width: 100%; min-height: 52px; border: 0; border-radius: 15px; font-weight: 800; cursor: pointer; }
 .checkout-button { background: var(--ink); color: white; font-size: 16px; box-shadow: 0 3px 10px rgba(40,34,28,.15); }
 .checkout-button:disabled { background: #b8b3ab; cursor: not-allowed; box-shadow: none; }
-.portal-button { border: 1px solid var(--line); background: white; color: #4f4a44; }
+.cancel-button { min-height: 44px; border: 1px solid var(--line); background: white; color: #4f4a44; font-size: 13px; }
+/* Existing subscribers see their own state before they see a purchase button,
+   because for them this page is a management screen, not a shop. */
+.subscription-panel { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.subscription-panel strong { font-size: 13px; }
+.subscription-panel p { margin: 0; font-size: 13px; color: var(--muted); }
 .checkout-status { margin: -7px 0 0; min-height: 19px; color: var(--muted); font-size: 12px; text-align: center; }
 .checkout-status.is-error, .form-status.is-error { color: #9a3f35; }
 .summary-footnote { margin: 10px 4px 0; color: var(--soft); font-size: 11px; }

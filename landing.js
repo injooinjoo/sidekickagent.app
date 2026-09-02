@@ -23,8 +23,15 @@
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
-  function money(value) { return '$' + value; }
-  function pair(card, funding) { return (card.getAttribute('data-' + funding) || '').split(',').map(Number); }
+  function money(value) { return Number(value).toLocaleString('ko-KR') + '\uc6d0'; }
+  // Korean won, served by the backend. `catalog` stays empty until
+  // /membership/toss/config answers, and an empty catalog prints no number at
+  // all rather than a placeholder somebody could mistake for a price.
+  var catalog = {};
+  function priceOf(card, funding) {
+    var amount = catalog[card.getAttribute('data-plan') + ':' + funding];
+    return typeof amount === 'number' && amount > 0 ? amount : null;
+  }
   function raf(fn) { return window.requestAnimationFrame ? window.requestAnimationFrame(fn) : setTimeout(fn, 16); }
   function observe(target, onEnter, onLeave, threshold) {
     if (!('IntersectionObserver' in window)) { onEnter(); return; }
@@ -97,9 +104,9 @@
   };
 
   // ---- Pricing ---------------------------------------------------------------
-  // Each card carries its own numbers as data attributes; the guard test reads
-  // the same attributes. Sales stay "preview" until the server says checkout
-  // is live, matching the fail-closed button on the membership page.
+  // No card carries a number. Every figure here comes from the KRW catalog the
+  // backend serves, and sales stay "preview" until the server says checkout is
+  // live, matching the fail-closed button on the membership page.
   var salesOpen = false;
   var cards = Array.prototype.slice.call(document.querySelectorAll('.plan[data-plan]'));
   function swapText(node, value) {
@@ -126,11 +133,9 @@
   }
   function renderCard(card, instant) {
     var funding = card.getAttribute('data-funding-selected') || 'included';
-    var prices = pair(card, funding);
-    var first = prices[0], after = prices[1];
-    card.rollers.price.set(money(first), instant);
-    card.rollers.after.set(money(after), instant);
-    card.querySelector('[data-role="price-sub"]').classList.toggle('same', first === after);
+    var amount = priceOf(card, funding);
+    card.rollers.price.set(amount === null ? '\u2014' : money(amount), instant);
+    card.querySelector('[data-role="price-sub"]').hidden = amount === null;
     var buy = card.querySelector('[data-role="buy"]');
     buy.setAttribute('href', '/membership/?plan=' + card.getAttribute('data-plan') + '&funding=' + funding);
     var label = salesOpen ? '구매하기' : '구성 미리 보기';
@@ -142,9 +147,11 @@
     if (instant) aiLine.textContent = aiText; else crossfade(aiLine, aiText);
     var saving = card.querySelector('[data-role="save"]');
     if (saving) {
-      var diff = pair(card, 'included')[0] - pair(card, 'connected')[0];
-      saving.textContent = '월 ' + money(diff) + ' 절감';
-      saving.hidden = funding !== 'connected';
+      var included = priceOf(card, 'included');
+      var connected = priceOf(card, 'connected');
+      var known = included !== null && connected !== null && included > connected;
+      if (known) saving.textContent = '월 ' + money(included - connected) + ' 절감';
+      saving.hidden = funding !== 'connected' || !known;
     }
     Array.prototype.forEach.call(card.querySelectorAll('[data-funding]'), function (button) {
       button.setAttribute('aria-pressed', String(button.getAttribute('data-funding') === funding));
@@ -159,10 +166,7 @@
     });
   }
   cards.forEach(function (card) {
-    card.rollers = {
-      price: new Roller(card.querySelector('[data-role="price"]')),
-      after: new Roller(card.querySelector('[data-role="price-after"]'))
-    };
+    card.rollers = { price: new Roller(card.querySelector('[data-role="price"]')) };
     var seg = card.querySelector('.seg');
     if (seg && !seg.querySelector('.seg-pill')) seg.insertBefore(el('i', 'seg-pill'), seg.firstChild);
     Array.prototype.forEach.call(card.querySelectorAll('[data-funding]'), function (button) {
@@ -175,19 +179,26 @@
   });
   // The feature card quotes the same saving the plan card sells, read from the
   // plan card's attributes so the two can never disagree.
-  Array.prototype.forEach.call(document.querySelectorAll('[data-role="model-saving"]'), function (label) {
-    var ref = document.querySelector('.plan[data-plan="' + label.getAttribute('data-plan-ref') + '"]');
-    if (!ref) return;
-    label.textContent = money(pair(ref, 'included')[0]) + ' → ' + money(pair(ref, 'connected')[0]);
-  });
+  function renderModelSaving() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-role="model-saving"]'), function (label) {
+      var ref = document.querySelector('.plan[data-plan="' + label.getAttribute('data-plan-ref') + '"]');
+      if (!ref) return;
+      var included = priceOf(ref, 'included');
+      var connected = priceOf(ref, 'connected');
+      label.textContent = included === null || connected === null ? '' : money(included) + ' \u2192 ' + money(connected);
+    });
+  }
+  renderModelSaving();
   if (window.fetch && cards.length) {
-    fetch(API_ORIGIN + '/membership/stripe/config').then(function (response) {
+    fetch(API_ORIGIN + '/membership/toss/config').then(function (response) {
       return response.ok ? response.json() : {};
     }).then(function (config) {
       salesOpen = Boolean(config) && config.sales_enabled === true && config.mode === 'live';
+      if (config && config.plans && typeof config.plans === 'object') catalog = config.plans;
       document.getElementById('pricing-closed').hidden = salesOpen;
       cards.forEach(function (card) { renderCard(card, true); });
-    }).catch(function () { /* stays in preview */ });
+      renderModelSaving();
+    }).catch(function () { /* no catalog, no price, stays in preview */ });
   }
 
   // ---- Scroll reveal ---------------------------------------------------------
@@ -599,7 +610,10 @@
       save.classList.add('show');
       var ref = document.querySelector('.plan[data-plan="' + saving.getAttribute('data-plan-ref') + '"]');
       if (!ref) return;
-      var from = pair(ref, 'included')[0], to = pair(ref, 'connected')[0];
+      var from = priceOf(ref, 'included'), to = priceOf(ref, 'connected');
+      // No catalog yet means no figure to roll. The animation is decoration;
+      // inventing a number to decorate with is not.
+      if (from === null || to === null) { saving.textContent = ''; return; }
       saving.textContent = money(from) + ' → ' + money(from);
       setTimeout(function () { saving.textContent = money(from) + ' → ' + money(to); saving.classList.add('rolled'); }, 250);
       setTimeout(function () { saving.classList.remove('rolled'); }, 900);
