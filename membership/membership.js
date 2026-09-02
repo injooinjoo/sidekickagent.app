@@ -277,6 +277,15 @@
   if (query.get('from') === 'app') $('app-hint').hidden = false;
   if (query.get('checkout') === 'success') $('checkout-status').textContent = '결제를 확인하고 있어요. 구독 권한은 안전한 확인이 끝난 뒤 반영돼요.';
   if (query.get('checkout') === 'cancelled') $('checkout-status').textContent = '결제를 취소했어요. 청구되지 않았어요.';
+  // The landing page's plan cards link here with the plan and AI-account choice
+  // already made (/membership/?plan=eagle&funding=connected). Preselect exactly
+  // that and nothing more: a value this page does not sell falls back to the
+  // defaults, Free still cannot take a connected account (render() keeps that
+  // rule), and no checkout starts without the person clicking the button.
+  const requestedPlan = query.get('plan');
+  if (requestedPlan && Object.prototype.hasOwnProperty.call(PLANS, requestedPlan)) state.plan = requestedPlan;
+  const requestedFunding = query.get('funding');
+  if (requestedFunding === 'included' || requestedFunding === 'connected') state.funding = requestedFunding;
 
   render();
   loadBillingConfig();
