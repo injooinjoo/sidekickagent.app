@@ -164,6 +164,7 @@ li + li { margin-top: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
+
 /* ------------------------------------------------------------------ */
 /* Homepage (landing).
  * Scoped under body.landing so policy/membership pages keep the 860px
@@ -171,7 +172,15 @@ li + li { margin-top: 8px; }
  * the product in a frame, one statement card, a feature grid, roles, pricing,
  * download, guides, FAQ, closing call. Product visuals are built from markup
  * in the app's own palette rather than screenshots, so they cannot go stale
- * against the app's theme. */
+ * against the app's theme.
+ *
+ * Colour rules (2026-09): the page alternates only two light tones — the page
+ * ground (--bg) and white (--card) — separated by hairlines. Black (--ink) is
+ * reserved for buttons, the user's speech bubble and the phone frames; the
+ * one dark block inside the phone is the app's own briefing card and is kept
+ * because the mock mirrors the app, not the site. Brand orange stays on small
+ * signals (badge, mark, selected pill) — never on a surface. Every text/ground
+ * pair below is held to 4.5:1 by test_landing_contract. */
 body.landing { background: var(--bg); }
 body.landing .site-header {
   position: sticky;
@@ -204,11 +213,21 @@ body.landing .site-header {
 .header-cta:hover { background: #2b3036; color: #fff; }
 
 body.landing .home { max-width: none; margin: 0; padding: 0; }
-.landing section { margin: 0; border: 0; }
+/* Two tones, alternating: ground sections carry white cards, white sections
+   carry ground-coloured cards. Hairlines mark the section edges. */
+.landing section { margin: 0; border: 0; padding: clamp(56px, 8vw, 96px) 24px; }
+.landing .tone-white, .landing .statement, .landing .roles, .landing .download, .landing .start {
+  background: var(--card);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
 .landing .wrap { max-width: 1024px; margin: 0 auto; padding: 0 24px; }
 .landing .wrap-wide { max-width: 1232px; margin: 0 auto; padding: 0 24px; }
 .landing .section-h { font-size: clamp(28px, 3.4vw, 36px); line-height: 1.2; letter-spacing: -0.025em; font-weight: 600; margin: 0; }
 .landing .section-p { margin: 14px 0 0; font-size: 17px; line-height: 1.7; color: var(--muted); text-wrap: pretty; }
+/* One lead sentence per block is the thing to read; it is bold ink, the rest
+   stays muted. */
+.landing .section-p b, .landing .feature > p b, .role-desc b { color: var(--ink); font-weight: 600; }
 .landing .sec-head { max-width: 672px; margin: 0 auto; text-align: center; }
 .landing .sec-head .section-p { font-size: 18px; }
 .text-link { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; white-space: nowrap; }
@@ -217,13 +236,13 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 
 /* Small status badges reuse the app's status tokens: attention amber for
    waiting on a person, teal for work in progress, green for finished, gray for
-   idle. */
+   idle, brand for the model that is doing the work. */
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; white-space: nowrap; line-height: 1.4; }
 .badge.wait { background: var(--warning-bg); color: var(--warning); }
 .badge.work { background: var(--work-bg); color: var(--work); }
 .badge.done { background: var(--positive-bg); color: var(--positive); }
-.badge.idle { background: var(--sunken); color: var(--muted); }
-.badge.brand { background: var(--accent-soft); color: var(--accent); }
+.badge.idle { background: var(--sunken); color: var(--ink-soft); }
+.badge.brand, .badge.model { background: var(--accent-soft); color: var(--accent); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--soft); flex: 0 0 auto; }
 .dot.attn { background: #c1741a; }
 .dot.work { background: #3e8da8; }
@@ -231,8 +250,8 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .avatar.light { background: var(--sunken); color: var(--ink); }
 
 /* Hero */
-.landing .hero { max-width: none; padding: clamp(64px, 9vw, 120px) 24px 0; text-align: center; }
-.hero-inner { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+.landing .hero { max-width: none; padding: clamp(64px, 9vw, 120px) 24px clamp(40px, 6vw, 64px); text-align: center; }
+.hero-inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
 .launch {
   display: inline-flex;
   align-items: center;
@@ -260,38 +279,46 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   font-weight: 700;
   letter-spacing: 0.06em;
 }
-.launch .go { width: 24px; height: 24px; border-radius: 50%; background: var(--sunken); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
+.launch .go { width: 24px; height: 24px; border-radius: 50%; background: var(--sunken); color: var(--ink-soft); display: inline-flex; align-items: center; justify-content: center; }
 .launch .go svg { width: 12px; height: 12px; }
 .landing .hero h1 { font-size: clamp(38px, 6.4vw, 64px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 700; margin: 22px 0 0; }
 .h1-mark { display: inline-flex; align-items: center; justify-content: center; width: 0.9em; height: 0.9em; margin: 0 0.12em 0 0; vertical-align: -0.08em; border-radius: 50%; background: var(--brand); color: var(--ink); }
 .h1-mark svg { width: 0.5em; height: 0.5em; }
-.landing .hero .lead { font-size: clamp(16px, 2vw, 18px); line-height: 1.7; color: var(--muted); margin: 18px auto 0; max-width: 600px; text-wrap: pretty; }
-.landing .hero .actions { justify-content: center; margin-top: 28px; }
+.landing .hero .lead { font-size: clamp(17px, 2.1vw, 20px); line-height: 1.6; color: var(--muted); margin: 18px auto 0; max-width: 600px; text-wrap: pretty; }
+/* The four strengths as chips, right under the promise: read them without
+   scrolling. Icons are ink-muted, not brand, so the mark stays the one orange
+   point in the viewport. */
+.hero-chips { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.hero-chips li { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 7px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.hero-chips svg { width: 15px; height: 15px; color: var(--muted); flex: 0 0 auto; }
+.landing .hero .actions { justify-content: center; margin-top: 26px; }
 
-/* The product, in a frame: three screens from the app built in markup. On a
-   phone only the middle screen fits, and it is the conversation — the one that
-   explains the product without the other two. */
+/* The product, in a frame: three screens from the app built in markup on a
+   light stage. Only the phone frames are dark. On a phone only the middle
+   screen fits, and it is the conversation — the one that explains the product
+   without the other two. */
 .hero-media {
   position: relative;
   max-width: 976px;
   height: clamp(440px, 52vw, 620px);
   margin: clamp(40px, 6vw, 64px) auto 0;
   border-radius: 24px;
-  background: var(--dark);
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--sunken) 100%);
+  border: 1px solid var(--line-soft);
   overflow: hidden;
   text-align: left;
 }
-.stage { position: absolute; inset: 44px 0 0; display: flex; justify-content: center; align-items: flex-start; gap: 32px; padding: 0 24px; }
+.stage { position: absolute; inset: 44px 0 0; display: flex; justify-content: center; align-items: flex-start; gap: 24px; padding: 0 24px; }
 .phone {
-  width: 292px;
+  width: 296px;
   height: 100%;
   flex: 0 0 auto;
   background: var(--bg);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 9px solid var(--ink);
   border-bottom: 0;
-  border-radius: 40px 40px 0 0;
-  padding: 12px 14px 0;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+  border-radius: 44px 44px 0 0;
+  padding: 10px 12px 0;
+  box-shadow: 0 24px 60px rgba(26, 29, 33, 0.18);
   overflow: hidden;
   color: var(--ink);
   font-size: 12.5px;
@@ -303,9 +330,19 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .sbar i { display: inline-block; width: 60px; height: 14px; border-radius: 999px; background: var(--ink); }
 .sbar b { display: inline-flex; gap: 3px; align-items: flex-end; height: 10px; }
 .sbar b span { width: 3px; background: var(--ink); border-radius: 1px; }
-.scr-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 6px 12px; }
-.scr-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+/* The app's shared tab header (AppHeader): avatar with the usage ring on the
+   left, a large title, an optional subtitle, hairline below. */
+.scr-head { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 2px 4px 8px; margin-bottom: 8px; border-bottom: 1px solid var(--hairline); }
+.scr-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--brand); border-right-color: var(--line); border-bottom-color: var(--line); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.scr-avatar i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--muted); display: block; }
+.scr-titles { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.scr-titles small { font-size: 10px; color: var(--muted); margin-top: -1px; }
+.scr-title { display: inline-flex; align-items: center; gap: 4px; font-size: 19px; line-height: 1.2; font-weight: 700; letter-spacing: -0.03em; flex: 1; min-width: 0; }
+.scr-titles .scr-title { flex: 0 0 auto; }
+.scr-title svg { width: 12px; height: 12px; color: var(--muted); }
+.scr-head .badge { margin-left: auto; }
 .pill-free { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--card); }
+/* The app's own briefing card is ink — the mock mirrors the app. */
 .briefing { background: var(--ink); color: #fff; border-radius: 18px; padding: 16px; }
 .briefing .lbl { font-size: 11px; color: var(--dark-muted); }
 .briefing h4 { margin: 4px 0 12px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
@@ -331,12 +368,12 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .msg.ai { background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
 .msg .from { display: block; font-size: 10.5px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
 .prog, .res, .appr { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 10px; }
-.prog .lbl { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.prog .lbl { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .prog div { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; }
 .res .kicker { font-size: 10.5px; font-weight: 700; color: var(--positive); }
 .res h5 { margin: 3px 0 8px; font-size: 13.5px; font-weight: 700; }
 .res dl { margin: 0; }
-.res dt { font-size: 10.5px; font-weight: 700; color: var(--soft); margin-top: 6px; }
+.res dt { font-size: 10.5px; font-weight: 700; color: var(--muted); margin-top: 6px; }
 .res dd { margin: 1px 0 0; font-size: 12px; color: var(--ink-soft); }
 .appr { border-radius: 18px; padding: 14px; margin-top: 6px; }
 .appr .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -349,10 +386,10 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .btn-row span { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .btn-row .ink { background: var(--ink); color: #fff; }
 .btn-row .line { border: 1px solid var(--line); color: var(--ink); background: var(--card); }
-.phone .note { margin-top: 12px; font-size: 11px; color: var(--soft); text-align: center; }
+.phone .note { margin-top: 12px; font-size: 11px; color: var(--muted); text-align: center; }
 
-/* Statement */
-.statement { padding: clamp(40px, 6vw, 64px) 24px 0; }
+/* Statement: a white section carrying a ground-toned card. The thread pop-out
+   keeps the app's bubble colours — ink for the person, white for the employee. */
 .statement-card {
   position: relative;
   overflow: hidden;
@@ -361,25 +398,24 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   margin: 0 auto;
   padding: clamp(32px, 5vw, 56px);
   border-radius: 24px;
-  background: var(--dark);
-  color: #fff;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
   display: flex;
   align-items: center;
 }
 .statement-copy { position: relative; z-index: 1; max-width: 448px; }
-.statement-card .section-h { color: #fff; }
-.statement-card .section-p { color: var(--dark-muted); font-size: 16.5px; }
+.statement-card .section-p { font-size: 17px; }
 .statement-pop { position: absolute; right: clamp(24px, 4vw, 56px); top: 50%; transform: translateY(-50%); width: min(420px, 44%); }
-.pop-thread { background: var(--dark-card); border: 1px solid var(--dark-line); border-radius: 20px; padding: 16px; font-size: 13px; line-height: 1.5; }
+.pop-thread { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; font-size: 13px; line-height: 1.5; box-shadow: var(--shadow-sm); }
 .pop-msg { max-width: 92%; padding: 10px 13px; border-radius: 16px; margin-top: 10px; }
 .pop-msg:first-child { margin-top: 0; }
-.pop-msg.me { margin-left: auto; background: #fff; color: var(--ink); border-bottom-right-radius: 4px; }
-.pop-msg.ai { background: rgba(255, 255, 255, 0.07); color: #fff; border-bottom-left-radius: 4px; }
-.pop-msg .from { display: block; font-size: 10.5px; font-weight: 700; color: var(--dark-muted); margin-bottom: 2px; }
-.pop-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11.5px; color: var(--dark-muted); }
+.pop-msg.me { margin-left: auto; background: var(--ink); color: #fff; border-bottom-right-radius: 4px; }
+.pop-msg.ai { background: var(--sunken); color: var(--ink); border-bottom-left-radius: 4px; }
+.pop-msg .from { display: block; font-size: 10.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 2px; }
+.pop-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
 
 /* Features */
-.features { padding: clamp(56px, 8vw, 96px) 24px 0; }
 .features .wrap-wide { display: flex; flex-direction: column; gap: 40px; }
 .feature-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .feature { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-direction: column; overflow: hidden; }
@@ -395,26 +431,34 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .ui-row .sched { margin-left: auto; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
 .ui-ico { width: 30px; height: 30px; border-radius: 9px; background: var(--card); border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; color: var(--muted); flex: 0 0 auto; }
 .ui-ico svg { width: 15px; height: 15px; }
-.ask { margin-top: 10px; display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; }
-.ask span:first-child { flex: 1; }
-.mini { padding: 6px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
-.mini.ink { background: var(--ink); color: #fff; }
-.mini.line { border: 1px solid var(--line); color: var(--ink); background: var(--card); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 2px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; font-weight: 500; }
-.chip svg { width: 12px; height: 12px; color: var(--positive); }
-.mem-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--muted); }
-.toggle { width: 34px; height: 20px; border-radius: 999px; background: var(--ink); position: relative; flex: 0 0 auto; }
-.toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
-.flow-line { list-style: none; margin: 0; padding: 0; }
-.flow-line li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; position: relative; margin: 0; font-size: 13px; color: var(--ink); }
-.flow-line li + li::before { content: ""; position: absolute; left: 18px; top: -9px; height: 16px; width: 2px; background: var(--line); }
-.flow-line li .avatar { width: 30px; height: 30px; font-size: 11px; }
-.flow-line li small { display: block; color: var(--muted); font-size: 11.5px; }
-.flow-line li .badge { margin-left: auto; }
+/* Card 1 — the model row. */
+.model-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 2px; }
+.mchip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 12.5px; font-weight: 600; color: var(--muted); transition: transform 0.28s, border-color 0.28s, color 0.28s; }
+.mchip.on { border-color: var(--brand); color: var(--ink); transform: scale(1.06); }
+.model-now { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.model-now b { color: var(--ink); font-weight: 600; }
+.model-save { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--muted); }
+.model-save b { color: var(--ink); font-weight: 700; }
+/* Card 2 — the server you no longer run, then the one made for you. */
+.srv-old { display: flex; align-items: center; gap: 10px; padding: 6px 4px 10px; border-bottom: 1px solid var(--line-soft); }
+.srv-old b { display: block; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: line-through; }
+.srv-old small { display: block; font-size: 11.5px; color: var(--muted); }
+.srv-old .srv-x { margin-left: auto; font-weight: 700; color: var(--muted); }
+.srv-card { margin-top: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.srv-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.srv-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.srv-row span { width: 58px; flex: 0 0 auto; }
+.bar { flex: 1; display: block; height: 6px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+.bar b { display: block; height: 100%; border-radius: 999px; background: var(--ink); }
+/* Card 3 — the isolation ring. */
+.iso-art { display: block; width: 100%; height: auto; }
+.iso-lbl { text-align: center; margin-top: 4px; }
+/* Card 4 — the routine that reports back. */
+.rt-result { margin-top: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.rt-result .kicker { font-size: 10.5px; font-weight: 700; color: var(--positive); }
+.rt-result b { font-size: 13px; }
 
 /* Roles */
-.roles { padding: clamp(56px, 8vw, 96px) 24px 0; }
 .roles .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
 .role-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
 .role-pill { font: inherit; height: 34px; padding: 0 12px 0 5px; border-radius: 999px; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; letter-spacing: -0.01em; transition: background 0.15s, color 0.15s; }
@@ -423,14 +467,13 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .role-pill .rp-av { width: 24px; height: 24px; border-radius: 50%; background: var(--sunken); color: var(--ink); font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
 .role-pill[aria-pressed="true"] .rp-av { background: var(--brand); color: var(--ink); }
 .role-desc { margin: 24px 0 0; font-size: 16px; line-height: 1.65; min-height: 6.5rem; max-width: 448px; color: var(--muted); }
-.role-desc b { color: var(--ink); font-weight: 600; }
-.role-card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: clamp(22px, 3vw, 28px); min-height: 440px; }
+.role-card { background: var(--bg); border: 1px solid var(--line); border-radius: 24px; padding: clamp(22px, 3vw, 28px); min-height: 440px; }
 .role-card .head { display: flex; align-items: center; gap: 14px; }
 .role-card .head .avatar { width: 46px; height: 46px; font-size: 16px; }
 .role-card .head b { display: block; font-size: 17px; }
 .role-card .head small { color: var(--muted); font-size: 13px; }
 .role-card .head .badge { margin-left: auto; }
-.role-card h4 { margin: 24px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--soft); letter-spacing: 0.04em; }
+.role-card h4 { margin: 24px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
 .role-card ul { list-style: none; margin: 0; padding: 0; }
 .role-card li { display: flex; gap: 8px; align-items: flex-start; font-size: 14.5px; color: var(--ink-soft); margin: 0 0 8px; line-height: 1.5; }
 .role-card li svg { width: 14px; height: 14px; color: var(--positive); flex: 0 0 auto; margin-top: 4px; }
@@ -438,7 +481,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .role-card blockquote { margin: 0; padding: 12px 14px; border-radius: 16px 16px 16px 4px; background: var(--ink); color: #fff; font-size: 13.5px; line-height: 1.5; }
 
 /* Pricing */
-.pricing { padding: clamp(56px, 8vw, 96px) 24px 0; }
 .pricing-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; max-width: 1232px; margin: 0 auto; }
 .pricing-head .section-p { max-width: 560px; }
 .pricing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1232px; margin: 32px auto 0; }
@@ -447,43 +489,45 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .plan-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
 .plan-name em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 999px; padding: 2px 8px; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--sunken); }
-.seg button { font: inherit; height: 26px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.seg button { font: inherit; height: 26px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.seg button em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--positive); }
 .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(26, 29, 33, 0.1); }
 .plan-desc { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
 .price { display: flex; align-items: baseline; gap: 6px; margin: 20px 0 0; }
 .price b { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
-.price span { color: var(--muted); font-size: 14px; }
+.price > span { color: var(--muted); font-size: 14px; }
 .price-sub { margin: 8px 0 0; font-size: 13px; color: var(--muted); min-height: 1.4em; }
 .plan .buy { margin-top: 20px; width: 100%; }
 .plan .inc { margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line-soft); }
-.inc-lbl { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--soft); letter-spacing: 0.04em; }
+.inc-lbl { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
 .inc ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .inc li { display: flex; gap: 8px; font-size: 14px; color: var(--ink-soft); line-height: 1.45; margin: 0; }
 .inc li svg { width: 14px; height: 14px; flex: 0 0 auto; margin-top: 3px; color: var(--positive); }
-.pricing-foot { max-width: 1232px; margin: 20px auto 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
-.pricing-foot p { margin: 0; font-size: 14px; color: var(--muted); }
-.pricing-closed { max-width: 1232px; margin: 12px auto 0; padding: 12px 16px; border-radius: 14px; background: var(--sunken); font-size: 13.5px; color: var(--ink-soft); }
-.pricing-note { max-width: 1232px; margin: 14px auto 0; font-size: 12.5px; color: var(--soft); }
+/* The small print folds into one line; open it for the rest. */
+.pricing-more { max-width: 1232px; margin: 20px auto 0; font-size: 13.5px; color: var(--muted); }
+.pricing-more summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-weight: 500; }
+.pricing-more summary::-webkit-details-marker { display: none; }
+.pricing-more summary::after { content: ""; width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform 0.2s; flex: 0 0 auto; margin: -4px 0 0 2px; }
+.pricing-more[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.pricing-more p { margin: 10px 0 0; font-size: 13.5px; color: var(--muted); }
 
 /* Download */
-.download { padding: clamp(56px, 8vw, 96px) 24px 0; }
 .download .wrap-wide { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
 .dl-cards { display: grid; gap: 12px; }
-.dl { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
+.dl { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
 .dl .ui-ico { width: 42px; height: 42px; border-radius: 12px; }
 .dl .ui-ico svg { width: 20px; height: 20px; }
 .dl b { display: block; font-size: 15px; }
 .dl small { color: var(--muted); font-size: 13px; }
 .dl .badge { margin-left: auto; }
 
-/* Guides */
-.guides { padding: clamp(40px, 6vw, 64px) 24px 0; }
+/* Guides: a short band on the ground, followed by the FAQ on the same ground. */
+.landing .guides { padding: clamp(40px, 6vw, 64px) 24px 0; }
 .guides .wrap-wide { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 28px 32px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); }
 .guides h2 { font-size: 22px; margin: 0; letter-spacing: -0.02em; }
 .guides p { margin: 4px 0 0; font-size: 15px; }
 
 /* FAQ */
-.faq { padding: clamp(56px, 8vw, 96px) 24px 0; }
 .faq .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 .faq .section-h { position: sticky; top: 88px; }
 .faq details { border-bottom: 1px solid var(--line); }
@@ -494,7 +538,7 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .faq details p { margin: 0 0 20px; font-size: 15px; line-height: 1.7; color: var(--muted); }
 
 /* Closing call */
-.start { padding: clamp(72px, 10vw, 120px) 24px 0; text-align: center; }
+.landing .start { padding: clamp(72px, 10vw, 120px) 24px clamp(48px, 6vw, 72px); text-align: center; border-bottom: 0; }
 .start .section-p { max-width: 420px; margin-left: auto; margin-right: auto; }
 .start .actions { justify-content: center; margin-top: 24px; }
 .start-art { max-width: 976px; margin: clamp(40px, 6vw, 72px) auto 0; padding: 0 24px; }
@@ -502,8 +546,9 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 
 /* Footer (landing): the same six links as every other page, grouped. */
 .landing .footer {
-  margin: clamp(40px, 6vw, 64px) 0 0;
+  margin: 0;
   padding: 40px max(24px, calc((100% - 1232px) / 2)) 56px;
+  border-top: 1px solid var(--hairline);
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 40px;
@@ -511,9 +556,9 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 }
 .foot-brand img { display: block; width: auto; height: 22px; }
 .foot-brand p { margin: 12px 0 0; font-size: 13.5px; color: var(--muted); }
-.foot-brand small { display: block; margin: 24px 0 0; color: var(--soft); font-size: 12.5px; }
+.foot-brand small { display: block; margin: 24px 0 0; color: var(--muted); font-size: 12.5px; }
 .foot-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 200px)); gap: 32px; justify-content: end; }
-.foot-col h4 { margin: 0 0 10px; font-size: 12.5px; font-weight: 700; color: var(--soft); letter-spacing: 0.04em; }
+.foot-col h4 { margin: 0 0 10px; font-size: 12.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
 .landing .foot-col a { display: block; font-size: 14px; font-weight: 500; color: var(--ink-soft); text-decoration: none; padding: 5px 0; }
 .landing .foot-col a:hover { color: var(--ink); }
 .landing .foot-col a[aria-current="page"] { color: var(--ink); }
@@ -538,11 +583,72 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   body.landing .site-header { padding-top: 8px; padding-bottom: 8px; }
   .landing .nav { margin-left: 0; }
   .header-cta { order: 2; }
+  .landing section { padding-left: 20px; padding-right: 20px; }
   .guides .wrap-wide { flex-direction: column; align-items: flex-start; }
   .launch { font-size: 12px; }
+  .hero-chips li { font-size: 12px; padding: 6px 10px; }
   .stage { padding: 0 12px; }
   .ui-row .sched { white-space: normal; text-align: right; max-width: 96px; line-height: 1.35; }
+  .plan-top { flex-direction: column; align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .button, .role-pill, .faq summary::after { transition: none; }
+  .button, .role-pill, .faq summary::after, .pricing-more summary::after, .mchip { transition: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* /use/ pages: one scenario from first setup to the result. Same tones,
+ * same cards; the phone is the landing's role phone made sticky. Generated
+ * from apps/site/roles.json by tools/site/build_use_pages.py. */
+.use-page .use-hero { padding: clamp(48px, 7vw, 88px) 24px clamp(32px, 5vw, 56px); background: var(--card); border-bottom: 1px solid var(--hairline); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.back-link svg { width: 14px; height: 14px; }
+.back-link:hover { color: var(--ink); }
+.use-head { display: flex; align-items: center; gap: 18px; margin-top: 22px; }
+.avatar.big { width: 64px; height: 64px; font-size: 24px; }
+.use-page h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.1; letter-spacing: -0.03em; margin: 0; }
+.use-promise { margin: 8px 0 0; font-size: 17px; color: var(--muted); }
+.use-promise b { color: var(--ink); font-weight: 600; }
+.use-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.use-meta .badge { font-size: 12px; padding: 5px 10px; }
+.use-page .use-hero .actions { margin-top: 24px; }
+.landing .use-story { background: var(--bg); }
+.story-grid { display: grid; grid-template-columns: 340px 1fr; gap: 56px; margin-top: 32px; align-items: start; }
+.story-phone-col { position: sticky; top: 96px; }
+.story-steps { list-style: none; margin: 0; padding: 0; }
+.story-step { display: flex; gap: 16px; align-items: flex-start; min-height: 60vh; margin: 0; padding: 20px 0; opacity: 0.45; }
+.story-step.active { opacity: 1; }
+.story-step:last-child { min-height: 40vh; }
+.step-no { width: 32px; height: 32px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: 0 0 auto; }
+.story-step.active .step-no { background: var(--ink); color: #fff; border-color: var(--ink); }
+.story-step h3 { margin: 4px 0 6px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.story-step p { margin: 0; font-size: 16px; line-height: 1.7; color: var(--muted); }
+.story-step p b { color: var(--ink); font-weight: 600; }
+.landing .use-week { background: var(--card); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.week-grid { margin-top: 28px; display: grid; gap: 6px; max-width: 640px; }
+.week-row { display: grid; grid-template-columns: 48px repeat(7, 1fr); gap: 6px; align-items: center; }
+.week-row.head span { text-align: center; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.week-lbl { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.week-cell { height: 44px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: center; }
+.week-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+.landing .use-samples { background: var(--bg); }
+.sample-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); gap: 20px; margin-top: 28px; }
+.sample { font-size: 12.5px; line-height: 1.45; color: var(--ink); }
+.sample p { font-size: inherit; margin: 0; }
+.sample .appr, .sample .res { margin-top: 0; }
+.landing .use-faq { background: var(--card); border-top: 1px solid var(--hairline); }
+.use-faq .wrap { grid-template-columns: 1fr; gap: 16px; }
+.use-faq .section-h { position: static; }
+.landing .use-index { background: var(--bg); }
+.use-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
+.use-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: border-color 0.15s, transform 0.15s; }
+.use-card:hover { border-color: #c9cfd6; transform: translateY(-1px); color: var(--ink); }
+.use-card-body { flex: 1; display: block; }
+.use-card-body b { display: block; font-size: 15px; }
+.use-card-body small { display: block; color: var(--muted); font-size: 13px; }
+@media (max-width: 860px) {
+  .story-grid { grid-template-columns: 1fr; gap: 24px; }
+  .story-phone-col { top: 72px; z-index: 2; display: flex; justify-content: center; }
+  .story-phone-col .role-phone { height: 360px; }
+  .story-step { min-height: 50vh; }
+  .sample-grid, .use-cards { grid-template-columns: 1fr; }
 }

@@ -1,0 +1,158 @@
+/* Motion layer for sidekickagent.app (landing and /use/ pages).
+ *
+ * Loaded after styles.css. Two easings only: --pop for things that arrive (a
+ * little overshoot) and --ease for things that fade or slide. Loops run 9s,
+ * the hero scenario plays once. The markup is always the finished state of
+ * each scene, so nothing here hides anything unless JavaScript has marked the
+ * element as playing (.play / .pre) — and prefers-reduced-motion turns every
+ * animation and transition off. */
+:root {
+  --pop: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes pop-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(62, 141, 168, 0.45); } 60% { box-shadow: 0 0 0 6px rgba(62, 141, 168, 0); } }
+@keyframes wave { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+@keyframes ring-draw { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
+@keyframes intrude-left { 0% { transform: translate(0, 0); } 70% { transform: translate(56px, 22px); } 100% { transform: translate(-6px, -4px); } }
+@keyframes intrude-right { 0% { transform: translate(0, 0); } 70% { transform: translate(-60px, -30px); } 100% { transform: translate(6px, 4px); } }
+@keyframes tap { 0% { background: transparent; } 40% { background: var(--sunken); } 100% { background: transparent; } }
+
+.pop { animation: pop-in 0.42s var(--pop) both; }
+.fade { opacity: 0 !important; }
+.phone-body, .role-phone { transition: opacity 0.3s var(--ease); }
+.fade-out { opacity: 0; transform: translateY(6px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.spin { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: spin 2.4s linear infinite; }
+.badge.spin-badge { gap: 6px; }
+.btn-row .ink.pressed { background: var(--positive); }
+.xf { opacity: 0; }
+[data-role="model-now"], [data-role="ai-line"] span { display: inline-block; transition: opacity 0.26s var(--ease); }
+.swap-out { opacity: 0; transform: translateY(-6px); filter: blur(4px); }
+.swap-in { opacity: 0; transform: translateY(6px); filter: blur(4px); }
+[data-role="buy-label"], [data-role="buy-mode"] { display: inline-block; transition: opacity 0.22s var(--ease), transform 0.22s var(--ease), filter 0.22s var(--ease); }
+
+/* Number roller: each digit is a 10-line column moved by --n. */
+.roll { display: inline-flex; align-items: flex-start; height: 1em; line-height: 1; overflow: hidden; vertical-align: top; position: relative; }
+.roll .roll-vis { display: inline-flex; align-items: flex-start; height: 1em; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.roll .slot { display: inline-block; height: 1em; overflow: hidden; transition: width 0.3s var(--ease), opacity 0.3s var(--ease); }
+.roll .slot.digit { width: 0.62em; }
+.roll .slot.sym { width: auto; }
+.roll .slot.in { opacity: 0; width: 0; }
+.roll .slot.out { width: 0 !important; opacity: 0; }
+.roll .col { display: flex; flex-direction: column; transform: translateY(calc(-1em * var(--n, 0))); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.roll .slot.now .col { transition: none; }
+.roll .col span { display: block; height: 1em; line-height: 1; }
+
+/* Pricing: sliding segment pill, saving badge, entrance. */
+.seg { position: relative; }
+.seg .seg-pill { position: absolute; top: 3px; left: 0; height: 26px; width: 0; border-radius: 999px; background: var(--card); box-shadow: 0 1px 2px rgba(26, 29, 33, 0.1); transition: transform 0.22s var(--pop), width 0.22s var(--pop); pointer-events: none; }
+.seg .seg-pill.now { transition: none; }
+.seg button { position: relative; z-index: 1; transition: color 0.18s; }
+.seg .seg-pill ~ button[aria-pressed="true"] { background: transparent; box-shadow: none; }
+.plan-save { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; background: var(--positive-bg); color: var(--positive); font-size: 11px; font-weight: 700; animation: pop-in 0.3s var(--pop) both; }
+.plan-save[hidden] { display: none; }
+.price-sub .flat { display: none; }
+.price-sub.same .flat { display: inline; }
+.price-sub.same .intro { display: none; }
+.price-sub b { font-weight: 600; color: var(--ink-soft); }
+.plan .buy small { font-size: 12px; font-weight: 600; opacity: 0.72; margin-left: 2px; color: inherit; }
+.pricing-grid .plan { transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+.pricing-grid.pre .plan { opacity: 0; transform: translateY(18px); }
+.pricing-grid.pre .plan:nth-child(2) { transition-delay: 0.1s; }
+.pricing-grid.pre .plan:nth-child(3) { transition-delay: 0.2s; }
+.pricing-grid.pre .plan[data-plan="birdie"] { transition-delay: 0.15s; }
+.pricing-grid.pre.in .plan { opacity: 1; transform: none; }
+
+/* Roles: pill states, description slide, the phone that plays the scene. */
+.role-pill { transition: background 0.18s, color 0.18s, box-shadow 0.18s; }
+.role-pill .rp-av { transition: background 0.18s, color 0.18s; }
+.role-pill[aria-pressed="true"] { background: var(--card); box-shadow: inset 0 0 0 1px var(--accent-border); }
+.role-pill[aria-pressed="true"] .rp-av { animation: pop-in 0.2s var(--pop); }
+.role-desc .rd { display: block; transition: opacity 0.28s var(--ease), transform 0.28s var(--ease); }
+.role-desc .rd-out { opacity: 0; transform: translateY(-8px); transition-duration: 0.18s; }
+.role-desc .rd-in { opacity: 0; transform: translateY(8px); }
+.role-desc .rd-lead, .role-desc .rd-rest { display: inline; }
+.role-more { margin-top: 18px; }
+.role-card { padding: 0; min-height: 0; background: transparent; border: 0; display: flex; justify-content: center; }
+.role-phone { width: 300px; height: 520px; background: var(--bg); border: 9px solid var(--ink); border-radius: 44px; padding: 10px 12px 0; box-shadow: 0 24px 60px rgba(26, 29, 33, 0.18); overflow: hidden; color: var(--ink); font-size: 12.5px; line-height: 1.45; display: flex; flex-direction: column; }
+.role-phone p { font-size: inherit; margin: 0; color: inherit; }
+.role-phone .thread-head, .role-phone .sbar { flex: 0 0 auto; }
+.role-screen, .phone-body { flex: 1 1 auto; min-height: 0; overflow: hidden; padding-bottom: 16px; }
+.role-screen { display: flex; flex-direction: column; }
+.role-screen > * { flex: 0 0 auto; }
+.role-screen .msg { align-self: flex-start; }
+.role-screen .msg.me { align-self: flex-end; }
+.role-screen .note, .thread-screen .note { margin-top: 10px; font-size: 11px; color: var(--muted); text-align: center; }
+.rt { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 10px; }
+.rt-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.rt small { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+
+/* Hero: mount, spread, count-up, the pulse on "작업 중", the rotating approval stack. */
+.stage.mount .phone { animation: rise-in 1s var(--ease) both; }
+.stage.mount .phone:nth-child(1) { animation-delay: 0.12s; }
+.stage.mount .phone:nth-child(3) { animation-delay: 0.24s; }
+.phone.side { will-change: transform, opacity; }
+.roster .dot.work { animation: pulse 1.3s ease-out infinite; }
+/* The phone body owns the overflow so the thread can scroll as messages land. */
+.phone { display: flex; flex-direction: column; }
+.phone > :not(.phone-body), .phone-body > :not(.thread-screen) { flex: 0 0 auto; }
+.phone .msg { align-self: flex-start; }
+.phone .msg.me { align-self: flex-end; }
+.phone-body { display: flex; flex-direction: column; min-height: 0; }
+.thread-screen { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.thread-screen > * { flex: 0 0 auto; }
+.msg.wave { display: inline-flex; align-items: center; gap: 3px; height: 34px; padding: 0 14px; }
+.msg.wave i { display: block; width: 3px; height: 16px; border-radius: 2px; background: #fff; animation: wave 1s ease-in-out infinite; transform-origin: center; }
+.msg.wave i:nth-child(2n) { animation-delay: 0.12s; }
+.msg.wave i:nth-child(3n) { animation-delay: 0.24s; }
+.msg.wave i:nth-child(4n) { animation-delay: 0.36s; }
+.list-screen .roster.emp div { padding: 9px 4px; gap: 10px; }
+.list-screen .roster.emp small { display: block; color: var(--muted); font-size: 11px; }
+.list-screen .roster.emp .dot { margin-left: auto; }
+.list-screen .roster.emp .tapped { animation: tap 0.6s var(--ease) both; border-radius: 12px; }
+.appr-stack { display: flex; flex-direction: column; gap: 8px; }
+.appr-stack .appr { margin-top: 0; }
+
+/* Features: the four nine-second loops. Hidden states apply only while .play is on. */
+.feature .ui { transition: opacity 0.3s var(--ease); }
+.feature.reset .ui { opacity: 0; transition: opacity 0.6s var(--ease); }
+.model-save { transition: opacity 0.42s var(--pop), transform 0.42s var(--pop); }
+.feature.play .model-save { opacity: 0; transform: translateY(8px); }
+.feature.play .model-save.show { opacity: 1; transform: none; }
+.mchip { transition: transform 0.28s var(--pop), border-color 0.28s, color 0.28s; }
+.srv-old { transition: opacity 0.6s var(--ease); }
+.srv-old.gone { opacity: 0.35; }
+.srv-old.gone .srv-x { color: var(--accent); }
+.srv-card { transition: opacity 0.42s var(--pop), transform 0.42s var(--pop); }
+.feature.play .srv-card { transform: translateY(8px); opacity: 0; }
+.feature.play .srv-card.show { transform: none; opacity: 1; }
+.bar b { transition: width 0.9s var(--ease); }
+.srv-head .badge { transition: opacity 0.3s var(--ease); }
+.feature.play .srv-head .badge { opacity: 0; }
+.feature.play .srv-head .badge.show { opacity: 1; }
+.iso-ring { stroke-dasharray: 400; }
+.iso-art.draw .iso-ring { animation: ring-draw 1.2s var(--ease) both; }
+.iso-art .iso-item { transform-box: fill-box; transform-origin: center; transition: opacity 0.42s var(--pop), transform 0.42s var(--pop); }
+.feature.play .iso-art .iso-item { opacity: 0; transform: scale(0.6); }
+.feature.play .iso-art.items .iso-item { opacity: 1; transform: scale(1); }
+.iso-art .iso-item:nth-of-type(2) { transition-delay: 0.3s; }
+.iso-art .iso-item:nth-of-type(3) { transition-delay: 0.6s; }
+.iso-art.guard .iso-intruder:first-of-type { animation: intrude-left 1.6s var(--ease) both; }
+.iso-art.guard .iso-intruder:last-of-type { animation: intrude-right 1.6s var(--ease) 0.2s both; }
+.rt-result { transition: opacity 0.42s var(--pop), transform 0.42s var(--pop); }
+.feature.play .rt-result { opacity: 0; transform: translateY(8px); }
+.feature.play .rt-result.show { opacity: 1; transform: none; }
+
+/* /use/ story: the sticky phone and the step that owns it. */
+.story-step { transition: opacity 0.3s var(--ease); }
+.week-dot { transition: opacity 0.3s var(--pop), transform 0.3s var(--pop); transition-delay: calc(var(--i, 0) * 0.12s); }
+.week-grid.js .week-dot { opacity: 0; transform: scale(0.4); }
+.week-grid.js.in .week-dot { opacity: 1; transform: scale(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .pricing-grid.pre .plan, .feature.play .model-save, .feature.play .srv-card, .feature.play .srv-head .badge, .feature.play .iso-art .iso-item, .feature.play .rt-result, .week-grid.js .week-dot, .fade { opacity: 1 !important; transform: none !important; }
+}
