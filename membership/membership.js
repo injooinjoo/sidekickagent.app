@@ -44,7 +44,7 @@
     challengeId: null,
     token: sessionStorage.getItem('sidekick_web_access_token') || '',
     user: null,
-    billing: { sales_enabled: false, mode: 'unavailable' },
+    billing: { sales_enabled: false, mode: 'unavailable', annual_billing: false },
     busy: false
   };
 
@@ -118,6 +118,7 @@
     checkoutButton.disabled = !ready;
     checkoutButton.textContent = state.busy ? '연결 중…' : state.plan === 'free' ? 'Free는 결제 없이 시작해요' : ready ? '안전한 결제로 계속' : '결제 준비 중';
     $('portal-button').hidden = !authenticated || !publicCheckoutReady();
+    $('annual-note').hidden = !(publicCheckoutReady() && state.billing.annual_billing && state.plan !== 'free');
 
     let status = '안전한 결제 연결을 확인하고 있어요.';
     if (state.billing.mode === 'test' && !publicCheckoutReady()) status = '실결제 오픈 전 테스트 검증 중이에요.';
@@ -145,10 +146,13 @@
       const config = await api('/membership/stripe/config', { method: 'GET' });
       state.billing = {
         sales_enabled: config.sales_enabled === true,
-        mode: config.mode === 'live' || config.mode === 'test' ? config.mode : 'unavailable'
+        mode: config.mode === 'live' || config.mode === 'test' ? config.mode : 'unavailable',
+        // Advertised only when the backend allowlisted every yearly price; the
+        // toggle itself is Stripe's upsell inside the checkout page.
+        annual_billing: config.annual_billing === true
       };
     } catch (_) {
-      state.billing = { sales_enabled: false, mode: 'unavailable' };
+      state.billing = { sales_enabled: false, mode: 'unavailable', annual_billing: false };
     }
     render();
   }
@@ -268,6 +272,9 @@
   });
 
   const query = new URLSearchParams(location.search);
+  // The app opens this page in the default browser with no session of its own
+  // (D75), so the only thing it can hand over is the fact that it sent someone.
+  if (query.get('from') === 'app') $('app-hint').hidden = false;
   if (query.get('checkout') === 'success') $('checkout-status').textContent = '결제를 확인하고 있어요. 구독 권한은 안전한 확인이 끝난 뒤 반영돼요.';
   if (query.get('checkout') === 'cancelled') $('checkout-status').textContent = '결제를 취소했어요. 청구되지 않았어요.';
 

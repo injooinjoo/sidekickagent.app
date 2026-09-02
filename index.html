@@ -3,364 +3,533 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="data:," />
-  <meta name="description" content="막막한 목표를, 지금 확인할 것과 첫 실행으로 바꿔주는 사이드킥. 복잡한 준비 없이 모바일에서 바로 시작하세요." />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="description" content="진짜 일을 맡길 수 있는 AI 직원, 사이드킥. 내가 쓰는 서비스에 연결해 일하고, 끝난 결과를 들고 돌아와요. 확인이 필요한 일은 보내기 전에 먼저 물어봅니다." />
   <title>사이드킥: AI 에이전트</title>
   <link rel="canonical" href="https://sidekickagent.app/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
-  <meta property="og:title" content="사이드킥: AI 에이전트" />
-  <meta property="og:description" content="막막한 목표를, 지금 확인할 것과 첫 실행으로 바꿔주는 사이드킥." />
+  <meta property="og:title" content="사이드킥: 일을 끝내는 AI 직원" />
+  <meta property="og:description" content="진짜 일을 맡길 수 있는 AI 직원. 내가 쓰는 서비스에 연결해 일하고, 끝난 결과를 들고 돌아와요." />
   <meta property="og:url" content="https://sidekickagent.app/" />
   <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#f7f8fa" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="landing">
-<div class="scroll-progress" aria-hidden="true"><span></span></div>
 <header class="site-header">
-  <a class="brand" href="/"><strong>사이드킥</strong></a>
+  <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
   <nav class="nav" aria-label="주요 메뉴">
     <a href="/membership/">멤버십</a>
     <a href="/support/">도움말</a>
     <a href="/privacy/">개인정보</a>
     <a href="/terms/">이용약관</a>
   </nav>
+  <a class="header-cta" href="/membership/">멤버십 구성</a>
 </header>
 <main class="home">
 
   <!-- 1. Hero -->
-  <section class="hero landing-hero" data-reveal-group>
-    <div class="hero-copy">
-      <p class="eyebrow">생각은 있는데, 시작이 막막할 때</p>
-      <h1>하고 싶은 건 많은데,<br />무엇부터 해야 할지<br />모르겠다면.</h1>
-      <p class="lead">온라인 판매를 준비할 때,<br />유튜브·인스타 콘텐츠를 시작할 때,<br />중요한 정보를 조사하고 계획을 세워야 할 때.</p>
-      <p class="lead strong">지금 상황을 말하면,<br />확인할 것과 첫 할 일부터 함께 정리합니다.</p>
+  <section class="hero" id="hero" aria-labelledby="hero-h">
+    <div class="hero-inner">
+      <a class="launch" href="/membership/">
+        <span class="tag">얼리 액세스</span>
+        <span>지금 시작하면 첫 3개월 25% 할인</span>
+        <span class="go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+      <h1 id="hero-h"><span class="h1-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>사이드킥을 만나보세요</h1>
+      <p class="lead">진짜 일을 맡길 수 있는 AI 직원. 내가 쓰는 서비스에 연결해 일하고, 끝난 결과를 들고 돌아와요. 보내기 전에 확인이 필요한 일은 먼저 물어봅니다.</p>
       <div class="actions">
-        <a class="button" href="#routes">내 목표부터 정리해보기</a>
-        <a class="button secondary" href="#first-result">예시 첫 단계 보기</a>
-      </div>
-      <ol class="hero-steps" id="hero-steps" aria-label="첫 대화가 진행되는 순서">
-        <li>“요즘 온라인으로 해볼 수 있는 일을 찾고 있어. 내 상황에서 먼저 확인할 것과 이번 주 첫 행동을 정리해줘.”</li>
-        <li>지금 상황과 목표를 먼저 정리해볼게요.</li>
-        <li>이번 주에 확인할 것 3가지 · 첫 실행 초안</li>
-      </ol>
-    </div>
-    <figure class="phone">
-      <img src="assets/screen-request.png" width="1206" height="2622"
-        alt="사이드킥 대화 화면: ‘내일 회의 준비해줘’ 요청에 담당 AI 직원 지수가 업무 분류와 진행 계획을 정리하고, 민서·준·수빈·다은이 함께 처리 중인 모습" />
-      <figcaption>말로 맡기면 담당과 진행 계획부터 정리됩니다.</figcaption>
-    </figure>
-  </section>
-
-  <!-- 2. Preparation barrier -->
-  <section class="prep" aria-labelledby="prep-h" data-reveal-group>
-    <h2 class="section-h" id="prep-h">AI를 시작하려고<br />준비부터 할 필요는 없어요.</h2>
-    <div class="prep-cols">
-      <ul class="prep-doubts" aria-label="시작을 막는 흔한 고민">
-        <li>뭘 설치해야 하지?</li>
-        <li>어떤 AI를 써야 하지?</li>
-        <li>처음부터 복잡하게 준비해야 하나?</li>
-        <li>어떤 연결부터 해야 하나?</li>
-        <li>지난번에 한 이야기는 어디에 남지?</li>
-      </ul>
-      <div class="prep-start">
-        <ol class="start-seq" aria-label="사이드킥에서 시작하는 순서">
-          <li>사이드킥 앱 열기</li>
-          <li>목표와 상황 말하기</li>
-          <li>첫 할 일 정리하기</li>
-        </ol>
-        <p>복잡한 준비나 따로 관리할 환경 없이,<br />모바일에서 필요한 일부터 시작할 수 있어요.</p>
-        <p class="prep-close">준비를 관리하는 대신, 오늘 필요한 일을 시작하세요.</p>
+        <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="button secondary" href="#how">직원이 일하는 방식</a>
       </div>
     </div>
+
+    <div class="hero-media" role="img" aria-label="사이드킥 앱 화면 세 장: 홈의 사장님 브리핑, 회의 준비 담당 지수와의 대화, 참석자 전달 전 확인 요청">
+      <div class="stage" aria-hidden="true">
+        <div class="phone side">
+          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
+          <div class="scr-head"><span class="scr-title">내일 회의 준비</span><span class="pill-free">Free</span></div>
+          <div class="briefing">
+            <div class="lbl">사장님 브리핑</div>
+            <h4>오늘 확인할 일 1건이 있어요.</h4>
+            <div class="tiles"><div class="tile"><b>1건</b><span>확인</span></div><div class="tile"><b>1건</b><span>진행</span></div><div class="tile"><b>5명</b><span>직원</span></div></div>
+            <p class="foot">필요한 결정만 위로 올릴게요.</p>
+          </div>
+          <div class="scr-section">확인 요청</div>
+          <div class="req">
+            <div class="who"><span>지수 · +4명 함께</span><span class="badge wait">승인 대기</span></div>
+            <h5>내일 회의 준비</h5>
+            <p>회의 자료 전달 전에 확인이 필요해요.</p>
+          </div>
+          <div class="scr-section">직원 현황</div>
+          <div class="roster">
+            <div><span class="dot attn"></span><b>지수</b><span>확인 필요</span></div>
+            <div><span class="dot work"></span><b>민서</b><span>작업 중</span></div>
+            <div><span class="dot"></span><b>준</b><span>대기 중</span></div>
+          </div>
+        </div>
+
+        <div class="phone">
+          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
+          <div class="thread-head"><span class="avatar">지</span><div><b>지수</b><small>회의 준비 담당</small></div><span class="badge work">작업 중</span></div>
+          <div class="msg me">내일 회의 준비해줘. 참석자 5명이고 지난 분기 숫자 넣어서.</div>
+          <div class="msg ai"><span class="from">지수</span>지난 분기 자료를 모아 회의 자료 초안을 만들게요. 민서가 참석자별 확인 사항을 정리하고, 준이 일정 초대를 준비해요. 전달 전에 확인 요청 드릴게요.</div>
+          <div class="prog">
+            <div class="lbl">진행 중 · 3명 함께</div>
+            <div><span>지난 분기 자료 수집</span><span class="badge done">완료됨</span></div>
+            <div><span>회의 자료 초안</span><span class="badge work">정리 중</span></div>
+            <div><span>참석자에게 전달</span><span class="badge wait">확인 필요</span></div>
+          </div>
+          <div class="res">
+            <div class="kicker">결과 도착</div>
+            <h5>회의 자료가 준비되었습니다</h5>
+            <dl>
+              <dt>요구 사항</dt><dd>참석자 5명 · 지난 분기 숫자 포함</dd>
+              <dt>준비된 자료</dt><dd>회의자료_v2 · 참석자 확인표 · 일정 초대</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="phone side">
+          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
+          <div class="scr-head"><span class="scr-title">확인 요청</span><span class="badge wait">1건</span></div>
+          <div class="appr">
+            <div class="top"><h5>참석자에게 전달하기</h5><span class="badge wait">확인 필요</span></div>
+            <p>검수를 마친 회의 자료를 참석자 5명에게 보낼까요? 보내기 전에 내용을 확인해 주세요.</p>
+            <ul class="files"><li><i></i>회의자료_v2.pdf</li><li><i></i>참석자 확인표</li></ul>
+            <div class="btn-row"><span class="ink">보내기 승인</span><span class="line">수정 요청</span></div>
+          </div>
+          <p class="note">확인 전에는 다음 단계로 넘어가지 않아요.</p>
+          <div class="scr-section">최근 완료</div>
+          <div class="roster">
+            <div><span class="dot"></span><b>거래처 견적 답장 초안</b><span>어제</span></div>
+            <div><span class="dot"></span><b>주간 정리</b><span>월요일</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- 3. Supported AI connections -->
-  <section class="connect" aria-labelledby="connect-h">
-    <h2 class="section-h" id="connect-h">별도 연결 없이 시작하고,<br />필요할 때 이어서 쓰세요.</h2>
-    <p class="connect-copy">처음에는 바로 업무를 맡길 수 있어요.<br />이미 쓰는 AI가 있다면,<br />필요할 때 지원되는 AI 연결을 사용할 수 있어요.</p>
-    <p class="connect-note">어떤 AI를 먼저 고를지보다,<br />지금 어떤 일을 맡길지가 더 중요하니까요.</p>
-  </section>
-
-  <!-- 4. Route chooser -->
-  <section class="routes" id="routes" aria-labelledby="routes-h">
-    <h2 class="section-h" id="routes-h">지금, 어떤 걸 시작하고 싶으세요?</h2>
-    <p class="section-sub">아직 구체적이지 않아도 괜찮아요.<br />가장 가까운 곳에서 시작해보세요.</p>
-    <div class="route-list" role="group" aria-label="시작점 선택">
-      <button class="route" type="button" data-route="0" aria-pressed="true">온라인으로 수익을 만들고 싶어요</button>
-      <button class="route" type="button" data-route="1" aria-pressed="false">유튜브·인스타를 키우고 싶어요</button>
-      <button class="route" type="button" data-route="2" aria-pressed="false">투자·경매·부동산을 공부하고 싶어요</button>
-      <button class="route" type="button" data-route="3" aria-pressed="false">아직 목표가 흐릿해요</button>
-    </div>
-    <div class="route-preview">
-      <p class="route-label">이렇게 요청하게 돼요</p>
-      <p class="route-prompt" id="route-prompt">“아이템과 고객부터 정리하고, 이번 주에 할 일을 잡아줘.”</p>
-      <p class="route-note" id="route-note">수익을 보장하는 계획이 아니라, 먼저 확인할 것과 첫 실행을 정리하는 것부터 시작해요.</p>
+  <!-- 2. Statement -->
+  <section class="statement" id="how" aria-labelledby="how-h">
+    <div class="statement-card">
+      <div class="statement-copy">
+        <h2 class="section-h" id="how-h">직원에게 말하듯 맡기세요</h2>
+        <p class="section-p">팀원에게 일을 넘기듯 앱에서 말로 맡기세요. AI 직원은 맡은 일을 처음부터 끝까지 진행하고, 내가 일하는 방식을 기억해 다음엔 더 잘해요. 확인이 필요할 때만 돌아옵니다.</p>
+      </div>
+      <div class="statement-pop" aria-hidden="true">
+        <div class="pop-thread">
+          <div class="pop-msg me">거래처 견적 요청 정리해서 답장 초안까지 만들어줘.</div>
+          <div class="pop-msg ai"><span class="from">하율 · 메일 정리 담당</span>받은 메일 3건에서 요청 조건을 뽑고, 견적 기준은 지난번에 정한 부가세 포함으로 맞출게요. 보내기 전에 확인 요청 드려요.</div>
+          <div class="pop-status"><span class="badge work">작업 중</span>서준이 일정 초대를 함께 준비해요</div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- 5. First useful result -->
-  <section class="first-result" id="first-result" aria-labelledby="result-h">
-    <h2 class="section-h" id="result-h">막연한 생각을,<br />확인할 수 있는 첫 초안으로.</h2>
-    <div class="result-tabs" role="group" aria-label="예시 선택">
-      <button class="tab" type="button" data-ex="0" aria-pressed="true">온라인 판매</button>
-      <button class="tab" type="button" data-ex="1" aria-pressed="false">콘텐츠</button>
-      <button class="tab" type="button" data-ex="2" aria-pressed="false">조사·공부</button>
+  <!-- 3. Features -->
+  <section class="features" id="features" aria-labelledby="features-h">
+    <div class="wrap-wide">
+      <div class="sec-head">
+        <h2 class="section-h" id="features-h">여러 직원과 동시에</h2>
+        <p class="section-p">직원을 만들고 일을 맡기세요. 일이 늘면 한 명 더 — 조사에 한 명, 초안에 한 명, 반복 확인에 한 명. 직원들은 나란히 일하고 필요한 곳에서 서로 넘겨받으며, 일과로 정해 둔 일은 정해진 시간에 스스로 확인해요.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature">
+          <h3>쓰던 서비스에서 그대로 일해요</h3>
+          <p>한 번 연결해 두면 메일함, 캘린더, 메신저 알림 같은 내 서비스를 직접 다뤄요. 연결이 없어도 앱 안에서 파일과 메모로 바로 시작할 수 있어요.</p>
+          <figure>
+            <div class="ui" aria-label="서비스 연결 목록">
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3.5" width="12" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m2.5 4.5 5.5 4 5.5-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span><div><b>메일 받은편지함</b><small>읽기 · 답장 초안</small></div><span class="badge done">연결됨</span></div>
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>캘린더</b><small>일정 확인 · 초대 준비</small></div><span class="badge done">연결됨</span></div>
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8a4 4 0 0 0-4 4v2.5L2.8 11h10.4L12 8.3V5.8a4 4 0 0 0-4-4ZM6.5 13a1.5 1.5 0 0 0 3 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span><div><b>메신저로 알림</b><small>확인 요청을 메신저로</small></div><span class="badge idle">설정 필요</span></div>
+            </div>
+            <div class="ask"><span>지수가 <b>메일함 읽기</b>를 요청했어요</span><span class="mini ink">허용</span><span class="mini line">나중에</span></div>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <h3>한 번 정해 두면 일과가 돼요</h3>
+          <p>반복되는 확인과 정리는 일과로 정해 두세요. 아침 브리핑, 중요한 메일만 알려주기, 주간 정리처럼 정해진 시간에 스스로 돌아가고, 결과만 카드로 도착해요.</p>
+          <figure>
+            <div class="ui" aria-label="일과 목록">
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>아침 브리핑</b><small>매일 챙기기</small></div><span class="sched">매일 08:00</span></div>
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3.5" width="12" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m2.5 4.5 5.5 4 5.5-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span><div><b>중요한 메일만 알려주기</b><small>매일 챙기기</small></div><span class="sched">매일 12:00 · 18:00</span></div>
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 12.5V8m5 4.5V4m5 8.5V6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><b>주간 정리</b><small>매주 돌아보기</small></div><span class="sched">매주 월 09:00</span></div>
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg></span><div><b>가격·재고 지켜보기</b><small>지켜보기</small></div><span class="sched">바뀔 때만</span></div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <h3>쓸수록 내 조건을 기억해요</h3>
+          <p>한 번 정한 기준은 다음 일에 그대로 적용돼요. 매번 처음부터 설명하지 않아도 되고, 어떤 조건을 기억할지는 내가 직접 골라서 저장해요.</p>
+          <figure>
+            <div class="ui" aria-label="기억한 조건">
+              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8a1 1 0 0 1 1 1v10l-5-2.5-5 2.5v-10a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span><div><b>기억한 조건</b><small>다음 업무부터 그대로 적용돼요</small></div><span class="badge idle">4개</span></div>
+              <div class="chips">
+                <span class="chip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>견적은 부가세 포함으로</span>
+                <span class="chip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>보고서는 한 장으로</span>
+                <span class="chip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>답장은 존댓말로</span>
+                <span class="chip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>회의는 오전만</span>
+              </div>
+              <div class="mem-foot"><span>다음 업무부터 적용 · 내가 고른 조건만 저장돼요</span><span class="toggle" aria-hidden="true"></span></div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <h3>직원끼리 일을 넘겨요</h3>
+          <p>조사 담당이 모은 자료를 비교 담당이 받아 쓰고, 요약 담당이 한 장으로 정리해요. 모든 단계를 승인하는 대신 흐름을 지켜보고, 필요한 결정만 위로 올라와요.</p>
+          <figure>
+            <div class="ui" aria-label="직원 간 업무 흐름">
+              <ol class="flow-line">
+                <li><span class="avatar">지</span><div>지호 · 후보 조사<small>조건에 맞는 물건 4건 정리</small></div><span class="badge done">완료됨</span></li>
+                <li><span class="avatar">예</span><div>예린 · 시세 비교<small>최근 거래가와 낙찰가 비교표</small></div><span class="badge done">완료됨</span></li>
+                <li><span class="avatar">나</span><div>나윤 · 판단 요약<small>좋아 보이는 이유와 보류할 이유</small></div><span class="badge work">정리 중</span></li>
+                <li><span class="avatar light">나</span><div>사장님 확인<small>보류 후보 제외 여부</small></div><span class="badge wait">승인 대기</span></li>
+              </ol>
+            </div>
+          </figure>
+        </article>
+      </div>
     </div>
-    <div class="result-flex">
-      <article class="result-doc" id="result-doc" aria-live="polite">
-        <p class="doc-tag" id="doc-tag">온라인 판매 · 초안</p>
-        <h3 id="doc-title">작게 시작하는 판매 준비</h3>
-        <dl id="doc-body">
-          <dt>아이템과 고객 가설</dt><dd>후보 품목 3개와 각각의 예상 구매자, 이미 파는 곳과 다른 점 한 줄씩.</dd>
-          <dt>확인할 질문</dt><dd>한 달에 쓸 수 있는 시간과 예산은? 재고 없이 시작할 수 있는 방식은?</dd>
-          <dt>이번 주 첫 행동</dt><dd>후보 품목 판매처 3곳 직접 둘러보고 메모하기.</dd>
-        </dl>
+  </section>
+
+  <!-- 4. Roles -->
+  <section class="roles" id="roles" aria-labelledby="roles-h">
+    <div class="wrap">
+      <div>
+        <h2 class="section-h" id="roles-h">직원마다 역할을 맡기세요</h2>
+        <div class="role-pills" role="group" aria-label="직원 역할 선택" id="role-pills"></div>
+        <p class="role-desc" id="role-desc" aria-live="polite"></p>
+      </div>
+      <div class="role-card" id="role-card" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 5. Pricing -->
+  <section class="pricing" id="pricing" aria-labelledby="pricing-h">
+    <div class="pricing-head">
+      <div>
+        <h2 class="section-h" id="pricing-h">멤버십</h2>
+        <p class="section-p">맡길 업무량과 AI 사용료를 누가 내는지만 고르면 돼요. 결제는 웹에서, 계정은 앱과 같아요.</p>
+      </div>
+      <a class="text-link" href="/membership/">자세히 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+
+    <!-- Prices are [first three months, after] in USD and must equal PLAN_CATALOG in
+         apps/backend/app/web_membership_billing.py, which is what Stripe charges.
+         apps/site/test_landing_contract.py reads these attributes and fails when
+         the two drift. The buy links carry the plan and AI-account choice to the
+         membership configurator, which is the only page that starts a checkout. -->
+    <div class="pricing-grid" id="plans">
+      <article class="plan" data-plan="birdie" data-included="14,19" data-connected="9,13" data-storage="5GB">
+        <div class="plan-top">
+          <div class="plan-name">Birdie <em>추천</em></div>
+          <div class="seg" role="group" aria-label="Birdie AI 사용료">
+            <button type="button" data-funding="included" aria-pressed="true">Sidekick AI</button>
+            <button type="button" data-funding="connected" aria-pressed="false">내 AI 계정</button>
+          </div>
+        </div>
+        <p class="plan-desc">하루 한두 건, 짧은 업무를 맡겨요.</p>
+        <p class="price"><b data-role="price">$14</b><span>/ 월</span></p>
+        <p class="price-sub" data-role="price-sub">첫 3개월 · 이후 $19 / 월</p>
+        <a class="button buy" data-role="buy" href="/membership/?plan=birdie&amp;funding=included"><span data-role="buy-label">구성 미리 보기</span> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="inc">
+          <p class="inc-lbl">포함</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 5GB</li>
+            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료 멤버십에 포함</span></li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>실행·보안·모니터링은 Sidekick 클라우드</li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>앱과 같은 계정, 구독 관리는 웹에서</li>
+          </ul>
+        </div>
       </article>
-      <figure class="phone phone-side">
-        <img src="assets/screen-done.png" width="1206" height="2622" loading="lazy"
-          alt="사이드킥 완료 화면: ‘회의 자료가 준비되었습니다’ 결과 카드에 요구 사항, 결과, 진행 방식, 준비된 자료 목록이 정리된 모습" />
-        <figcaption>결과는 읽기 쉬운 정리로 도착합니다.</figcaption>
-      </figure>
+
+      <article class="plan" data-plan="eagle" data-included="36,49" data-connected="21,29" data-storage="25GB">
+        <div class="plan-top">
+          <div class="plan-name">Eagle</div>
+          <div class="seg" role="group" aria-label="Eagle AI 사용료">
+            <button type="button" data-funding="included" aria-pressed="true">Sidekick AI</button>
+            <button type="button" data-funding="connected" aria-pressed="false">내 AI 계정</button>
+          </div>
+        </div>
+        <p class="plan-desc">매일 여러 건, 반복 업무까지 맡겨요.</p>
+        <p class="price"><b data-role="price">$36</b><span>/ 월</span></p>
+        <p class="price-sub" data-role="price-sub">첫 3개월 · 이후 $49 / 월</p>
+        <a class="button buy" data-role="buy" href="/membership/?plan=eagle&amp;funding=included"><span data-role="buy-label">구성 미리 보기</span> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="inc">
+          <p class="inc-lbl">포함</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 25GB</li>
+            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료 멤버십에 포함</span></li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>실행·보안·모니터링은 Sidekick 클라우드</li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>앱과 같은 계정, 구독 관리는 웹에서</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="plan" data-plan="albatross" data-included="74,99" data-connected="36,49" data-storage="100GB">
+        <div class="plan-top">
+          <div class="plan-name">Albatross</div>
+          <div class="seg" role="group" aria-label="Albatross AI 사용료">
+            <button type="button" data-funding="included" aria-pressed="true">Sidekick AI</button>
+            <button type="button" data-funding="connected" aria-pressed="false">내 AI 계정</button>
+          </div>
+        </div>
+        <p class="plan-desc">하루 종일 여러 흐름을 함께 돌려요.</p>
+        <p class="price"><b data-role="price">$74</b><span>/ 월</span></p>
+        <p class="price-sub" data-role="price-sub">첫 3개월 · 이후 $99 / 월</p>
+        <a class="button buy" data-role="buy" href="/membership/?plan=albatross&amp;funding=included"><span data-role="buy-label">구성 미리 보기</span> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="inc">
+          <p class="inc-lbl">포함</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 100GB</li>
+            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료 멤버십에 포함</span></li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>실행·보안·모니터링은 Sidekick 클라우드</li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>앱과 같은 계정, 구독 관리는 웹에서</li>
+          </ul>
+        </div>
+      </article>
     </div>
-    <p class="section-note">정답을 대신 정해주기보다,<br />다음 판단을 위해 필요한 내용을 함께 정리합니다.</p>
+    <div class="pricing-foot">
+      <p>Free는 결제 없이 앱에서 바로 시작해요 · 자료함 500MB</p>
+      <p>이미 구독 중이라면 <a href="/membership/">같은 계정으로 로그인</a>하면 돼요.</p>
+    </div>
+    <p class="pricing-closed" id="pricing-closed">웹 결제는 준비 중이에요. 지금은 멤버십 구성을 미리 보고 최종 금액을 확인할 수 있고, 결제가 열리면 같은 링크에서 바로 구매할 수 있어요.</p>
+    <p class="pricing-note">표시 금액은 USD 기준이에요. 세금과 최종 청구 금액은 결제 화면에서 확인하고, 4개월째부터 정상가로 돌아가요. 내 AI 계정을 연결하면 AI 사용료는 제공업체에서 별도로 청구해요. 앱스토어에서 구독하면 스토어 수수료가 붙어 웹보다 금액이 높아요.</p>
   </section>
 
-  <!-- 6. Workflow -->
-  <section class="workflow" id="workflow" aria-labelledby="workflow-h">
-    <h2 class="section-h" id="workflow-h">말로 맡기고, 결과에 집중하세요.</h2>
-    <ol class="flow">
-      <li class="flow-step">
-        <p class="flow-num">01 말로 시작</p>
-        <p>지금 상황과 목표를 편하게 이야기합니다.</p>
-        <figure class="flow-shot"><img src="assets/screen-request.png" width="1206" height="2622" loading="lazy" alt="요청 한 문장으로 시작된 사이드킥 대화 화면" /></figure>
-      </li>
-      <li class="flow-step">
-        <p class="flow-num">02 방향과 기준 정리</p>
-        <p>무엇을 먼저 확인할지, 어떤 기준으로 볼지 함께 좁힙니다.</p>
-        <div class="flow-shot placeholder" role="img" aria-label="기준 정리 화면 캡처 준비 중"><span>기준 정리 화면<br />캡처 준비 중</span></div>
-      </li>
-      <li class="flow-step">
-        <p class="flow-num">03 조사·비교·초안 맡기기</p>
-        <p>자료를 붙이거나 파일을 보내고 필요한 정리를 요청합니다.</p>
-        <div class="flow-shot placeholder" role="img" aria-label="자료 첨부 요청 화면 캡처 준비 중"><span>자료 첨부 요청 화면<br />캡처 준비 중</span></div>
-      </li>
-      <li class="flow-step">
-        <p class="flow-num">04 진행과 결과 확인</p>
-        <p>작업 중인 일과 지금 확인이 필요한 일을 앱에서 봅니다.</p>
-        <figure class="flow-shot"><img src="assets/screen-home.png" width="1206" height="2622" loading="lazy" alt="사이드킥 홈 화면: 사장님 브리핑에 확인 1건·진행 1건·직원 5명이 요약되고, 확인 요청과 직원 현황이 보이는 모습" /></figure>
-      </li>
-      <li class="flow-step">
-        <p class="flow-num">05 중요한 일은 직접 결정</p>
-        <p>확인이 필요한 일은 결과를 먼저 보고 결정합니다.</p>
-        <figure class="flow-shot"><img src="assets/screen-approval.png" width="1206" height="2622" loading="lazy" alt="사이드킥 승인 화면: ‘참석자에게 전달하기’에 확인 필요 표시가 붙어 사용자의 확인을 기다리는 모습" /></figure>
-      </li>
-    </ol>
-  </section>
-
-  <!-- 7. Continuity -->
-  <section class="continuity" aria-labelledby="cont-h">
-    <h2 class="section-h" id="cont-h">한 번 맡긴 일은,<br />다음 일을 위한 맥락이 됩니다.</h2>
-    <div class="cont-flex">
-      <div class="cont-copy">
-        <p>매번 처음부터 설명하지 않아도,<br />이전에 정한 기준과 결과를 이어 보며 다음 일을 맡길 수 있어요.</p>
-        <p class="trust-note">다음 업무에 적용할 조건은 직접 선택해 저장합니다.</p>
+  <!-- 6. Download -->
+  <section class="download" id="download" aria-labelledby="download-h">
+    <div class="wrap-wide">
+      <div>
+        <h2 class="section-h" id="download-h">사이드킥 받기</h2>
+        <p class="section-p">휴대폰 하나면 돼요. 직원에게 말로 맡기고, 확인이 필요할 때만 알림을 받아요. 출시되면 이 자리에서 바로 받을 수 있어요.</p>
       </div>
-      <div class="cont-thread" aria-label="이어지는 요청 예시">
-        <p class="thread-when">지난주</p>
-        <blockquote class="thread-req">회의 내용 정리하고 담당자별 할 일로 만들어줘.</blockquote>
-        <p class="thread-when">오늘</p>
-        <blockquote class="thread-req now">그중 이번 주 안에 끝내야 하는 일만 다시 정리해줘.</blockquote>
-        <p class="thread-res">이번 주 우선 작업과 확인할 항목을 정리했어요.</p>
+      <div class="dl-cards">
+        <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="1.5" width="8" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 12.5h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>iPhone</b><small>App Store 출시 준비 중</small></div><span class="badge idle">준비 중</span></div>
+        <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="1.5" width="9" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="12.3" r="0.9" fill="currentColor"/></svg></span><div><b>Android</b><small>Google Play 준비 중</small></div><span class="badge idle">준비 중</span></div>
       </div>
     </div>
   </section>
 
-  <!-- 8. Trust / approval -->
-  <section class="trust" aria-labelledby="trust-h">
-    <div class="trust-flex">
-      <div class="trust-copy">
-        <h2 class="section-h" id="trust-h">맡기되,<br />중요한 결정은 직접.</h2>
-        <p>결과는 읽기 쉽게 정리하고,<br />확인이 필요한 일은 먼저 보고 결정할 수 있어요.</p>
-        <p class="boundary">투자 판단이나 매매를 대신하지 않습니다.<br />정보를 정리하고, 더 나은 판단을 위한 준비를 돕습니다.</p>
+  <!-- 7. Guides -->
+  <section class="guides" id="guides" aria-labelledby="guides-h">
+    <div class="wrap-wide">
+      <div>
+        <h2 id="guides-h">도움말</h2>
+        <p>계정, 결제, 개인정보에 대해 자주 묻는 내용을 정리했어요.</p>
       </div>
-      <figure class="phone phone-side">
-        <img src="assets/screen-approval.png" width="1206" height="2622" loading="lazy"
-          alt="사이드킥 확인 화면: 검수를 마친 회의 자료에 대해 ‘참석자에게 전달하기 — 확인 필요’ 승인을 기다리는 모습" />
-        <figcaption>확인 전에는 다음 단계로 넘어가지 않아요.</figcaption>
-      </figure>
+      <a class="text-link" href="/support/">도움말 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
   </section>
 
-  <!-- 9. Start and service guide -->
-  <section class="start-guide" aria-labelledby="start-guide-h">
-    <div class="start-guide-copy">
-      <p class="eyebrow">시작하기 전에</p>
-      <h2 class="section-h" id="start-guide-h">앱, 멤버십, 내 정보를<br />한곳에서 확인하세요.</h2>
-      <p class="section-sub">앱은 스토어 출시를 준비 중이에요. 멤버십 구성, 도움말, 개인정보 처리, 이용약관과 계정·데이터 삭제 절차는 지금 확인할 수 있어요.</p>
+  <!-- 8. FAQ -->
+  <section class="faq" id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <h2 class="section-h" id="faq-h">자주 묻는 질문</h2>
+      <div>
+        <details open>
+          <summary>AI 비서 앱과 뭐가 다른가요?</summary>
+          <p>답만 주는 게 아니라 맡은 일을 끝까지 진행해요. 여러 직원이 나란히 일하고, 정해 둔 일과는 정해진 시간에 스스로 돌아가요. 결과는 읽기 쉬운 카드로 도착하고, 확인이 필요한 일은 보내기 전에 물어봅니다.</p>
+        </details>
+        <details>
+          <summary>지금 누가 쓸 수 있나요?</summary>
+          <p>iPhone 앱은 App Store 출시를 준비하고 있어요. 멤버십은 웹에서 미리 구성해 볼 수 있고, 결제가 열리면 앱과 같은 계정으로 이어집니다.</p>
+        </details>
+        <details>
+          <summary>어디서 직원과 대화하나요?</summary>
+          <p>앱 안에서 말로 맡겨요. 직원마다 대화가 나뉘어 있어서 지난 작업을 다시 찾기 쉽고, 진행 중인 일과 확인이 필요한 일은 홈에서 한눈에 보여요.</p>
+        </details>
+        <details>
+          <summary>비용은 얼마인가요?</summary>
+          <p>Free는 결제 없이 시작해요. Birdie, Eagle, Albatross 세 플랜은 맡길 업무량과 자료함 크기로 나뉘고, 내 AI 계정을 연결하면 그만큼 낮아져요. 지금 시작하면 어떤 구성이든 첫 3개월 25% 할인이에요.</p>
+        </details>
+        <details>
+          <summary>직원이 내 계정으로 아무거나 하지 않나요?</summary>
+          <p>보내기, 결제, 삭제처럼 되돌리기 어려운 일은 먼저 확인 요청이 와요. 확인 전에는 다음 단계로 넘어가지 않고, 서비스 연결은 언제든 끊을 수 있어요.</p>
+        </details>
+        <details>
+          <summary>내 데이터는 어떻게 다뤄지나요?</summary>
+          <p>업무 데이터는 Sidekick 클라우드에 보관되고, 계정과 데이터 삭제는 앱에서 직접 요청할 수 있어요. 수집 항목과 보관 기준은 <a href="/privacy/">개인정보처리방침</a>에서 확인하세요.</p>
+        </details>
+        <details>
+          <summary>투자 판단이나 매매도 대신하나요?</summary>
+          <p>아니요. 매수·매도 추천이나 매매를 대신하지 않아요. 판단 전에 볼 기준과 자료를 정리하고, 결정은 직접 합니다.</p>
+        </details>
+      </div>
     </div>
-    <div class="store-actions" aria-label="앱 스토어 출시 상태">
-      <button class="store-button" type="button" disabled aria-disabled="true">
-        <span class="store-mark" aria-hidden="true"></span>
-        <span><small>App Store</small><strong>출시 준비 중</strong></span>
-      </button>
-      <button class="store-button" type="button" disabled aria-disabled="true">
-        <span class="play-mark" aria-hidden="true">▶</span>
-        <span><small>Google Play</small><strong>출시 준비 중</strong></span>
-      </button>
-    </div>
-    <nav class="service-links" aria-label="사이드킥 서비스 안내">
-      <a href="/membership/"><strong>멤버십</strong><span>플랜과 결제 안내</span></a>
-      <a href="/support/"><strong>도움말</strong><span>앱 사용·계정·문의</span></a>
-      <a href="/privacy/"><strong>개인정보처리방침</strong><span>수집·이용·보관 기준</span></a>
-      <a href="/terms/"><strong>이용약관</strong><span>서비스 이용 기준</span></a>
-      <a href="/delete-account/"><strong>계정 및 데이터 삭제</strong><span>삭제 요청 절차</span></a>
-    </nav>
   </section>
 
-  <!-- 10. Final CTA -->
-  <section class="final-cta" aria-labelledby="final-h">
-    <h2 class="section-h" id="final-h">오늘 머릿속에 남아 있는 일부터<br />말해보세요.</h2>
-    <p class="section-sub">목표가 아직 흐릿해도 괜찮아요.<br />지금 상황부터 이야기하면,<br />다음에 할 일을 함께 정리합니다.</p>
-    <div class="actions center">
-      <a class="button" href="#routes">내 목표부터 정리해보기</a>
-      <a class="button secondary" href="#first-result">예시 첫 단계 보기</a>
+  <!-- 9. Closing call -->
+  <section class="start" id="start" aria-labelledby="start-h">
+    <h2 class="section-h" id="start-h">첫 직원을 만나보세요</h2>
+    <p class="section-p">믿고 일을 맡길 수 있는 AI 직원</p>
+    <div class="actions">
+      <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="button secondary" href="/support/">도움말</a>
+    </div>
+    <div class="start-art" aria-hidden="true">
+      <svg viewBox="0 0 976 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 32h940M916 6l26 26-26 26" fill="none" stroke="#ff330d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
   </section>
 
   <footer class="footer">
-    <a href="/" aria-current="page">홈</a>
-    <a href="/membership/">멤버십</a>
-    <a href="/support/">도움말</a>
-    <a href="/privacy/">개인정보처리방침</a>
-    <a href="/terms/">이용약관</a>
-    <a href="/delete-account/">계정 및 데이터 삭제</a>
-    <small>© 2026 Sidekick</small>
+    <div class="foot-brand">
+      <img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥" decoding="async" />
+      <p>진짜 일을 맡길 수 있는 AI 직원.</p>
+      <small>© 2026 Sidekick</small>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h4>제품</h4>
+        <a href="/" aria-current="page">홈</a>
+        <a href="/membership/">멤버십</a>
+        <a href="/support/">도움말</a>
+      </div>
+      <div class="foot-col">
+        <h4>정책</h4>
+        <a href="/privacy/">개인정보처리방침</a>
+        <a href="/terms/">이용약관</a>
+        <a href="/delete-account/">계정 및 데이터 삭제</a>
+      </div>
+    </div>
   </footer>
 </main>
 
 <script>
 (function () {
-  var routes = [
-    { prompt: '“아이템과 고객부터 정리하고, 이번 주에 할 일을 잡아줘.”',
-      note: '수익을 보장하는 계획이 아니라, 먼저 확인할 것과 첫 실행을 정리하는 것부터 시작해요.' },
-    { prompt: '“내 상황에 맞는 콘텐츠 방향과 첫 아이디어를 정리해줘.”',
-      note: '구독자 수치를 약속하는 대신, 방향과 첫 아이디어를 함께 좁힙니다.' },
-    { prompt: '“이걸 보기 전에 확인할 기준과 자료부터 정리해줘.”',
-      note: '매수·매도 추천이 아니라, 판단 전에 볼 기준과 자료를 정리합니다.' },
-    { prompt: '“내 상황에서 가능한 선택지와 첫 단계를 같이 정리해줘.”',
-      note: '“잘 모르겠어요”도 좋은 시작이에요. 지금 상황을 말하는 것부터가 첫 단계예요.' }
-  ];
-  var examples = [
-    { tag: '온라인 판매 · 초안', title: '작게 시작하는 판매 준비', rows: [
-      ['아이템과 고객 가설', '후보 품목 3개와 각각의 예상 구매자, 이미 파는 곳과 다른 점 한 줄씩.'],
-      ['확인할 질문', '한 달에 쓸 수 있는 시간과 예산은? 재고 없이 시작할 수 있는 방식은?'],
-      ['이번 주 첫 행동', '후보 품목 판매처 3곳 직접 둘러보고 메모하기.']] },
-    { tag: '콘텐츠 · 초안', title: '유튜브·인스타 시작 방향', rows: [
-      ['콘텐츠 방향', '내가 꾸준히 말할 수 있는 주제 2가지와 비슷한 채널과의 차이.'],
-      ['첫 아이디어', '첫 영상·게시물 후보 5개 제목, 가장 만들기 쉬운 것 1개 표시.'],
-      ['가벼운 제작 계획', '이번 주 1개 촬영, 다음 주 올리고 반응 기록.']] },
-    { tag: '조사·공부 · 초안', title: '경매 공부 시작 기준', rows: [
-      ['핵심 질문', '어느 지역·금액대부터 볼 것인가? 권리관계에서 무엇을 먼저 확인하나?'],
-      ['비교 기준', '시세 대비 가격, 유찰 횟수, 명도 난이도.'],
-      ['자료 · 더 확인할 점', '기초 용어 정리 자료 목록. 예산 상한은 직접 정한 뒤 이어가기.']] }
-  ];
-  function bindGroup(selector, onPick) {
-    var btns = Array.prototype.slice.call(document.querySelectorAll(selector));
-    btns.forEach(function (btn, i) {
-      btn.addEventListener('click', function () {
-        btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
-        onPick(i);
+  var API_ORIGIN = 'https://api.sidekickagent.app';
+  var ARROW = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  // ---- Pricing -------------------------------------------------------------
+  // Each card carries its own numbers as data attributes; the guard test reads
+  // the same attributes. Sales stay "preview" until the server says checkout
+  // is live, matching the fail-closed button on the membership page.
+  var salesOpen = false;
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.plan[data-plan]'));
+  function money(value) { return '$' + value; }
+  function renderCard(card) {
+    var funding = card.getAttribute('data-funding-selected') || 'included';
+    var pair = (card.getAttribute('data-' + funding) || '').split(',').map(Number);
+    var first = pair[0], after = pair[1];
+    card.querySelector('[data-role="price"]').textContent = money(first);
+    card.querySelector('[data-role="price-sub"]').textContent = first === after ? '매월 동일' : '첫 3개월 · 이후 ' + money(after) + ' / 월';
+    var buy = card.querySelector('[data-role="buy"]');
+    buy.setAttribute('href', '/membership/?plan=' + card.getAttribute('data-plan') + '&funding=' + funding);
+    card.querySelector('[data-role="buy-label"]').textContent = salesOpen ? '구매하기' : '구성 미리 보기';
+    card.querySelector('[data-role="ai-line"] span').textContent = funding === 'included' ? 'AI 사용료 멤버십에 포함' : 'AI 사용료는 내 AI 계정에서 별도 청구';
+    Array.prototype.forEach.call(card.querySelectorAll('[data-funding]'), function (button) {
+      button.setAttribute('aria-pressed', String(button.getAttribute('data-funding') === funding));
+    });
+  }
+  cards.forEach(function (card) {
+    Array.prototype.forEach.call(card.querySelectorAll('[data-funding]'), function (button) {
+      button.addEventListener('click', function () {
+        card.setAttribute('data-funding-selected', button.getAttribute('data-funding'));
+        renderCard(card);
       });
     });
-  }
-  function animateSwap(selector) {
-    var el = document.querySelector(selector);
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    el.classList.remove('content-swap');
-    void el.offsetWidth;
-    el.classList.add('content-swap');
-  }
-  bindGroup('.route', function (i) {
-    document.getElementById('route-prompt').textContent = routes[i].prompt;
-    document.getElementById('route-note').textContent = routes[i].note;
-    animateSwap('.route-preview');
+    renderCard(card);
   });
-  bindGroup('.tab', function (i) {
-    var ex = examples[i];
-    document.getElementById('doc-tag').textContent = ex.tag;
-    document.getElementById('doc-title').textContent = ex.title;
-    var dl = document.getElementById('doc-body');
-    dl.innerHTML = '';
-    ex.rows.forEach(function (row) {
-      var dt = document.createElement('dt'); dt.textContent = row[0];
-      var dd = document.createElement('dd'); dd.textContent = row[1];
-      dl.appendChild(dt); dl.appendChild(dd);
+  if (window.fetch) {
+    fetch(API_ORIGIN + '/membership/stripe/config').then(function (response) {
+      return response.ok ? response.json() : {};
+    }).then(function (config) {
+      salesOpen = Boolean(config) && config.sales_enabled === true && config.mode === 'live';
+      document.getElementById('pricing-closed').hidden = salesOpen;
+      cards.forEach(renderCard);
+    }).catch(function () { /* stays in preview */ });
+  }
+
+  // ---- Roles ---------------------------------------------------------------
+  // Names, roles and first tasks come from the employee catalog in the app.
+  var roles = [
+    { name: '민서', role: '아침 브리핑 담당', status: '일하는 중',
+      lead: '오늘 먼저 볼 일을 정리해요.', rest: '메모, 일정, 대기 중인 결정을 모아 중요한 일, 미뤄도 되는 일, 내 확인이 필요한 일로 나눠요.',
+      tasks: ['오늘 일정과 메모를 한 장으로 요약', '중요한 일과 미뤄도 되는 일 분리', '확인이 필요한 결정 질문 작성'],
+      approval: '우선순위를 확정하기 전에 물어봐요', first: '오늘 일정이랑 메모 모아서 먼저 볼 것만 정리해줘.' },
+    { name: '하율', role: '메일 정리 담당', status: '일하는 중',
+      lead: '답장이 필요한 메일만 골라요.', rest: '받은 메일을 읽고 요청, 기한, 확인할 점을 뽑아 답장 초안까지 준비해요.',
+      tasks: ['받은 메일에서 요청과 기한 추출', '답장 초안 작성', '반복되는 문의 따로 표시'],
+      approval: '메일을 보내기 전에 물어봐요', first: '오늘 온 메일 중에 답장 필요한 것만 정리해줘.' },
+    { name: '서준', role: '할 일 정리 담당', status: '일하는 중',
+      lead: '흩어진 할 일을 우선순위로 정리해요.', rest: '요청을 체크리스트와 일정 후보로 바꾸고, 미룬 일이 쌓이지 않게 챙겨요.',
+      tasks: ['할 일을 모아 우선순위 정리', '일정 후보 제안', '미룬 일 다시 올리기'],
+      approval: '약속을 확정하기 전에 물어봐요', first: '이번 주 할 일 모아서 순서 잡아줘.' },
+    { name: '지호', role: '매물 분석 담당', status: '일하는 중',
+      lead: '관심 조건에 맞는 물건을 찾아 핵심을 정리해요.', rest: '위치, 가격, 면적, 일정, 장단점을 요약하고 제외 조건과 충돌하는 건 따로 표시해요.',
+      tasks: ['조건에 맞는 후보 조사', '핵심 장단점 요약', '제외 조건과 충돌하는 항목 표시'],
+      approval: '매수·매도 판단은 대신하지 않아요', first: '예산 안에서 볼 만한 30평대 후보만 정리해줘.' },
+    { name: '예린', role: '시세 조사 담당', status: '일하는 중',
+      lead: '주변 시세와 낙찰가를 모아 비교해요.', rest: '거래 사례와 가격 흐름을 출처, 기준과 함께 적고, 부족한 근거는 가정으로 분리해요.',
+      tasks: ['주변 시세와 거래 사례 수집', '낙찰가 비교표 작성', '출처와 기준 표기'],
+      approval: '숫자는 출처와 함께, 판단은 직접 해요', first: '이 물건 주변 최근 거래가랑 낙찰가 비교해줘.' },
+    { name: '현진', role: '영상 기획 담당', status: '일하는 중',
+      lead: '누구에게 어떤 약속을 하는 영상인지부터 잡아요.', rest: '주제와 채널 맥락을 읽고 조사할 근거, 추천 방향, 제목 후보, 첫 30초 구성을 정리해요.',
+      tasks: ['채널 맥락과 주제 정리', '제목 후보와 첫 30초 구성', '조사할 근거 목록'],
+      approval: '방향을 확정하기 전에 물어봐요', first: '다음 영상 주제 후보 3개랑 첫 30초 구성 잡아줘.' },
+    { name: '시우', role: '대본·썸네일 담당', status: '일하는 중',
+      lead: '확정된 방향을 바로 읽을 수 있는 대본으로 만들어요.', rest: '제목, 썸네일 문구, 장면별 구성까지 한 번에 정리하고, 수정 요청은 기존 조건을 유지한 채 반영해요.',
+      tasks: ['전체 대본 작성', '썸네일 문구와 시각 방향', '장면별 구성표'],
+      approval: '게시와 업로드는 직접 해요', first: '어제 잡은 방향으로 대본이랑 썸네일 문구 만들어줘.' },
+    { name: '하준', role: '고객 문의·CS 담당', status: '일하는 중',
+      lead: '문의를 읽고 보낼 답변 초안을 정리해요.', rest: '배송, 교환, 반품, 상품 문의를 분류하고, 반복되는 불만과 확인이 필요한 주문은 따로 표시해요.',
+      tasks: ['문의 분류와 답변 초안', '반복되는 불만 표시', '확인이 필요한 주문 정리'],
+      approval: '고객에게 보내기 전에 물어봐요', first: '오늘 들어온 문의 답변 초안 만들어줘.' }
+  ];
+  var pills = document.getElementById('role-pills');
+  var desc = document.getElementById('role-desc');
+  var cardEl = document.getElementById('role-card');
+  function text(tag, className, value) {
+    var el = document.createElement(tag);
+    if (className) el.className = className;
+    if (value !== undefined) el.textContent = value;
+    return el;
+  }
+  function renderRole(index) {
+    var role = roles[index];
+    Array.prototype.forEach.call(pills.children, function (pill, i) { pill.setAttribute('aria-pressed', String(i === index)); });
+    desc.replaceChildren(text('b', '', role.lead + ' '), document.createTextNode(role.rest));
+
+    var head = text('div', 'head');
+    head.appendChild(text('span', 'avatar', role.name.charAt(0)));
+    var who = document.createElement('div');
+    who.appendChild(text('b', '', role.name));
+    who.appendChild(text('small', '', role.role));
+    head.appendChild(who);
+    head.appendChild(text('span', 'badge done', role.status));
+
+    var list = document.createElement('ul');
+    role.tasks.forEach(function (task) {
+      var item = document.createElement('li');
+      item.innerHTML = ARROW;
+      item.appendChild(document.createTextNode(task));
+      list.appendChild(item);
     });
-    animateSwap('.result-doc');
+    var approval = text('div', 'approval');
+    approval.appendChild(text('span', 'dot attn'));
+    approval.appendChild(document.createTextNode(role.approval));
+    var quote = text('blockquote', '', '“' + role.first + '”');
+
+    cardEl.replaceChildren(head, text('h4', '', '맡은 일'), list, text('h4', '', '확인 전에 물어보는 일'), approval, text('h4', '', '첫 업무 예시'), quote);
+  }
+  roles.forEach(function (role, index) {
+    var pill = text('button', 'role-pill');
+    pill.type = 'button';
+    pill.setAttribute('aria-pressed', 'false');
+    pill.appendChild(text('span', 'rp-av', role.name.charAt(0)));
+    pill.appendChild(document.createTextNode(role.role.replace(' 담당', '')));
+    pill.addEventListener('click', function () { renderRole(index); });
+    pills.appendChild(pill);
   });
-
-  // Scroll-paced, staggered entrance. The observer only activates after every
-  // item is marked, so a script failure never leaves content hidden.
-  var motionQuery = window.matchMedia && window.matchMedia('(prefers-reduced-motion: no-preference)');
-  var motionEnabled = motionQuery && motionQuery.matches && 'IntersectionObserver' in window;
-  var observer;
-  function resetMotion() {
-    document.documentElement.classList.remove('motion-ready');
-    document.querySelectorAll('[data-reveal-item]').forEach(function (el) { el.classList.remove('is-visible'); el.style.removeProperty('--parallax-y'); });
-    document.documentElement.style.removeProperty('--scroll-progress');
-    if (observer) { observer.disconnect(); observer = null; }
-  }
-  function setupMotion() {
-    resetMotion();
-    if (!(motionQuery && motionQuery.matches && 'IntersectionObserver' in window)) return;
-    var groups = document.querySelectorAll('.landing section');
-    groups.forEach(function (section) {
-      var items = section.querySelectorAll(':scope > h2, :scope > .hero-copy, :scope > .phone, :scope > .prep-cols, :scope > p, :scope > .route-list, :scope > .route-preview, :scope > .result-tabs, :scope > .result-flex, :scope > .section-note, :scope > .flow, :scope > .cont-flex, :scope > .trust-flex, :scope > .start-guide-copy, :scope > .store-actions, :scope > .service-links, :scope > .actions');
-      items.forEach(function (item, index) { item.setAttribute('data-reveal-item', ''); item.style.setProperty('--reveal-delay', Math.min(index * 100, 460) + 'ms'); });
-      section.querySelectorAll('.flow-step, .prep-doubts li, .start-seq li, .service-links a').forEach(function (item, index) { item.setAttribute('data-reveal-item', ''); item.style.setProperty('--reveal-delay', Math.min(index * 110, 440) + 'ms'); });
-    });
-    document.documentElement.classList.add('motion-ready');
-    observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } });
-    }, { rootMargin: '0px 0px -9% 0px', threshold: 0.12 });
-    document.querySelectorAll('[data-reveal-item]').forEach(function (item) { observer.observe(item); });
-  }
-  var ticking = false;
-  function syncScrollMotion() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function () {
-      var root = document.documentElement;
-      var range = Math.max(root.scrollHeight - window.innerHeight, 1);
-      root.style.setProperty('--scroll-progress', String(Math.min(1, Math.max(0, window.scrollY / range))));
-      document.querySelectorAll('.landing .phone').forEach(function (phone) {
-        var rect = phone.getBoundingClientRect();
-        var ratio = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
-        phone.style.setProperty('--parallax-y', (Math.max(-1, Math.min(1, ratio)) * -13).toFixed(1) + 'px');
-      });
-      ticking = false;
-    });
-  }
-  setupMotion(); syncScrollMotion();
-  window.addEventListener('scroll', syncScrollMotion, { passive: true });
-  window.addEventListener('resize', syncScrollMotion, { passive: true });
-  if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', function () { setupMotion(); syncScrollMotion(); });
-
-  // Hero sequence highlight — informational without motion; skipped entirely under reduced motion.
-  var steps = document.querySelectorAll('#hero-steps li');
-  if (steps.length && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-    var cur = 0;
-    steps[0].classList.add('on');
-    setInterval(function () {
-      steps[cur].classList.remove('on');
-      cur = (cur + 1) % steps.length;
-      steps[cur].classList.add('on');
-    }, 2600);
-  } else if (steps.length) {
-    steps.forEach(function (s) { s.classList.add('on'); });
-  }
+  renderRole(0);
 })();
 </script>
 </body>

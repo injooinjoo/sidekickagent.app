@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; object-src 'none'" />
-  <link rel="icon" href="data:," />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="Sidekick 멤버십을 플랜, AI 계정, 데이터 보관 방식 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/membership/" />
@@ -21,7 +21,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="/"><strong>사이드킥</strong></a>
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
     <span class="account-pill" id="account-pill">로그인 전</span>
     <nav class="nav" aria-label="주요 메뉴">
       <a href="/membership/" aria-current="page">멤버십</a>
@@ -137,6 +137,7 @@
                 <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
                 <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
               </div>
+              <p class="auth-warning" id="app-hint" hidden>앱에서 오셨네요. 앱에서 쓰는 이메일이나 휴대폰 번호로 로그인하면 같은 계정으로 이어져요.</p>
               <p class="auth-warning" id="auth-note">구글·애플·카카오로 시작했다면 같은 이메일을 넣으면 같은 계정이에요. 네이버로만 시작한 계정은 아직 연결되지 않아요.</p>
               <form id="email-form">
                 <label for="email" id="value-label">이메일</label>
@@ -154,13 +155,14 @@
             <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
           </div>
         </section>
-        <p class="summary-footnote">표시 금액은 USD 기준이며 세금과 최종 청구 금액은 결제 화면에서 확인해요. AI 제공업체 비용은 별도일 수 있어요. 앱스토어에서 구독하면 스토어 수수료가 붙어 웹보다 금액이 높습니다.</p>
+        <p class="summary-footnote" id="annual-note" hidden>연간 결제로 바꾸면 열 달 요금으로 열두 달을 써요. 결제 화면에서 바로 고를 수 있어요.</p>
+        <p class="summary-footnote">표시 금액은 USD 기준이며 세금, 통화, 최종 청구 금액은 결제 화면에서 확인해요. AI 제공업체 비용은 별도일 수 있어요. 앱에서는 결제하지 않으며, 이 페이지가 유일한 결제 창구예요.</p>
       </aside>
     </div>
 
     <section class="platform-note">
-      <strong>구독과 결제 관리는 구매한 플랫폼에서 할 수 있어요.</strong>
-      <p>웹 구독은 Stripe의 안전한 결제 화면과 구독 관리 화면을 사용해요. 앱에서 구독한 경우에는 앱스토어의 구독 관리에서 변경·해지합니다.</p>
+      <strong>앱 안에는 결제 화면이 없어요. 여기가 유일한 결제 창구예요.</strong>
+      <p>앱의 내 정보 &gt; 계정 &gt; 멤버십에서 '한도 변경'을 누르면 기본 브라우저로 이 페이지가 열려요. 결제와 구독 관리는 모두 Stripe의 안전한 결제 화면과 구독 관리 화면에서 해요.</p>
     </section>
 
     <footer class="footer">
