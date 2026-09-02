@@ -8,4 +8,4 @@ Official public website for **Sidekick: AI Agent**.
 - Terms: https://sidekickagent.app/terms/
 - Account deletion: https://sidekickagent.app/delete-account/
 
-Published from the Sidekick product source at `injooinjoo/sidekick@226dc5717f4a74b4a5316e84c90154cecbafa041`.
+Published from the Sidekick product source at `injooinjoo/sidekick@e513a355336e606071bc06a96852e415e12f8099`.
