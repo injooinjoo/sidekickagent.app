@@ -126,6 +126,23 @@ h1, h2, h3, h4 { text-wrap: balance; }
 }
 .footer a { font-size: 14px; }
 .footer small { margin-left: auto; }
+/* Seller identity, in every footer rather than on one "about" page: Korean
+ * e-commerce law and Toss's merchant review both read it off whichever page
+ * the customer is standing on. Full width in both footer layouts -- flex-basis
+ * for the plain footer, grid-column for the landing grid; each property is
+ * inert in the other's layout. */
+.biz {
+  flex-basis: 100%;
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  font-style: normal;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
 
 .policy, .home { max-width: 860px; margin: 0 auto; padding: 56px 22px 80px; }
 .hero { padding: 56px 0 30px; max-width: 760px; }

@@ -144,6 +144,13 @@
         <a href="/delete-account/">계정 및 데이터 삭제</a>
       </div>
     </div>
+    <address class="biz">
+      <span>비욘드</span>
+      <span>대표 김인주</span>
+      <span>사업자등록번호 552-20-02389</span>
+      <span>서울특별시 서초구 효령로23길 54-6</span>
+      <span>010-5060-6843</span>
+    </address>
   </footer>
 </main>
 <script type="application/json" id="use-scenario">{"slug": "tax", "name": "태오", "role": "경비 정리 담당", "status": "일하는 중", "model": "GPT", "connections": ["자료함", "구글 드라이브"], "messages": [{"type": "me", "text": "이번 달 영수증 정리해서 경비표 만들어줘."}, {"type": "ai", "text": "자료함의 영수증 42장을 읽어 항목별로 나누고, 매출과 맞춰 볼게요. 세무 판단은 하지 않아요."}, {"type": "progress", "label": "진행 중 · 42장", "model": "GPT로 정리 중", "steps": ["영수증 읽기", "항목 분류", "매출 대조"]}, {"type": "note", "text": "영수증 원본은 내 서버 자료함 밖으로 나가지 않아요."}, {"type": "approval", "title": "누락 항목 2건", "text": "카드 내역엔 있는데 영수증이 없는 2건이 있어요. 경비표에 '확인 필요'로 넣을까요?", "files": ["8월 경비표", "누락 2건"], "approve": "확인 필요로", "hold": "보류"}, {"type": "result", "kicker": "결과 도착", "title": "8월 경비표 준비 완료", "rows": [["경비", "42건 · 7개 항목"], ["확인 필요", "2건"]]}]}</script>

@@ -144,6 +144,13 @@
         <a href="/delete-account/">계정 및 데이터 삭제</a>
       </div>
     </div>
+    <address class="biz">
+      <span>비욘드</span>
+      <span>대표 김인주</span>
+      <span>사업자등록번호 552-20-02389</span>
+      <span>서울특별시 서초구 효령로23길 54-6</span>
+      <span>010-5060-6843</span>
+    </address>
   </footer>
 </main>
 <script type="application/json" id="use-scenario">{"slug": "youtube", "name": "시우", "role": "영상 기획 담당", "status": "일하는 중", "model": "Gemini", "connections": ["유튜브 채널", "구글 드라이브"], "messages": [{"type": "me", "text": "다음 영상 주제 3개랑 첫 30초 구성 잡아줘."}, {"type": "ai", "text": "최근 영상 반응과 댓글을 보고 주제 후보 3개를 뽑을게요. 방향을 정하면 대본까지 이어서 써요."}, {"type": "progress", "label": "진행 중 · 조사", "model": "Gemini로 조사 중", "steps": ["최근 반응 분석", "주제 후보 3개", "첫 30초 구성"]}, {"type": "note", "text": "대본은 GPT로 바꿔 쓸 수도 있어요. 모델은 직원마다 골라요."}, {"type": "approval", "title": "주제 확정", "text": "1번 '캠핑 초보 장비 5개'로 갈까요? 확정하면 전체 대본을 써요.", "files": ["주제 후보 3개", "첫 30초 구성"], "approve": "1번으로", "hold": "보류"}, {"type": "result", "kicker": "결과 도착", "title": "대본과 썸네일 문구 준비 완료", "rows": [["대본", "6분 분량 · 장면 9개"], ["썸네일", "문구 3안"]]}]}</script>
