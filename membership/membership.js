@@ -63,7 +63,7 @@
   const state = {
     method: 'email',
     plan: DEFAULT_PLAN,
-    funding: 'included',
+    funding: 'connected',
     storage: 'managed',
     challengeId: null,
     token: sessionStorage.getItem('sidekick_web_access_token') || '',
@@ -96,6 +96,14 @@
     $(id).replaceChildren(strong, small);
   }
 
+
+  // 판매는 열렸는데 이 주소에서는 못 파는 상태. "준비 중"과 구별해야
+  // 하는 이유는, 사람이 기다리면 열리는 줄 알기 때문이다.
+  function testModeHere() {
+    return Boolean(state.billing.sales_enabled)
+      && state.billing.mode === 'test'
+      && !publicCheckoutReady();
+  }
 
   function publicCheckoutReady() {
     const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -153,18 +161,32 @@
       button.hidden = subscribed;
       button.textContent = state.busy && state.plan === id ? '연결 중…'
         : !plan.sold ? '지금은 구매할 수 없어요'
-        : ready ? `${plan.label} 시작하기` : '결제 준비 중';
+        : ready ? `${plan.label} 시작하기`
+        : testModeHere() ? '테스트 모드예요'
+        : '금액을 불러오는 중이에요';
       card.classList.toggle('is-current', subscribed && state.plan === id);
     });
 
-    $('account-pill').textContent = authenticated ? '로그인됨' : '로그인 전';
+    // 토글의 겉모습은 여기서만 정해진다. 마크업에 켜짐을 적어 두고
+    // 상태를 따로 두면, 스위치는 켜졌는데 가격은 꺼진 값인 화면이 나온다.
+    const connected = state.funding === 'connected';
+    const toggle = $('funding-toggle');
+    toggle.classList.toggle('is-on', connected);
+    toggle.setAttribute('aria-checked', String(connected));
+    $('mode-note').textContent = connected
+      ? '내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.'
+      : 'Sidekick AI가 포함돼요. 따로 준비할 것 없이 바로 시작해요.';
+
+    $('account-pill').textContent = authenticated ? '내 계정' : '로그인';
     $('account-line').hidden = authenticated;
     $('open-signin').hidden = authenticated;
     if (authenticated) $('auth-status').textContent = '';
     renderSubscription();
 
     if (!$('checkout-status').dataset.pinned) {
-      const status = !publicCheckoutReady()
+      const status = testModeHere()
+        ? '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 준비가 끝나면 바로 열려요.'
+        : !publicCheckoutReady()
         ? '지금은 웹에서 구매할 수 없어요. 앱에서 계속 사용할 수 있어요.'
         : subscribed ? '이미 구독 중이에요.'
         : '카드는 토스페이먼츠 등록창에서 입력해요.';
@@ -349,12 +371,6 @@
 
   $('funding-toggle').addEventListener('click', () => {
     state.funding = state.funding === 'connected' ? 'included' : 'connected';
-    const on = state.funding === 'connected';
-    $('funding-toggle').classList.toggle('is-on', on);
-    $('funding-toggle').setAttribute('aria-checked', String(on));
-    $('mode-note').textContent = on
-      ? '내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.'
-      : 'Sidekick AI가 포함돼요. 따로 준비할 것 없이 바로 시작해요.';
     render();
   });
 
