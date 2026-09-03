@@ -118,3 +118,19 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 @media (prefers-reduced-motion: reduce) {
   .option-card { transition: none; }
 }
+
+/* The sign-in gate and the social doors. Deliberately plain: this page hands
+   over to a card window next, and a login that looks unlike the rest of the
+   page is the kind of thing a careful person backs out of. */
+.signin-gate { max-width: 640px; margin: 0 auto 26px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); text-align: center; }
+.signin-gate h2 { margin: 0 0 8px; font-size: 20px; }
+.signin-gate p { margin: 0; color: var(--muted); font-size: 15px; }
+.social-doors { display: grid; gap: 8px; margin: 14px 0 4px; }
+.social-button { width: 100%; min-height: 46px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
+.social-button:hover { border-color: var(--ink); }
+.social-button:disabled { color: var(--soft); cursor: not-allowed; }
+.social-button.is-apple { background: var(--ink); border-color: var(--ink); color: white; }
+.social-status { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.social-status.is-error { color: #b3261e; }
+.auth-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; color: var(--soft); font-size: 12px; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }

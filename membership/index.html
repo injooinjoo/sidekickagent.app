@@ -7,7 +7,7 @@
        script is fetched on demand rather than on every visit. The card window
        Toss opens lives on its own domains, so those are the frame/form targets;
        nothing else is reachable. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com https://wdjlokfsehsnvcipkods.supabase.co; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
   <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="Sidekick 멤버십을 플랜과 AI 계정 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
@@ -46,8 +46,13 @@
       <p class="promo-line"><strong>7일 무료 체험</strong>은 앱에서 첫 업무를 시작하면 결제수단 없이 자동으로 켜져요. 체험 동안에는 Sidekick AI 포함으로 한 번에 업무 하나를 AI 직원 1명과 함께 진행하고, 자료함은 5GB예요.</p>
     </section>
 
+    <section class="signin-gate" id="signin-gate" aria-labelledby="signin-heading">
+      <h2 id="signin-heading">먼저 로그인해요</h2>
+      <p>결제는 계정에 붙어요. 앱에서 쓰던 방법으로 로그인하면 같은 계정으로 이어지고, 그 다음에 플랜을 고르면 돼요.</p>
+    </section>
+
     <div class="purchase-layout">
-      <div class="configurator">
+      <div class="configurator" id="configurator" hidden>
         <section class="step" aria-labelledby="plan-heading">
           <div class="step-heading">
             <span class="step-number" aria-hidden="true">1</span>
@@ -115,14 +120,24 @@
             </div>
 
             <div class="auth-panel" id="auth-panel">
-              <strong>이메일로 로그인</strong>
+              <strong>로그인</strong>
               <p>앱에서 쓰던 방법 그대로 로그인하면 같은 계정이에요.</p>
+              <!-- 앱 로그인 화면과 같은 다섯 가지. 구글·애플은 앱과 똑같이
+                   Supabase를 지나고, ChatGPT는 백엔드 기기코드를 쓴다. 같은
+                   문을 쓰기 때문에 PC에서 로그인해도 같은 계정이 된다. -->
+              <div class="social-doors">
+                <button class="social-button is-google" type="button" id="google-button">Google로 계속하기</button>
+                <button class="social-button is-apple" type="button" id="apple-button">Apple로 계속하기</button>
+                <button class="social-button is-chatgpt" type="button" id="chatgpt-button">ChatGPT로 계속하기</button>
+              </div>
+              <p class="social-status" id="social-status" aria-live="polite" hidden></p>
+              <p class="auth-divider"><span>또는</span></p>
               <div class="method-tabs" role="tablist" aria-label="로그인 방법">
                 <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
                 <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
               </div>
               <p class="auth-warning" id="app-hint" hidden>앱에서 오셨네요. 앱에서 쓰는 이메일이나 휴대폰 번호로 로그인하면 같은 계정으로 이어져요.</p>
-              <p class="auth-warning" id="auth-note">구글·애플·카카오로 시작했다면 같은 이메일을 넣으면 같은 계정이에요. 네이버로만 시작한 계정은 아직 연결되지 않아요.</p>
+              <p class="auth-warning" id="auth-note">앱에서 쓰던 방법 그대로 고르면 같은 계정이에요.</p>
               <form id="email-form">
                 <label for="email" id="value-label">이메일</label>
                 <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호 받기</button></div>

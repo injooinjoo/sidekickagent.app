@@ -2,6 +2,15 @@
   'use strict';
 
   const API_ORIGIN = 'https://api.sidekickagent.app';
+  // Google and Apple are Supabase logins in the app, and the backend accepts a
+  // Supabase JWT as a bearer for any authenticated route. So the web uses the
+  // same door rather than a second one: no SDK is loaded here — this page takes
+  // card details next door and every extra third-party script on it is a
+  // liability — just a redirect to Supabase's authorize endpoint and a token
+  // read back out of the URL fragment.
+  const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
+  const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
+  const RETURN_URL = 'https://sidekickagent.app/membership/';
   const TOSS_SDK_URL = 'https://js.tosspayments.com/v2/standard';
   // Plan identity only. What each combination costs is Korean won held in the
   // backend's own catalog and served by /membership/toss/config, so this page
@@ -25,13 +34,15 @@
   // to. Email and phone are both plain OTP through /auth/start, so they cost one
   // field each; the social providers redirect into the app and still need a web
   // callback before they can appear here.
+  // Every way in the app offers, so a purchase can be attached to the account
+  // the person already has instead of minting a second one on the desktop.
   const AUTH_METHODS = {
     email: {
       label: '이메일',
       inputType: 'email',
       autocomplete: 'email',
       placeholder: '',
-      note: '구글·애플·카카오로 시작했다면 같은 이메일을 넣으면 같은 계정이에요. 네이버로만 시작한 계정은 아직 연결되지 않아요.',
+      note: '구글이나 애플로 시작했다면 위 버튼을 쓰는 편이 확실해요. 같은 이메일을 넣어도 같은 계정으로 이어져요.',
       heading: '이메일로 로그인'
     },
     phone: {
@@ -147,6 +158,14 @@
       : '지금은 웹에서 구매할 수 없어요.';
 
     const authenticated = Boolean(state.token);
+    // The configurator only exists once there is an account to attach a purchase
+    // to. Choosing a plan, then an AI account, then a price, and only then being
+    // asked who you are, put the one unskippable step last — and it is the step
+    // the purchase actually depends on.
+    const gate = $('signin-gate');
+    const configurator = $('configurator');
+    if (gate) gate.hidden = authenticated;
+    if (configurator) configurator.hidden = !authenticated;
     $('auth-panel').classList.toggle('is-authenticated', authenticated);
     $('account-pill').textContent = authenticated ? '로그인됨' : '로그인 전';
     if (authenticated) $('auth-status').textContent = 'Sidekick 계정으로 로그인했어요.';
@@ -265,6 +284,98 @@
     $('auth-status').classList.remove('is-error');
     input.focus();
   }
+
+  function showSocialStatus(message, isError) {
+    const node = $('social-status');
+    node.hidden = !message;
+    node.textContent = message || '';
+    node.classList.toggle('is-error', Boolean(isError));
+  }
+
+  // Supabase's implicit flow returns the session in the fragment. Reading it
+  // here and clearing it immediately keeps the token out of history and out of
+  // anything that later logs a URL.
+  async function adoptSupabaseRedirect() {
+    const hash = window.location.hash || '';
+    if (!hash.includes('access_token=')) {
+      if (hash.includes('error=')) {
+        const failed = new URLSearchParams(hash.slice(1));
+        showSocialStatus(failed.get('error_description') || '로그인이 완료되지 않았어요.', true);
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      return false;
+    }
+    const params = new URLSearchParams(hash.slice(1));
+    const token = String(params.get('access_token') || '').trim();
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (!token) return false;
+    state.token = token;
+    sessionStorage.setItem('sidekick_web_access_token', token);
+    try {
+      // The backend is the authority on who this is; the provider only proved
+      // the person holds the account.
+      const session = await api('/auth/session', { method: 'GET' });
+      state.user = session.user || null;
+      showSocialStatus('', false);
+      return true;
+    } catch (_) {
+      state.token = '';
+      sessionStorage.removeItem('sidekick_web_access_token');
+      showSocialStatus('로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.', true);
+      return false;
+    }
+  }
+
+  function startSupabaseLogin(provider) {
+    if (!SUPABASE_PROVIDERS[provider]) return;
+    showSocialStatus(`${SUPABASE_PROVIDERS[provider]}으로 이동하고 있어요.`, false);
+    const url = new URL(`${SUPABASE_ORIGIN}/auth/v1/authorize`);
+    url.searchParams.set('provider', provider);
+    url.searchParams.set('redirect_to', RETURN_URL);
+    window.location.assign(url.toString());
+  }
+
+  $('google-button').addEventListener('click', () => startSupabaseLogin('google'));
+  $('apple-button').addEventListener('click', () => startSupabaseLogin('apple'));
+
+  // ChatGPT is a device code, not a redirect: the backend starts it, the person
+  // approves in a new tab, and this page polls until the approval lands.
+  $('chatgpt-button').addEventListener('click', async () => {
+    if (state.busy) return;
+    state.busy = true;
+    showSocialStatus('ChatGPT 승인 창을 여는 중이에요.', false);
+    try {
+      const started = await api('/auth/oauth/chatgpt/start', { method: 'POST', body: JSON.stringify({}) });
+      const approvalUrl = started.verification_uri_complete || started.verification_uri || started.url;
+      if (!approvalUrl) throw new Error('no approval url');
+      window.open(approvalUrl, '_blank', 'noopener');
+      showSocialStatus('새 창에서 승인하면 이 페이지가 이어서 로그인해요.', false);
+      const deadline = Date.now() + 5 * 60 * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const polled = await api('/auth/oauth/chatgpt/poll', {
+          method: 'POST',
+          body: JSON.stringify({ challenge_id: started.challenge_id || started.id })
+        });
+        if (polled.access_token) {
+          state.token = polled.access_token;
+          state.user = polled.user || null;
+          sessionStorage.setItem('sidekick_web_access_token', state.token);
+          showSocialStatus('', false);
+          render();
+          await loadSubscription();
+          await completePendingAuthorization();
+          return;
+        }
+      }
+      showSocialStatus('승인이 확인되지 않았어요. 다시 시도해 주세요.', true);
+    } catch (_) {
+      showSocialStatus('ChatGPT 로그인을 시작하지 못했어요.', true);
+    } finally {
+      state.busy = false;
+      render();
+    }
+  });
 
   methodTabs.forEach((tab) => tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method)));
 
@@ -421,5 +532,11 @@
   if (requestedFunding === 'included' || requestedFunding === 'connected') state.funding = requestedFunding;
 
   render();
-  loadBillingConfig().then(loadSubscription).then(completePendingAuthorization);
+  // The Supabase redirect has to be adopted before anything asks the backend who
+  // this is, or the first call goes out unauthenticated and the page renders the
+  // signed-out state over a session that already exists.
+  adoptSupabaseRedirect()
+    .then(() => { render(); return loadBillingConfig(); })
+    .then(loadSubscription)
+    .then(completePendingAuthorization);
 })();
