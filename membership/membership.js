@@ -7,13 +7,19 @@
   // backend's own catalog and served by /membership/toss/config, so this page
   // has no price table to drift from — it renders what the server said or it
   // renders nothing. `sold` is here because the page must know before the
-  // backend answers that Free never opens a card window.
+  // backend answers whether a plan may open a card window at all.
+  //
+  // D76 removed the permanent Free tier: these three paid plans are the whole
+  // catalog. Free entry is the one cardless account trial, which the app starts
+  // at the first real work execution — it is not a plan, so it is not here.
   const PLANS = {
-    free: { label: 'Free', storage: '500MB', sold: false },
     birdie: { label: 'Birdie', storage: '5GB', sold: true },
     eagle: { label: 'Eagle', storage: '25GB', sold: true },
     albatross: { label: 'Albatross', storage: '100GB', sold: true }
   };
+  // The first paid plan, and the landing place for any plan value this page does
+  // not sell — including the removed `free`, which older links still carry.
+  const DEFAULT_PLAN = 'birdie';
   // The app offers six ways in and each mints its own account id, so the web
   // must offer the same door rather than guess which account a purchase belongs
   // to. Email and phone are both plain OTP through /auth/start, so they cost one
@@ -45,7 +51,7 @@
 
   const state = {
     method: 'email',
-    plan: 'birdie',
+    plan: DEFAULT_PLAN,
     funding: 'included',
     storage: 'managed',
     challengeId: null,
@@ -83,8 +89,8 @@
     $(id).replaceChildren(strong, small);
   }
 
-  function setOptionPrice(id, plan, funding, unavailableNote) {
-    if (!PLANS[plan].sold) return setPriceBlock(id, '—', unavailableNote || 'Free 포함');
+  function setOptionPrice(id, plan, funding) {
+    if (!PLANS[plan].sold) return setPriceBlock(id, '—', '판매 준비 중');
     const amount = priceOf(plan, funding);
     if (amount === null) return setPriceBlock(id, '—', '금액 확인 중');
     setPriceBlock(id, won(amount), '/ 월');
@@ -114,17 +120,17 @@
   }
 
   function render() {
-    if (state.plan === 'free' && state.funding === 'connected') state.funding = 'included';
+    // Every plan this page sells takes either AI-account mode, so no plan choice
+    // disables the connected option any more. What is still worth defending is
+    // the plan value itself: a name the catalog no longer carries falls back to
+    // the first paid plan instead of rendering an undefined plan.
+    if (!PLANS[state.plan]) state.plan = DEFAULT_PLAN;
     const plan = PLANS[state.plan];
-    const connectedButton = document.querySelector('[data-funding="connected"]');
-    connectedButton.disabled = state.plan === 'free';
-    connectedButton.classList.toggle('is-disabled', state.plan === 'free');
-    connectedButton.setAttribute('aria-disabled', String(state.plan === 'free'));
 
     setSelected(planButtons, 'plan', state.plan);
     setSelected(fundingButtons, 'funding', state.funding);
-    setOptionPrice('included-price', state.plan, 'included', null);
-    setOptionPrice('connected-price', state.plan, 'connected', state.plan === 'free' ? 'Birdie 이상에서 사용' : null);
+    setOptionPrice('included-price', state.plan, 'included');
+    setOptionPrice('connected-price', state.plan, 'connected');
 
     const fundingLabel = state.funding === 'included' ? 'Sidekick AI' : '내 AI 계정';
     $('summary-line').textContent = `${plan.label} · ${fundingLabel}`;
@@ -133,9 +139,12 @@
     const amount = plan.sold ? priceOf(state.plan, state.funding) : null;
     $('price-label').textContent = '매월';
     $('summary-price').textContent = amount === null ? '—' : won(amount);
+    // Every plan in the catalog is sold today, so the closed branch is the
+    // fail-closed one: a plan the page is told not to sell says so and offers
+    // no card window, rather than borrowing the trial's "free" wording.
     $('after-price').textContent = plan.sold
       ? (amount === null ? '금액을 불러오고 있어요.' : '매월 같은 금액이 자동으로 결제돼요.')
-      : 'Free는 결제 없이 앱에서 시작해요.';
+      : '지금은 웹에서 구매할 수 없어요.';
 
     const authenticated = Boolean(state.token);
     $('auth-panel').classList.toggle('is-authenticated', authenticated);
@@ -151,7 +160,7 @@
     checkoutButton.hidden = subscribed;
     checkoutButton.textContent = state.busy
       ? '연결 중…'
-      : !plan.sold ? 'Free는 결제 없이 시작해요'
+      : !plan.sold ? '지금은 구매할 수 없어요'
       : ready ? '카드 등록하고 구독 시작' : '결제 준비 중';
 
     if (!$('checkout-status').dataset.pinned) {
@@ -264,7 +273,7 @@
     render();
   }));
   fundingButtons.forEach((button) => button.addEventListener('click', () => {
-    if (!button.disabled) state.funding = button.dataset.funding;
+    state.funding = button.dataset.funding;
     render();
   }));
 
@@ -404,8 +413,8 @@
   // The landing page's plan cards link here with the plan and AI-account choice
   // already made (/membership/?plan=eagle&funding=connected). Preselect exactly
   // that and nothing more: a value this page does not sell falls back to the
-  // defaults, Free still cannot take a connected account (render() keeps that
-  // rule), and no authorisation starts without the person clicking the button.
+  // defaults — which is what a bookmarked `?plan=free` now does — and no
+  // authorisation starts without the person clicking the button.
   const requestedPlan = query.get('plan');
   if (requestedPlan && Object.prototype.hasOwnProperty.call(PLANS, requestedPlan)) state.plan = requestedPlan;
   const requestedFunding = query.get('funding');
