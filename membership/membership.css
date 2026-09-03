@@ -119,18 +119,93 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
   .option-card { transition: none; }
 }
 
-/* The sign-in gate and the social doors. Deliberately plain: this page hands
-   over to a card window next, and a login that looks unlike the rest of the
-   page is the kind of thing a careful person backs out of. */
-.signin-gate { max-width: 640px; margin: 0 auto 26px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); text-align: center; }
-.signin-gate h2 { margin: 0 0 8px; font-size: 20px; }
-.signin-gate p { margin: 0; color: var(--muted); font-size: 15px; }
-.social-doors { display: grid; gap: 8px; margin: 14px 0 4px; }
-.social-button { width: 100%; min-height: 46px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
-.social-button:hover { border-color: var(--ink); }
-.social-button:disabled { color: var(--soft); cursor: not-allowed; }
-.social-button.is-apple { background: var(--ink); border-color: var(--ink); color: white; }
-.social-status { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-.social-status.is-error { color: #b3261e; }
-.auth-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; color: var(--soft); font-size: 12px; }
-.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* 가격 카드와 단일 목적 로그인 화면.
+
+   움직임은 세 곳에만 둔다: 카드가 처음 들어올 때, 금액이 바뀔 때,
+   로그인 화면이 열고 닫힐 때. 그 밖의 것이 움직이면 결제 직전 화면이
+   부산해 보이고, 부산한 결제 화면은 사람을 멈추게 한다.
+   prefers-reduced-motion이면 전부 즉시 상태로만 남는다. */
+.plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; margin: 26px 0 0; }
+.plan-card { display: flex; flex-direction: column; padding: 24px; border: 1px solid var(--line); border-radius: 21px;
+  background: var(--card); box-shadow: var(--shadow-sm); opacity: 0; transform: translateY(10px);
+  animation: card-in .42s cubic-bezier(.22,.61,.36,1) forwards; }
+.plan-card:nth-child(2) { animation-delay: .06s; }
+.plan-card:nth-child(3) { animation-delay: .12s; }
+.plan-card.is-featured { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), 0 8px 24px rgba(26,29,33,.09); }
+.plan-card.is-current { border-color: #a9c3b3; box-shadow: 0 0 0 1px #a9c3b3; }
+@keyframes card-in { to { opacity: 1; transform: none; } }
+
+.plan-head { display: flex; align-items: center; gap: 8px; }
+.plan-name { color: var(--muted); font-size: 14px; }
+.plan-head em { padding: 2px 8px; border: 1px solid var(--accent-border); border-radius: 999px; color: var(--accent);
+  background: var(--accent-soft); font-size: 11px; font-style: normal; font-weight: 800; }
+.plan-price { display: flex; align-items: baseline; gap: 5px; margin: 18px 0 0; }
+.plan-price strong { font-size: 38px; letter-spacing: -.03em; }
+.plan-price span { color: var(--muted); font-size: 14px; }
+.plan-price strong.just-changed { animation: price-in .34s cubic-bezier(.22,.61,.36,1); }
+@keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+.plan-sub { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.plan-card .checkout-button { margin: 20px 0 22px; }
+.plan-includes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.plan-includes li { display: flex; gap: 9px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+.plan-includes svg { flex: 0 0 auto; width: 15px; height: 15px; margin-top: 2px; fill: none;
+  stroke: var(--muted); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.mode-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.mode-toggle { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 8px 0 18px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink-soft);
+  font-size: 14px; font-weight: 600; cursor: pointer; }
+.mode-toggle .knob { width: 42px; height: 25px; padding: 3px; border-radius: 999px; background: #dfe4ea;
+  display: inline-flex; align-items: center; transition: background .18s ease; }
+.mode-toggle.is-on .knob { background: var(--ink); }
+.mode-toggle .knob i { width: 19px; height: 19px; border-radius: 50%; background: #fff; display: block;
+  box-shadow: 0 1px 3px rgba(26,29,33,.28); transition: transform .18s cubic-bezier(.22,.61,.36,1); }
+.mode-toggle.is-on .knob i { transform: translateX(17px); }
+.mode-note { margin: 10px 0 0; color: var(--soft); font-size: 12px; }
+
+.signed-in-row { display: flex; align-items: center; gap: 16px; margin-top: 22px; padding: 16px 22px;
+  border: 1px solid var(--line); border-radius: 18px; background: var(--card); font-size: 14px; color: var(--ink-soft); }
+.signed-in-row span span { color: var(--muted); }
+.ghost-button { margin-left: auto; min-height: 44px; padding: 0 18px; border: 1px solid var(--line);
+  border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+
+.signin-sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(26,29,33,.34); opacity: 0; transition: opacity .22s ease;
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.signin-sheet.is-open { opacity: 1; }
+.signin-inner { position: relative; width: 100%; max-width: 400px; min-height: 480px; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; padding: 30px 26px 22px;
+  border-radius: 22px; background: var(--bg); box-shadow: var(--shadow);
+  transform: translateY(14px) scale(.985); transition: transform .26s cubic-bezier(.22,.61,.36,1); }
+.signin-sheet.is-open .signin-inner { transform: none; }
+.sheet-close { position: absolute; top: 16px; left: 16px; width: 40px; height: 40px; display: inline-flex;
+  align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%;
+  background: var(--card); cursor: pointer; }
+.sheet-close svg { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
+.signin-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.signin-mark { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--ink); }
+.signin-mark svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.signin-body h2 { margin: 22px 0 30px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+.doors { width: 100%; display: flex; flex-direction: column; gap: 9px; }
+.door { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--hairline);
+  color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: background .14s ease; }
+.door:hover { background: #e4e8ec; }
+.otp-block { width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
+.legal { margin: 26px 0 0; max-width: 340px; color: var(--soft); font-size: 12px; line-height: 1.6; text-align: center; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .plan-grid { grid-template-columns: minmax(0, 1fr); }
+  .plan-card { animation-delay: 0s; }
+  .signin-sheet { padding: 0; }
+  .signin-inner { max-width: none; min-height: 100%; border-radius: 0; justify-content: flex-start; padding-top: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-card { opacity: 1; transform: none; animation: none; }
+  .plan-price strong.just-changed { animation: none; }
+  .signin-sheet, .signin-inner, .mode-toggle .knob, .mode-toggle .knob i, .door { transition: none; }
+  .signin-inner { transform: none; }
+}

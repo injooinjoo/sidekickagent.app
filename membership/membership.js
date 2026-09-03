@@ -74,9 +74,12 @@
   };
 
   const $ = (id) => document.getElementById(id);
-  const planButtons = [...document.querySelectorAll('[data-plan]')];
-  const fundingButtons = [...document.querySelectorAll('[data-funding]')];
+  const planCards = [...document.querySelectorAll('.plan-card')];
   const methodTabs = [...document.querySelectorAll('[data-method]')];
+  // 로그인 화면은 구매를 누른 순간에만 열린다. 그때 무엇을 사려던
+  // 중이었는지 기억해 두었다가, 로그인이 끝나면 사람이 다시 누르지
+  // 않아도 그 구매를 이어서 시작한다.
+  let pendingPurchase = null;
 
   function won(value) { return `${Number(value).toLocaleString('ko-KR')}원`; }
   function priceOf(plan, funding) {
@@ -84,13 +87,6 @@
     return typeof amount === 'number' && amount > 0 ? amount : null;
   }
 
-  function setSelected(buttons, attribute, value) {
-    buttons.forEach((button) => {
-      const selected = button.dataset[attribute] === value;
-      button.classList.toggle('is-selected', selected);
-      button.setAttribute('aria-checked', String(selected));
-    });
-  }
 
   function setPriceBlock(id, primary, secondary) {
     const strong = document.createElement('strong');
@@ -100,12 +96,6 @@
     $(id).replaceChildren(strong, small);
   }
 
-  function setOptionPrice(id, plan, funding) {
-    if (!PLANS[plan].sold) return setPriceBlock(id, '—', '판매 준비 중');
-    const amount = priceOf(plan, funding);
-    if (amount === null) return setPriceBlock(id, '—', '금액 확인 중');
-    setPriceBlock(id, won(amount), '/ 월');
-  }
 
   function publicCheckoutReady() {
     const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -131,72 +121,55 @@
   }
 
   function render() {
-    // Every plan this page sells takes either AI-account mode, so no plan choice
-    // disables the connected option any more. What is still worth defending is
-    // the plan value itself: a name the catalog no longer carries falls back to
-    // the first paid plan instead of rendering an undefined plan.
     if (!PLANS[state.plan]) state.plan = DEFAULT_PLAN;
-    const plan = PLANS[state.plan];
-
-    setSelected(planButtons, 'plan', state.plan);
-    setSelected(fundingButtons, 'funding', state.funding);
-    setOptionPrice('included-price', state.plan, 'included');
-    setOptionPrice('connected-price', state.plan, 'connected');
-
-    const fundingLabel = state.funding === 'included' ? 'Sidekick AI' : '내 AI 계정';
-    $('summary-line').textContent = `${plan.label} · ${fundingLabel}`;
-    $('summary-storage').textContent = plan.storage;
-    $('summary-ai-fee').textContent = state.funding === 'included' ? '멤버십에 포함' : '제공업체에서 별도 청구';
-    const amount = plan.sold ? priceOf(state.plan, state.funding) : null;
-    $('price-label').textContent = '매월';
-    $('summary-price').textContent = amount === null ? '—' : won(amount);
-    // Every plan in the catalog is sold today, so the closed branch is the
-    // fail-closed one: a plan the page is told not to sell says so and offers
-    // no card window, rather than borrowing the trial's "free" wording.
-    $('after-price').textContent = plan.sold
-      ? (amount === null ? '금액을 불러오고 있어요.' : '매월 같은 금액이 자동으로 결제돼요.')
-      : '지금은 웹에서 구매할 수 없어요.';
-
     const authenticated = Boolean(state.token);
-    // The configurator only exists once there is an account to attach a purchase
-    // to. Choosing a plan, then an AI account, then a price, and only then being
-    // asked who you are, put the one unskippable step last — and it is the step
-    // the purchase actually depends on.
-    const gate = $('signin-gate');
-    const configurator = $('configurator');
-    if (gate) gate.hidden = authenticated;
-    if (configurator) configurator.hidden = !authenticated;
-    $('auth-panel').classList.toggle('is-authenticated', authenticated);
+    const subscribed = Boolean(state.subscription && state.subscription.active);
+
+    planCards.forEach((card) => {
+      const id = card.dataset.plan;
+      const plan = PLANS[id];
+      const amount = plan && plan.sold ? priceOf(id, state.funding) : null;
+      const priceNode = card.querySelector(`[data-price="${id}"]`);
+      const next = amount === null ? '—' : won(amount);
+      if (priceNode.textContent !== next) {
+        priceNode.textContent = next;
+        // 금액이 바뀐 카드만 짧게 짚어 준다. 토글 한 번에 세 장이 모두
+        // 뛰면 무엇이 달라졌는지가 오히려 안 보인다.
+        priceNode.classList.remove('just-changed');
+        void priceNode.offsetWidth;
+        priceNode.classList.add('just-changed');
+      }
+      card.querySelector(`[data-sub="${id}"]`).textContent = !plan.sold
+        ? '지금은 웹에서 구매할 수 없어요.'
+        : amount === null ? '금액을 불러오고 있어요.'
+        : state.funding === 'connected' ? '내 AI 계정 연결 시 · 매월 결제'
+        : 'Sidekick AI 포함 · 매월 결제';
+
+      const button = card.querySelector('[data-buy]');
+      const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
+      // 로그인은 여기서 요구하지 않는다. 누르면 로그인 화면이 열리고,
+      // 끝나면 이 구매가 이어진다.
+      button.disabled = !ready;
+      button.hidden = subscribed;
+      button.textContent = state.busy && state.plan === id ? '연결 중…'
+        : !plan.sold ? '지금은 구매할 수 없어요'
+        : ready ? `${plan.label} 시작하기` : '결제 준비 중';
+      card.classList.toggle('is-current', subscribed && state.plan === id);
+    });
+
     $('account-pill').textContent = authenticated ? '로그인됨' : '로그인 전';
-    if (authenticated) $('auth-status').textContent = 'Sidekick 계정으로 로그인했어요.';
+    $('account-line').hidden = authenticated;
+    $('open-signin').hidden = authenticated;
+    if (authenticated) $('auth-status').textContent = '';
     renderSubscription();
 
-    const subscribed = Boolean(state.subscription && state.subscription.active);
-    const checkoutButton = $('checkout-button');
-    const ready = publicCheckoutReady() && authenticated && plan.sold && amount !== null
-      && !subscribed && !state.busy;
-    checkoutButton.disabled = !ready;
-    checkoutButton.hidden = subscribed;
-    checkoutButton.textContent = state.busy
-      ? '연결 중…'
-      : !plan.sold ? '지금은 구매할 수 없어요'
-      : ready ? '카드 등록하고 구독 시작' : '결제 준비 중';
-
     if (!$('checkout-status').dataset.pinned) {
-      let status = '안전한 결제 연결을 확인하고 있어요.';
-      if (!publicCheckoutReady()) status = '웹 결제는 아직 열리지 않았어요. 지금은 구성만 미리 볼 수 있어요.';
-      if (publicCheckoutReady() && !authenticated) status = '먼저 Sidekick 계정으로 로그인해 주세요.';
-      if (subscribed) status = '이미 구독 중이에요. 아래에서 확인하고 해지할 수 있어요.';
-      if (ready) status = '카드 정보는 Sidekick이 아닌 토스페이먼츠 카드 등록창에 입력해요.';
+      const status = !publicCheckoutReady()
+        ? '지금은 웹에서 구매할 수 없어요. 앱에서 계속 사용할 수 있어요.'
+        : subscribed ? '이미 구독 중이에요.'
+        : '카드는 토스페이먼츠 등록창에서 입력해요.';
       $('checkout-status').textContent = status;
     }
-  }
-
-  function say(message, isError) {
-    const node = $('checkout-status');
-    node.dataset.pinned = '1';
-    node.classList.toggle('is-error', Boolean(isError));
-    node.textContent = message;
   }
 
   async function api(path, options = {}) {
@@ -269,9 +242,6 @@
       tab.setAttribute('aria-selected', String(selected));
     });
 
-    $('auth-panel').querySelector('strong').textContent = config.heading;
-    $('value-label').textContent = config.label;
-    $('auth-note').textContent = config.note;
     input.type = config.inputType;
     input.autocomplete = config.autocomplete;
     input.placeholder = config.placeholder;
@@ -362,9 +332,7 @@
           state.user = polled.user || null;
           sessionStorage.setItem('sidekick_web_access_token', state.token);
           showSocialStatus('', false);
-          render();
-          await loadSubscription();
-          await completePendingAuthorization();
+          await afterSignIn();
           return;
         }
       }
@@ -379,14 +347,79 @@
 
   methodTabs.forEach((tab) => tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method)));
 
-  planButtons.forEach((button) => button.addEventListener('click', () => {
-    state.plan = button.dataset.plan;
+  $('funding-toggle').addEventListener('click', () => {
+    state.funding = state.funding === 'connected' ? 'included' : 'connected';
+    const on = state.funding === 'connected';
+    $('funding-toggle').classList.toggle('is-on', on);
+    $('funding-toggle').setAttribute('aria-checked', String(on));
+    $('mode-note').textContent = on
+      ? '내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.'
+      : 'Sidekick AI가 포함돼요. 따로 준비할 것 없이 바로 시작해요.';
     render();
-  }));
-  fundingButtons.forEach((button) => button.addEventListener('click', () => {
-    state.funding = button.dataset.funding;
+  });
+
+  function openSignin(plan) {
+    pendingPurchase = plan || null;
+    const sheet = $('signin-sheet');
+    sheet.hidden = false;
+    // 두 프레임을 기다렸다가 클래스를 붙인다: hidden을 벗기자마자
+    // 붙이면 브라우저가 시작 상태를 그리기 전이라 전환이 통째로 생략된다.
+    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('is-open')));
+    document.body.style.overflow = 'hidden';
+    const first = sheet.querySelector('.door');
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  function closeSignin() {
+    const sheet = $('signin-sheet');
+    sheet.classList.remove('is-open');
+    document.body.style.overflow = '';
+    const done = () => { sheet.hidden = true; sheet.removeEventListener('transitionend', done); };
+    // 전환이 꺼져 있거나 잘려도 화면이 반쯤 덮인 채 남지는 않게 한다.
+    sheet.addEventListener('transitionend', done);
+    setTimeout(done, 400);
+  }
+
+  planCards.forEach((card) => {
+    const button = card.querySelector('[data-buy]');
+    if (!button) return;
+    button.addEventListener('click', () => {
+      state.plan = card.dataset.plan;
+      render();
+      if (!state.token) { openSignin(card.dataset.plan); return; }
+      startCheckout();
+    });
+  });
+
+  $('open-signin').addEventListener('click', () => openSignin(null));
+  $('close-signin').addEventListener('click', closeSignin);
+  $('signin-sheet').addEventListener('click', (event) => {
+    if (event.target === $('signin-sheet')) closeSignin();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !$('signin-sheet').hidden) closeSignin();
+  });
+  $('otp-toggle').addEventListener('click', () => {
+    const block = $('otp-block');
+    block.hidden = !block.hidden;
+    if (!block.hidden) $('email').focus();
+  });
+
+  // 로그인 직후 확인 화면을 한 장 더 끼우지 않는다: 고른 플랜 그대로
+  // 토스 결제창이 바로 열린다.
+  async function afterSignIn() {
+    closeSignin();
     render();
-  }));
+    await loadSubscription();
+    await completePendingAuthorization();
+    const subscribed = Boolean(state.subscription && state.subscription.active);
+    if (pendingPurchase && !subscribed) {
+      state.plan = pendingPurchase;
+      pendingPurchase = null;
+      render();
+      await startCheckout();
+    }
+  }
 
   $('email-form').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -420,18 +453,14 @@
       state.token = result.access_token;
       state.user = result.user || null;
       sessionStorage.setItem('sidekick_web_access_token', state.token);
-      render();
-      // Logging in is not buying. All it does is let the page ask the backend
-      // what this account already has.
-      await loadSubscription();
-      await completePendingAuthorization();
+      await afterSignIn();
     } catch (_) {
       $('auth-status').classList.add('is-error');
       $('auth-status').textContent = '인증번호가 맞지 않거나 만료됐어요.';
     }
   });
 
-  $('checkout-button').addEventListener('click', async () => {
+  async function startCheckout() {
     const plan = PLANS[state.plan];
     if (!publicCheckoutReady() || !state.token || !plan.sold || state.busy) return;
     state.busy = true;
@@ -460,7 +489,7 @@
       say('카드 등록 창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
       render();
     }
-  });
+  }
 
   $('cancel-button').addEventListener('click', async () => {
     if (!state.token || state.busy) return;

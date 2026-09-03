@@ -44,126 +44,71 @@
            체험이고, 그것은 여기서 살 수 있는 상품이 아니라 앱에서 켜지는
            기간 한정 상태다. 그래서 구성 단계가 아니라 머리말에 적는다. -->
       <p class="promo-line"><strong>7일 무료 체험</strong>은 앱에서 첫 업무를 시작하면 결제수단 없이 자동으로 켜져요. 체험 동안에는 Sidekick AI 포함으로 한 번에 업무 하나를 AI 직원 1명과 함께 진행하고, 자료함은 5GB예요.</p>
-    </section>
-
-    <section class="signin-gate" id="signin-gate" aria-labelledby="signin-heading">
-      <h2 id="signin-heading">먼저 로그인해요</h2>
-      <p>결제는 계정에 붙어요. 앱에서 쓰던 방법으로 로그인하면 같은 계정으로 이어지고, 그 다음에 플랜을 고르면 돼요.</p>
-    </section>
-
-    <div class="purchase-layout">
-      <div class="configurator" id="configurator" hidden>
-        <section class="step" aria-labelledby="plan-heading">
-          <div class="step-heading">
-            <span class="step-number" aria-hidden="true">1</span>
-            <div><h2 id="plan-heading">1. 플랜</h2><p>맡길 업무량과 자료함 용량을 골라요.</p></div>
-          </div>
-          <div class="option-list" id="plan-options" role="radiogroup" aria-labelledby="plan-heading">
-            <button class="option-card is-selected" type="button" data-plan="birdie" role="radio" aria-checked="true">
-              <span class="radio-mark" aria-hidden="true"></span>
-              <span class="option-copy"><span class="title-row"><strong>Birdie</strong><em>추천</em></span><small>하루 한두 건, 짧은 업무를 맡겨요.</small></span>
-              <span class="option-meta"><strong>5GB</strong><small>자료함</small></span>
-            </button>
-            <button class="option-card" type="button" data-plan="eagle" role="radio" aria-checked="false">
-              <span class="radio-mark" aria-hidden="true"></span>
-              <span class="option-copy"><strong>Eagle</strong><small>매일 여러 건, 반복 업무까지 맡겨요.</small></span>
-              <span class="option-meta"><strong>25GB</strong><small>자료함</small></span>
-            </button>
-            <button class="option-card" type="button" data-plan="albatross" role="radio" aria-checked="false">
-              <span class="radio-mark" aria-hidden="true"></span>
-              <span class="option-copy"><strong>Albatross</strong><small>하루 종일 여러 흐름을 함께 돌려요.</small></span>
-              <span class="option-meta"><strong>100GB</strong><small>자료함</small></span>
-            </button>
-          </div>
-        </section>
-
-        <section class="step" aria-labelledby="ai-heading">
-          <div class="step-heading">
-            <span class="step-number" aria-hidden="true">2</span>
-            <div><h2 id="ai-heading">2. AI 계정</h2><p>AI 사용료를 누가 부담할지 골라요. 직접 내시면 그만큼 멤버십 금액에서 빠져요.</p></div>
-          </div>
-          <div class="option-list" id="ai-options" role="radiogroup" aria-labelledby="ai-heading">
-            <button class="option-card is-selected" type="button" data-funding="included" role="radio" aria-checked="true">
-              <span class="radio-mark" aria-hidden="true"></span>
-              <span class="option-copy"><strong>Sidekick AI로 시작</strong><small>따로 준비할 것 없이 바로 시작해요.</small></span>
-              <span class="option-meta" id="included-price"><strong>—</strong><small>금액 확인 중</small></span>
-            </button>
-            <button class="option-card" type="button" data-funding="connected" role="radio" aria-checked="false">
-              <span class="radio-mark" aria-hidden="true"></span>
-              <span class="option-copy"><span class="title-row"><strong>내 AI 계정 사용</strong><em class="warm-badge">연결 필요</em></span><small>이미 쓰는 AI 계정을 연결해 사용해요.</small></span>
-              <span class="option-meta" id="connected-price"><strong>—</strong><small>금액 확인 중</small></span>
-            </button>
-          </div>
-          <div class="disclosure" role="note">
-            <strong>내 AI 계정을 쓸 때 알아둘 점</strong>
-            <p>내려간 금액은 Sidekick이 대신 내던 AI 사용료예요. 그만큼은 AI 제공업체가 회원님께 직접 청구합니다.</p>
-            <p>연결이 끊기면 Sidekick 공용 AI로 자동 전환하지 않고 업무가 기다려요.</p>
-          </div>
-        </section>
-
+      <!-- 한 번 고르면 세 카드에 모두 적용된다. 같은 질문을 카드마다
+           세 번 묻지 않는다. -->
+      <div class="mode-row">
+        <button class="mode-toggle is-on" type="button" id="funding-toggle" role="switch" aria-checked="true">
+          <span>내 AI 계정 사용</span><span class="knob" aria-hidden="true"><i></i></span>
+        </button>
       </div>
+      <p class="mode-note" id="mode-note">내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.</p>
+    </section>
 
-      <aside class="summary-column" aria-labelledby="summary-heading">
-        <section class="summary-card">
-          <div class="summary-title"><span class="step-number" aria-hidden="true">3</span><h2 id="summary-heading">3. 최종 가격</h2></div>
-          <div class="summary-body">
-            <div><span class="label">선택한 구성</span><strong id="summary-line">Birdie · Sidekick AI</strong></div>
-            <dl class="summary-list">
-              <div><dt>자료함</dt><dd id="summary-storage">5GB</dd></div>
-              <div><dt>실행 위치</dt><dd>Sidekick 클라우드</dd></div>
-              <div><dt>AI 사용료</dt><dd id="summary-ai-fee">멤버십에 포함</dd></div>
-            </dl>
-            <div class="price-block">
-              <span id="price-label">매월</span>
-              <strong><span id="summary-price">—</span><small>/ 월</small></strong>
-              <p id="after-price">금액을 불러오고 있어요.</p>
-            </div>
-
-            <div class="auth-panel" id="auth-panel">
-              <strong>로그인</strong>
-              <p>앱에서 쓰던 방법 그대로 로그인하면 같은 계정이에요.</p>
-              <!-- 앱 로그인 화면과 같은 다섯 가지. 구글·애플은 앱과 똑같이
-                   Supabase를 지나고, ChatGPT는 백엔드 기기코드를 쓴다. 같은
-                   문을 쓰기 때문에 PC에서 로그인해도 같은 계정이 된다. -->
-              <div class="social-doors">
-                <button class="social-button is-google" type="button" id="google-button">Google로 계속하기</button>
-                <button class="social-button is-apple" type="button" id="apple-button">Apple로 계속하기</button>
-                <button class="social-button is-chatgpt" type="button" id="chatgpt-button">ChatGPT로 계속하기</button>
-              </div>
-              <p class="social-status" id="social-status" aria-live="polite" hidden></p>
-              <p class="auth-divider"><span>또는</span></p>
-              <div class="method-tabs" role="tablist" aria-label="로그인 방법">
-                <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
-                <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
-              </div>
-              <p class="auth-warning" id="app-hint" hidden>앱에서 오셨네요. 앱에서 쓰는 이메일이나 휴대폰 번호로 로그인하면 같은 계정으로 이어져요.</p>
-              <p class="auth-warning" id="auth-note">앱에서 쓰던 방법 그대로 고르면 같은 계정이에요.</p>
-              <form id="email-form">
-                <label for="email" id="value-label">이메일</label>
-                <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호 받기</button></div>
-              </form>
-              <form id="code-form" hidden>
-                <label for="code">인증번호</label>
-                <div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required /><button type="submit">로그인</button></div>
-              </form>
-              <p class="form-status" id="auth-status" aria-live="polite"></p>
-            </div>
-
-            <section class="subscription-panel" id="subscription-panel" hidden aria-labelledby="subscription-heading">
-              <strong id="subscription-heading">현재 구독</strong>
-              <p id="subscription-line"></p>
-              <p id="subscription-renewal"></p>
-              <button class="cancel-button" id="cancel-button" type="button">다음 결제부터 해지</button>
-            </section>
-
-            <button class="checkout-button" id="checkout-button" type="button" disabled>결제 준비 중</button>
-            <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
-          </div>
-        </section>
-        <p class="summary-footnote">표시 금액은 원(KRW) 기준 월 정기결제 금액이에요. 카드 정보는 사이드킥이 아니라 토스페이먼츠 카드 등록창에 입력해요. AI 제공업체 비용은 별도일 수 있어요. 앱에서는 결제하지 않으며, 이 페이지가 유일한 결제 창구예요.</p>
-        <p class="summary-footnote">해지는 이 페이지에서 바로 할 수 있어요. 해지하면 다음 달부터 결제되지 않고, 이미 결제한 이번 달은 끝날 때까지 그대로 쓸 수 있어요.</p>
-      </aside>
+    <div class="plan-grid" id="plan-grid">
+        <article class="plan-card" data-plan="birdie">
+          <div class="plan-head"><span class="plan-name">Birdie</span></div>
+          <p class="plan-price"><strong data-price="birdie">—</strong><span>/ 월</span></p>
+          <p class="plan-sub" data-sub="birdie">금액을 불러오고 있어요.</p>
+          <button class="checkout-button" type="button" data-buy="birdie" disabled>결제 준비 중</button>
+          <ul class="plan-includes">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>자료함 5GB</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>하루 한두 건, 짧은 업무</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>AI 직원 1명</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>웹 검색 · 브라우저 · 파일 처리</li>
+          </ul>
+        </article>
+        <article class="plan-card is-featured" data-plan="eagle">
+          <div class="plan-head"><span class="plan-name">Eagle</span><em>추천</em></div>
+          <p class="plan-price"><strong data-price="eagle">—</strong><span>/ 월</span></p>
+          <p class="plan-sub" data-sub="eagle">금액을 불러오고 있어요.</p>
+          <button class="checkout-button" type="button" data-buy="eagle" disabled>결제 준비 중</button>
+          <ul class="plan-includes">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>자료함 25GB</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>매일 여러 건, 반복 업무</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>AI 직원 2명 동시 진행</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>업무 상태와 다시 가능한 시각 안내</li>
+          </ul>
+        </article>
+        <article class="plan-card" data-plan="albatross">
+          <div class="plan-head"><span class="plan-name">Albatross</span></div>
+          <p class="plan-price"><strong data-price="albatross">—</strong><span>/ 월</span></p>
+          <p class="plan-sub" data-sub="albatross">금액을 불러오고 있어요.</p>
+          <button class="checkout-button" type="button" data-buy="albatross" disabled>결제 준비 중</button>
+          <ul class="plan-includes">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>자료함 100GB</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>하루 종일 여러 흐름</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>AI 직원 3명 동시 진행</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>가장 높은 동시 실행 한도</li>
+          </ul>
+        </article>
     </div>
+
+    <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
+
+    <section class="subscription-panel" id="subscription-panel" hidden aria-labelledby="subscription-heading">
+      <strong id="subscription-heading">현재 구독</strong>
+      <p id="subscription-line"></p>
+      <p id="subscription-renewal"></p>
+      <button class="cancel-button" id="cancel-button" type="button">다음 결제부터 해지</button>
+    </section>
+
+    <div class="signed-in-row">
+      <span id="account-line">이미 앱에서 쓰고 계신가요?<span> 같은 계정으로 이어져요.</span></span>
+      <button class="ghost-button" type="button" id="open-signin">로그인</button>
+    </div>
+
+    <p class="summary-footnote">표시 금액은 원(KRW) 기준 월 정기결제 금액이에요. 카드 정보는 사이드킥이 아니라 토스페이먼츠 카드 등록창에 입력해요. AI 제공업체 비용은 별도일 수 있어요. 앱에서는 결제하지 않으며, 이 페이지가 유일한 결제 창구예요.</p>
+    <p class="summary-footnote">해지는 이 페이지에서 바로 할 수 있어요. 해지하면 다음 달부터 결제되지 않고, 이미 결제한 이번 달은 끝날 때까지 그대로 쓸 수 있어요.</p>
 
     <section class="platform-note">
       <strong>앱 안에는 결제 화면이 없어요. 여기가 유일한 결제 창구예요.</strong>
@@ -187,5 +132,43 @@
       </address>
     </footer>
   </main>
+
+  <div class="signin-sheet" id="signin-sheet" hidden aria-modal="true" role="dialog" aria-label="로그인">
+    <div class="signin-inner">
+      <button class="sheet-close" type="button" id="close-signin" aria-label="닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="signin-body">
+        <span class="signin-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
+        </span>
+        <h2>사이드킥 시작하기</h2>
+        <div class="doors">
+          <button class="door" type="button" id="google-button">Google로 로그인</button>
+          <button class="door" type="button" id="apple-button">Apple로 로그인</button>
+          <button class="door" type="button" id="chatgpt-button">ChatGPT로 로그인</button>
+          <button class="door" type="button" id="otp-toggle">이메일 · 휴대폰으로 로그인</button>
+        </div>
+        <div class="otp-block" id="otp-block" hidden>
+          <div class="method-tabs" role="tablist" aria-label="로그인 방법">
+            <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
+            <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
+          </div>
+          <form id="email-form">
+            <label for="email" id="value-label" class="sr-only">이메일</label>
+            <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호</button></div>
+          </form>
+          <form id="code-form" hidden>
+            <label for="code" class="sr-only">인증번호</label>
+            <div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required /><button type="submit">로그인</button></div>
+          </form>
+        </div>
+        <p class="form-status" id="auth-status" aria-live="polite"></p>
+        <p class="social-status" id="social-status" aria-live="polite" hidden></p>
+        <p class="app-hint" id="app-hint" hidden>앱에서 쓰는 이메일이나 휴대폰 번호로 로그인하면 같은 계정으로 이어져요.</p>
+      </div>
+      <p class="legal">계속하면 <a href="/terms/">서비스 약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>
+    </div>
+  </div>
 </body>
 </html>
