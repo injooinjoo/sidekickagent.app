@@ -132,7 +132,7 @@
     if (instant) raf(function () { pill.classList.remove('now'); });
   }
   function renderCard(card, instant) {
-    var funding = card.getAttribute('data-funding-selected') || 'included';
+    var funding = card.getAttribute('data-funding-selected') || 'connected';
     var amount = priceOf(card, funding);
     card.rollers.price.set(amount === null ? '\u2014' : money(amount), instant);
     card.querySelector('[data-role="price-sub"]').hidden = amount === null;
@@ -175,7 +175,7 @@
     renderCard(card, true);
   });
   window.addEventListener('resize', function () {
-    cards.forEach(function (card) { moveSeg(card, card.getAttribute('data-funding-selected') || 'included', true); });
+    cards.forEach(function (card) { moveSeg(card, card.getAttribute('data-funding-selected') || 'connected', true); });
   });
   // The feature card quotes the same saving the plan card sells, read from the
   // plan card's attributes so the two can never disagree.
