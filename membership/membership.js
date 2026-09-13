@@ -70,6 +70,9 @@
     user: null,
     billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {} },
     subscription: null,
+    // 플랜 변경 견적. 서버가 방금 낸 숫자만 들고 있고, 선택이 바뀌면 버린다 —
+    // 어제 견적으로 오늘 결제 버튼을 만들 수는 없다.
+    quote: null,
     busy: false
   };
 
@@ -115,7 +118,8 @@
   function renderSubscription() {
     const panel = $('subscription-panel');
     const subscription = state.subscription;
-    const visible = Boolean(state.token && subscription && subscription.active);
+    // 해지한 구독도 결제 기간이 남았으면 보여 준다 — 다시 시작하기가 여기 있다.
+    const visible = Boolean(state.token && subscription && (subscription.active || subscription.resumable));
     panel.hidden = !visible;
     if (!visible) return;
     const plan = PLANS[subscription.plan_id];
@@ -123,9 +127,10 @@
     $('subscription-line').textContent = `${plan ? plan.label : subscription.plan_id} · ${fundingLabel}`;
     const until = new Date(subscription.current_period_end * 1000).toLocaleDateString('ko-KR');
     $('subscription-renewal').textContent = subscription.cancel_at_period_end
-      ? `해지했어요. ${until}까지 그대로 쓸 수 있고 이후에는 결제되지 않아요.`
+      ? `해지해서 이용이 중단됐어요. ${until} 전까지는 추가 결제 없이 다시 시작할 수 있어요.`
       : `${until}에 다음 달 금액이 결제돼요.`;
     $('cancel-button').hidden = Boolean(subscription.cancel_at_period_end);
+    $('resume-button').hidden = !subscription.resumable;
   }
 
   function render() {
@@ -155,16 +160,28 @@
 
       const button = card.querySelector('[data-buy]');
       const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
+      const current = subscribed && state.subscription.plan_id === id;
+      // 구독 중이면 다른 플랜 카드의 버튼은 "바꾸기" 다. 견적을 받은 카드만
+      // 결제 문구가 되고, 해지를 예약한 구독은 바꿀 수 없다 — 다음 달에 끝나는
+      // 구독 위에 새 금액을 올리는 것은 사람이 원한 적 없는 일이다.
+      const changeable = subscribed && !current && publicCheckoutReady() && plan.sold && amount !== null
+        && !state.busy && !state.subscription.cancel_at_period_end;
+      const quoted = state.quote && state.quote.to_plan_id === id && state.quote.funding_mode === state.funding
+        ? state.quote : null;
       // 로그인은 여기서 요구하지 않는다. 누르면 로그인 화면이 열리고,
       // 끝나면 이 구매가 이어진다.
-      button.disabled = !ready;
-      button.hidden = subscribed;
+      button.disabled = !(ready || (changeable && (!quoted || quoted.applies_now)));
+      button.hidden = current;
       button.textContent = state.busy && state.plan === id ? '연결 중…'
         : !plan.sold ? '지금은 구매할 수 없어요'
         : ready ? `${plan.label} 시작하기`
+        : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
+        : changeable && quoted ? '지금은 바꿀 수 없어요'
+        : changeable ? `${plan.label}로 바꾸기`
+        : subscribed ? '지금은 바꿀 수 없어요'
         : testModeHere() ? '테스트 모드예요'
         : '금액을 불러오는 중이에요';
-      card.classList.toggle('is-current', subscribed && state.plan === id);
+      card.classList.toggle('is-current', current);
     });
 
     // 토글의 겉모습은 여기서만 정해진다. 마크업에 켜짐을 적어 두고
@@ -192,6 +209,16 @@
         : '카드는 토스페이먼츠 등록창에서 입력해요.';
       $('checkout-status').textContent = status;
     }
+  }
+
+  // 결제 상태 한 줄. 여기서 적은 글자는 render() 가 덮어쓰지 않는다(pinned) —
+  // "구독이 시작됐어요" 가 다음 렌더에서 "카드는 등록창에서 입력해요" 로 되돌아가면
+  // 사람은 결제가 됐는지 알 수 없다.
+  function say(message, isError) {
+    const node = $('checkout-status');
+    node.dataset.pinned = '1';
+    node.classList.toggle('is-error', Boolean(isError));
+    node.textContent = message;
   }
 
   async function api(path, options = {}) {
@@ -371,6 +398,7 @@
 
   $('funding-toggle').addEventListener('click', () => {
     state.funding = state.funding === 'connected' ? 'included' : 'connected';
+    state.quote = null;
     render();
   });
 
@@ -401,8 +429,10 @@
     if (!button) return;
     button.addEventListener('click', () => {
       state.plan = card.dataset.plan;
+      if (state.plan !== (state.quote && state.quote.to_plan_id)) state.quote = null;
       render();
       if (!state.token) { openSignin(card.dataset.plan); return; }
+      if (state.subscription && state.subscription.active) { changePlan(card.dataset.plan); return; }
       startCheckout();
     });
   });
@@ -507,15 +537,77 @@
     }
   }
 
+  // 플랜 변경은 두 번 누른다. 첫 번째는 견적(/plan/quote, 아무것도 움직이지 않음),
+  // 두 번째는 그 견적 그대로 변경(/plan). 화면의 금액과 청구되는 금액이 같은
+  // 함수에서 나오므로, 사람이 본 숫자가 곧 결제되는 숫자다.
+  async function changePlan(planId) {
+    const plan = PLANS[planId];
+    const subscription = state.subscription;
+    if (!publicCheckoutReady() || !state.token || !plan || !plan.sold || state.busy) return;
+    if (!subscription || !subscription.active || subscription.plan_id === planId) return;
+    const body = JSON.stringify({ plan_id: planId, funding_mode: state.funding });
+    const quoted = state.quote && state.quote.to_plan_id === planId && state.quote.funding_mode === state.funding
+      ? state.quote : null;
+    state.busy = true;
+    render();
+    try {
+      if (!quoted) {
+        const quote = await api('/membership/toss/plan/quote', { method: 'POST', body });
+        state.quote = { ...quote, funding_mode: state.funding };
+        if (quote.applies_now) {
+          say(quote.charge_krw > 0
+            ? `${plan.label}로 바꾸면 남은 ${quote.remaining_days}일만큼 ${won(quote.charge_krw)}을 오늘 결제하고 바로 바뀌어요. 지금 플랜의 남은 값 ${won(quote.unused_krw)}은 뺐어요. 버튼을 한 번 더 누르면 결제돼요.`
+            : `${plan.label}로 바꾸면 남은 기간 추가 결제 없이 바로 바뀌어요. 버튼을 한 번 더 누르면 적용돼요.`, false);
+        } else {
+          // 서버가 낮은 플랜으로의 변경은 견적만 내고 적용하지 않는다. 그 사실을
+          // 여기서 그대로 말한다 — 200 을 "바꿨어요" 로 읽지 않는다.
+          say(`${plan.label}로 낮추는 변경은 아직 이 페이지에서 할 수 없어요. 지금 플랜은 이번 달 끝까지 그대로 쓸 수 있고, 낮은 플랜은 해지 뒤 다음 달에 새로 구독해 주세요.`, true);
+        }
+      } else if (quoted.applies_now) {
+        const result = await api('/membership/toss/plan', { method: 'POST', body });
+        state.quote = null;
+        if (result.applied) {
+          await loadSubscription();
+          say(result.charged
+            ? `${plan.label}로 바꿨어요. ${won(result.proration.charge_krw)}이 결제됐고 바로 적용됐어요.`
+            : `${plan.label}로 바꿨어요. 추가 결제 없이 바로 적용됐어요.`, false);
+        } else {
+          say('플랜을 바꾸지 못했어요. 청구되지 않았어요.', true);
+        }
+      }
+    } catch (_) {
+      state.quote = null;
+      say('플랜 변경을 처리하지 못했어요. 중복 청구되지 않으니 잠시 뒤 다시 시도해 주세요.', true);
+    }
+    state.busy = false;
+    render();
+  }
+
   $('cancel-button').addEventListener('click', async () => {
     if (!state.token || state.busy) return;
+    // 해지는 그 즉시 이용을 멈춘다. 실수로 누르지 않게 한 번 더 묻는다.
+    if (!window.confirm('해지하면 바로 이용이 중단됩니다. 해지할까요?')) return;
     state.busy = true;
     render();
     try {
       state.subscription = await api('/membership/toss/cancel', { method: 'POST' });
-      say('해지했어요. 이미 결제한 이번 달은 끝날 때까지 그대로 쓸 수 있어요.', false);
+      say('해지했어요. 이용이 바로 중단됐고 다음 결제는 청구되지 않아요.', false);
     } catch (_) {
       say('해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+    }
+    state.busy = false;
+    render();
+  });
+
+  $('resume-button').addEventListener('click', async () => {
+    if (!state.token || state.busy) return;
+    state.busy = true;
+    render();
+    try {
+      state.subscription = await api('/membership/toss/resume', { method: 'POST' });
+      say('다시 시작했어요. 추가로 결제되는 금액은 없어요.', false);
+    } catch (_) {
+      say('다시 시작하지 못했어요. 결제 기간이 끝났다면 새로 구독해 주세요.', true);
     }
     state.busy = false;
     render();
