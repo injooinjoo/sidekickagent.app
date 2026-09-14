@@ -38,6 +38,7 @@
 
   // ---- elements ---------------------------------------------------------
   var session = $('session'), stick = session && session.querySelector('.session-stick');
+  var spVoice = $('sp-voice'), spResPost = $('sp-res-post'), spConnectWait = $('sp-connect-wait'), spConnectOk = $('sp-connect-ok');
   var phone = $('phone'), thread = $('thread'), composer = $('composer'), composerText = $('composer-text'), wave = $('wave');
   if (!session || !phone) return;
   var el = {
@@ -109,6 +110,7 @@
       var n = Math.round(REQUEST.length * clamp01((q - 0.3) / 0.42));
       composerText.textContent = REQUEST.slice(0, n);
     }
+    spVoice.textContent = mode === 'typing' ? composerText.textContent : mode === 'sent' ? REQUEST : '';
     if (mode === 'sent') composerText.textContent = '말로 맡기기';
     var sent = mode === 'sent';
     show(el.req, sent); if (sent) el.reqText.textContent = REQUEST;
@@ -152,6 +154,13 @@
     show(el.connectBtn, !connected); show(el.connectOk, connected);
     el.capLive.textContent = LIVE[ev];
     badge('work', '작업 중');
+    // the same values, at viewport scale, for the spill layer
+    stick.setAttribute('data-ev', ev);
+    stick.style.setProperty('--sp', sp.toFixed(3));
+    stick.style.setProperty('--dp', dp.toFixed(3));
+    stick.style.setProperty('--ip', ip.toFixed(3));
+    stick.style.setProperty('--cq', (step === 5 ? sq : 0).toFixed(3));
+    show(spConnectWait, !connected); show(spConnectOk, connected);
   }
   function renderApprove(q) {
     renderWork(1);
@@ -165,6 +174,7 @@
     renderApprove(1);
     show(el.res, true);
     el.resPost.textContent = state.approved ? '게시 완료 · 네이버 블로그' : '승인 대기 · 게시 전';
+    spResPost.textContent = el.resPost.textContent;
     el.capResult.textContent = state.approved
       ? '승인한 순간 게시됐어요. 직원이 한 일은 카드 하나로 정리됩니다.'
       : '승인하면 그때 게시돼요. 아직이라면 결과 카드에서 승인할 수 있어요.';
@@ -177,6 +187,8 @@
     state.scene = s.id; state.q = s.q;
     RENDER[s.id](s.q);
     phone.setAttribute('data-state', s.id);
+    stick.setAttribute('data-scene', s.id);
+    stick.style.setProperty('--q', s.q.toFixed(3));
     caps.forEach(function (c) { c.classList.toggle('is-on', c.getAttribute('data-cap') === s.id); });
     thread.scrollTop = thread.scrollHeight;
     // What actually paints, rounded, for the verification harness.
@@ -210,7 +222,7 @@
       var kind = b.getAttribute('data-edit');
       if (state.edits.indexOf(kind) < 0) state.edits.push(kind);
       if (kind === 'title') {
-        [el.apprTitle, el.resTitle, el.draftTitle].forEach(function (n) { n.textContent = TITLES.short; });
+        [el.apprTitle, el.resTitle, el.draftTitle, $('sp-doc-title'), $('sp-res-title')].forEach(function (n) { n.textContent = TITLES.short; });
         el.revisedText.textContent = '제목을 짧게 바꿨어요. 다시 확인해 주세요.';
       }
       if (kind === 'time') {
@@ -322,7 +334,9 @@
         var on = rec.scenes.indexOf(s.id) >= 0 && s.q >= rec.range[0] && s.q <= rec.range[1];
         rec.fig.classList.toggle('is-on', on);
         if (sessionNear) loadPlate(rec);
-        if (on && rec.v) seek(rec.v, clamp01((s.q - rec.range[0]) / (rec.range[1] - rec.range[0])) * (rec.v.duration - 0.05));
+        var qq = clamp01((s.q - rec.range[0]) / (rec.range[1] - rec.range[0]));
+        if (on) rec.fig.style.setProperty('--q', qq.toFixed(3));
+        if (on && rec.v) seek(rec.v, qq * (rec.v.duration - 0.05));
       } else {
         // The hero sits at the top of the document, so its act progress never
         // starts at 0. Drive the plate from the hero's own travel instead: 0 with

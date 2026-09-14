@@ -49,6 +49,7 @@
 
   <!-- 1 · 발견 · calm -->
   <section class="v2-hero" id="hero" data-sc-act="flow">
+    <figure class="scene scene-hero" data-hg="HG-01" data-hg-ready="1" aria-hidden="true"></figure>
     <div class="v2-hero-inner">
       <div class="hero-copy">
         <p class="v2-kicker">사이드킥 · 데모 세션</p>
@@ -60,7 +61,6 @@
         </div>
       </div>
       <div class="hero-scene" aria-hidden="true">
-        <figure class="scene scene-hero" data-hg="HG-01" data-hg-ready="1" data-sc-parallax="-0.9"></figure>
         <div class="plane plane-phone" data-sc-parallax="-0.35">
           <div class="phone phone-home">
             <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
@@ -98,7 +98,38 @@
 
   <!-- 2–6 · 세션 · one phone, five states -->
   <section class="session" id="session" data-sc-act="flow" aria-label="첫 세션 데모">
-    <div class="session-stick">
+    <div class="session-stick" id="stick" data-scene="request" data-ev="search">
+      <div class="plates" aria-hidden="true">
+        <figure class="scene scene-session" data-hg="HG-02" data-hg-ready="1" data-scenes="request assign"></figure>
+        <figure class="scene scene-session" data-hg="HG-03" data-hg-ready="1" data-scenes="work" data-scene-range="0 0.5"></figure>
+        <figure class="scene scene-session" data-hg="HG-04" data-hg-ready="1" data-scenes="work" data-scene-range="0.5 1"></figure>
+        <figure class="scene scene-session" data-hg="HG-05" data-hg-ready="1" data-scenes="approve"></figure>
+        <figure class="scene scene-session" data-hg="HG-06" data-hg-ready="1" data-scenes="result"></figure>
+      </div>
+      <div class="spill" aria-hidden="true">
+        <p class="sp sp-voice" id="sp-voice"></p>
+        <div class="sp sp-emp">
+          <div class="big-emp"><span class="avatar xl">현</span><div><b>현진</b><small>블로그 콘텐츠 담당</small></div><span class="badge work">배정됨</span></div>
+          <div class="big-emp temp"><span class="avatar light xl">예</span><div><b>예린</b><small>리서치 · 임시 합류</small></div><span class="badge idle">일회성</span></div>
+        </div>
+        <div class="sp sp-search">
+          <div class="big-tile" style="--i:0"><small>블로그 · 검색</small><b>캠핑 의자 고르는 기준</b></div>
+          <div class="big-tile" style="--i:1"><small>커뮤니티 · 검색</small><b>가을 캠핑 준비물 정리</b></div>
+          <div class="big-tile" style="--i:2"><small>쇼핑 · 검색</small><b>3만원대 릴렉스 체어 비교</b></div>
+        </div>
+        <div class="sp sp-doc">
+          <div class="big-doc"><small>초안 · Document</small><b id="sp-doc-title">가을 캠핑 의자, 3만원대에서 고른 3가지</b><i style="--w:.92;--i:0"></i><i style="--w:.78;--i:1"></i><i style="--w:.85;--i:2"></i><i style="--w:.6;--i:3"></i><i style="--w:.88;--i:4"></i><i style="--w:.7;--i:5"></i><i style="--w:.4;--i:6"></i></div>
+        </div>
+        <div class="sp sp-images">
+          <span class="big-img" style="--i:0"></span><span class="big-img" style="--i:1"></span><span class="big-img" style="--i:2"></span>
+        </div>
+        <div class="sp sp-connect">
+          <div class="big-connect"><span class="badge idle" id="sp-connect-wait">네이버 블로그 연결이 필요해요</span><span class="badge done" id="sp-connect-ok">네이버 블로그 · 연결됨 · 작업 계속</span></div>
+        </div>
+        <div class="sp sp-result">
+          <div class="big-result"><small>결과 도착</small><b id="sp-res-title">가을 캠핑 의자, 3만원대에서 고른 3가지</b><ul><li><span>블로그 글</span><b>완성</b></li><li><span>이미지</span><b>3장 준비</b></li><li><span>게시</span><b id="sp-res-post">승인 대기 · 게시 전</b></li></ul></div>
+        </div>
+      </div>
       <div class="session-grid">
         <div class="captions" aria-live="polite">
           <div class="cap" data-cap="request">
@@ -124,11 +155,6 @@
         </div>
 
         <div class="stage-wrap">
-          <figure class="scene scene-session" data-hg="HG-02" data-hg-ready="1" data-scenes="request assign" aria-hidden="true"></figure>
-          <figure class="scene scene-session" data-hg="HG-03" data-hg-ready="1" data-scenes="work" data-scene-range="0 0.5" aria-hidden="true"></figure>
-          <figure class="scene scene-session" data-hg="HG-04" data-hg-ready="1" data-scenes="work" data-scene-range="0.5 1" aria-hidden="true"></figure>
-          <figure class="scene scene-session" data-hg="HG-05" data-hg-ready="1" data-scenes="approve" aria-hidden="true"></figure>
-          <figure class="scene scene-session" data-hg="HG-06" data-hg-ready="1" data-scenes="result" aria-hidden="true"></figure>
           <div class="phone phone-live" id="phone" data-sc-verify-state="scene:request|q:0" data-state="request">
             <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
             <div class="thread-head"><span class="avatar">현</span><div><b>현진</b><small>블로그 콘텐츠 담당</small></div><span class="badge idle" id="ph-badge">대기 중</span></div>
@@ -297,6 +323,7 @@
   <!-- 9 · 마무리 · calm -->
   <section class="close" id="close" data-sc-act="pin" data-sc-span="1.4">
     <div data-sc-stage class="close-stage" data-sc-spotlight>
+      <figure class="scene scene-close" data-hg="HG-06" data-hg-ready="1" aria-hidden="true"></figure>
       <div class="close-inner">
         <ol class="journey" id="journey" data-sc-cue="0 1 0 0">
           <li data-scene="request"><b>말하기</b><small></small></li>
