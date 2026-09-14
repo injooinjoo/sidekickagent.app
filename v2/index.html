@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="icon" type="image/png" href="/assets/favicon.png" />
-  <meta name="description" content="사이드킥 랜딩 V2. 말로 맡기면 AI 직원이 조사하고, 영상을 만들고, 네이버 블로그·인스타그램·워드프레스에 올릴 글을 준비한 뒤 게시 전에만 확인을 요청하는 하루를 스크롤로 직접 겪어 봅니다." />
+  <meta name="description" content="사이드킥 랜딩 V2. 말로 맡기면 AI 직원이 조사하고, 영상을 만들고, 네이버 블로그·인스타그램·워드프레스에 올릴 글을 준비한 뒤 게시 전에만 확인을 요청합니다. 한 편의 필름과 강점 카드." />
   <meta name="robots" content="noindex" />
   <title>사이드킥: 첫 세션</title>
   <link rel="canonical" href="https://sidekickagent.app/v2/" />
@@ -36,9 +36,9 @@
 
 <main id="top">
 
-  <!-- 1 · the loop: one working morning, playing on its own under the headline -->
+  <!-- 1 · the opening loop under the headline -->
   <section class="v2-hero" id="hero" data-sc-act="flow">
-    <figure class="hero-loop" aria-hidden="true">
+    <figure class="loop" data-loop="hero" aria-hidden="true">
       <img src="/assets/landing-v2/film/hero-poster.jpg" alt="" decoding="async" />
       <video muted playsinline loop preload="auto" poster="/assets/landing-v2/film/hero-poster.jpg"></video>
     </figure>
@@ -55,27 +55,17 @@
     </div>
   </section>
 
-  <!-- 2 · the session: eight scenes of one request, scrubbed by scroll -->
-  <section class="session" id="session" data-sc-act="flow" aria-label="첫 세션 데모">
-    <div class="session-stick" id="stick" data-scene="s1" data-stage="request" data-sc-verify-state="scene:s1|q:0">
-      <div class="plates" aria-hidden="true">
-        <figure class="scene scene-film" data-hg="s1" data-hg-ready="1" data-scene="s1"></figure>
-        <figure class="scene scene-film" data-hg="s2" data-hg-ready="1" data-scene="s2"></figure>
-        <figure class="scene scene-film" data-hg="s3" data-hg-ready="1" data-scene="s3"></figure>
-        <figure class="scene scene-film" data-hg="s4" data-hg-ready="1" data-scene="s4"></figure>
-        <figure class="scene scene-film" data-hg="s5" data-hg-ready="1" data-scene="s5"></figure>
-        <figure class="scene scene-film" data-hg="s6" data-hg-ready="1" data-scene="s6"></figure>
-        <figure class="scene scene-film" data-hg="s7" data-hg-ready="1" data-scene="s7"></figure>
-        <figure class="scene scene-film" data-hg="s8" data-hg-ready="1" data-scene="s8"></figure>
-      </div>
-
+  <!-- 2 · the film: one working morning, start to finish, playing when you arrive -->
+  <section class="film" id="film" data-sc-act="flow" aria-label="한 사람의 어느 아침">
+    <figure class="film-stage" id="film-stage" data-scene="s1">
+      <img src="/assets/landing-v2/film/film-poster.jpg" alt="" decoding="async" />
+      <video id="film-video" muted playsinline preload="auto" poster="/assets/landing-v2/film/film-poster.jpg"></video>
       <div class="chans" aria-label="진행 중인 채널">
         <span class="chan" data-chan="video">영상</span>
         <span class="chan" data-chan="naver">네이버 블로그</span>
         <span class="chan" data-chan="instagram">인스타그램</span>
         <span class="chan" data-chan="wordpress">워드프레스</span>
       </div>
-
       <div class="captions" aria-live="polite">
         <div class="cap" data-cap="s1"><p class="cap-k">01 · 말하기</p><p class="cap-h">할 일을 그대로 말하세요.</p></div>
         <div class="cap" data-cap="s2"><p class="cap-k">02 · 배정 · 조사</p><p class="cap-h">맞는 직원이 조사부터 시작합니다.</p></div>
@@ -84,9 +74,8 @@
         <div class="cap" data-cap="s5"><p class="cap-k">05 · 인스타그램</p><p class="cap-h">같은 재료로 캐러셀까지.</p></div>
         <div class="cap" data-cap="s6"><p class="cap-k">06 · 워드프레스</p><p class="cap-h">예약 발행으로 일정을 맞춥니다.</p></div>
         <div class="cap" data-cap="s7"><p class="cap-k">07 · 확인</p><p class="cap-h">게시 전, 딱 한 번만 묻습니다.</p></div>
-        <div class="cap" data-cap="s8"><p class="cap-k">08 · 완료</p><p class="cap-h">과정은 Sidekick이. 당신은 결과만.</p><p class="cap-s" id="cap-result"></p></div>
+        <div class="cap" data-cap="s8"><p class="cap-k">08 · 완료</p><p class="cap-h">과정은 Sidekick이. 당신은 결과만.</p></div>
       </div>
-
       <div class="appr-card" id="appr">
         <div class="v2-lbl"><span class="dot attn"></span>확인이 필요해요</div>
         <div class="preview">
@@ -94,7 +83,6 @@
           <b id="appr-title">가을 캠핑 의자, 3만원대에서 고른 3가지</b>
           <small id="appr-when">이미지 3장 · 영상 1편 · 목요일 09:00</small>
         </div>
-        <p class="revised" id="revised" hidden><span id="revised-text">반영했어요.</span></p>
         <div class="edit-opts" id="edit-opts" hidden>
           <button type="button" data-edit="title">제목 더 짧게</button>
           <button type="button" data-edit="time">10:00으로</button>
@@ -103,9 +91,8 @@
           <button type="button" class="btn-line" id="btn-edit">수정하기</button>
           <button type="button" class="btn-fill" id="btn-approve">승인하고 게시</button>
         </div>
-        <div class="approved-note">승인함 · 게시 준비</div>
+        <div class="approved-note" id="approved-note">승인함 · 게시합니다</div>
       </div>
-
       <div class="res-card" id="res">
         <small class="v2-kicker">결과</small>
         <b id="res-title">가을 캠핑 의자, 3만원대에서 고른 3가지</b>
@@ -115,88 +102,120 @@
           <li><span>이미지</span><b>3장</b></li>
           <li><span>게시</span><b id="res-post">승인 대기</b></li>
         </ul>
-        <div class="res-pending"><button type="button" class="btn-fill" id="btn-approve-late">지금 승인하고 게시</button></div>
       </div>
-
       <div class="seq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    </div>
+      <button type="button" class="film-ctl" id="film-ctl" aria-label="일시정지">❚❚</button>
+      <small class="film-note">데모 장면 · 한 사람의 어느 아침</small>
+    </figure>
   </section>
 
-  <!-- 3 · 루틴 -->
-  <section class="routine" id="routine" data-sc-act="pin" data-sc-span="2.4">
-    <div data-sc-stage class="routine-stage">
-      <div class="routine-copy" data-sc-cue="0 0.97 0">
-        <p class="cap-h">한 번 맡긴 일은<br />루틴이 됩니다.</p>
+  <!-- 3 · what Sidekick is, as cards -->
+  <section class="why" id="why" data-sc-act="flow">
+    <div class="why-inner">
+      <div class="why-head" data-sc-in data-sc-stagger="70">
+        <h2>부업에 필요한 걸,<br />앱 하나에.</h2>
+        <p class="sub">서버도, 세팅도, 밤새 지켜보는 일도 없이.</p>
       </div>
-      <div class="morph" aria-hidden="true">
-        <div class="task-card">
-          <span class="badge done">완료</span>
-          <b>블로그 · 영상 · 캐러셀 게시</b>
-          <small>현진 · 목요일 09:00</small>
-        </div>
-        <div class="routine-card">
-          <div class="rc-top"><b>블로그 · 인스타 · 워드프레스 운영</b><span class="badge work rc-active">ACTIVE</span></div>
-          <div class="rc-when">매주 화 · 목 <b>10:00</b></div>
-          <div class="cal">
-            <span class="d">월</span><span class="d">화</span><span class="d">수</span><span class="d">목</span><span class="d">금</span><span class="d">토</span><span class="d">일</span>
-            <span></span><span class="on" style="--i:0"></span><span></span><span class="on" style="--i:1"></span><span></span><span></span><span></span>
-            <span></span><span class="on" style="--i:2"></span><span></span><span class="on" style="--i:3"></span><span></span><span></span><span></span>
-            <span></span><span class="on" style="--i:4"></span><span></span><span class="on" style="--i:5"></span><span></span><span></span><span></span>
-            <span></span><span class="on" style="--i:6"></span><span></span><span class="on" style="--i:7"></span><span></span><span></span><span></span>
+      <div class="cards" data-sc-in data-sc-stagger="60">
+
+        <article class="card card-wide" data-sc-tilt="4">
+          <div class="vig vig-chat" aria-hidden="true">
+            <div class="msg me">스토어에 온 문의, 답변 초안까지 만들어줘.</div>
+            <div class="msg ai"><span class="from">하린 · 스토어 CS 담당</span>배송 3건, 교환 1건이에요. 답변 초안 만들고 보내기 전에 확인 요청 드릴게요.</div>
           </div>
-          <div class="rc-next"><span>다음 실행</span><b>9월 15일 10:00</b></div>
-        </div>
+          <h3>말로 맡기고, 결과에 집중하세요.</h3>
+          <p>팀원에게 일을 넘기듯 말로 맡기세요. 확인이 필요할 때만 돌아옵니다.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-phone" aria-hidden="true">
+            <div class="row x"><span>맥미니 24시간</span><i>✕</i></div>
+            <div class="row x"><span>클라우드 세팅</span><i>✕</i></div>
+            <div class="row ok"><span>휴대폰 하나</span><i>✓</i></div>
+          </div>
+          <h3>폰 하나면 돼요.</h3>
+          <p>맥미니도, 개인 컴퓨터도, 서버도 필요 없어요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-env" aria-hidden="true">
+            <div class="env-line"><span>환경 생성</span><i></i></div>
+            <div class="env-line"><span>보안 설정</span><i></i></div>
+            <div class="env-line"><span>직원 배치</span><i></i></div>
+            <b class="env-done">내 실행 환경 · 준비 완료</b>
+          </div>
+          <h3>서버는 알아서.</h3>
+          <p>가입하면 내 전용 실행 환경이 자동으로 준비돼요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-appr" aria-hidden="true">
+            <div class="mini-appr"><small>확인 요청</small><b>캠핑용품 리뷰 3편 발행</b><div class="mini-btns"><span>수정 요청</span><span class="fill">발행 승인</span></div></div>
+          </div>
+          <h3>확인할 때만 알림.</h3>
+          <p>보내기·게시·결제처럼 되돌리기 어려운 일은 먼저 물어봐요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-lock" aria-hidden="true">
+            <div class="lock"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+            <span class="badge idle">사용자별 분리 · 암호화</span>
+          </div>
+          <h3>내 서버, 내 것만.</h3>
+          <p>계정·파일·로그인이 밖으로 나가지 않아요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-models" aria-hidden="true">
+            <span class="chip" style="--i:0">Claude</span><span class="chip" style="--i:1">GPT</span><span class="chip" style="--i:2">Gemini</span><span class="chip" style="--i:3">Grok</span><span class="chip" style="--i:4">DeepSeek</span>
+          </div>
+          <h3>모델은 내가 고른다.</h3>
+          <p>원하는 AI 모델로 일해요. 내 AI 계정을 연결하면 더 저렴해요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-brief" aria-hidden="true">
+            <div class="brief"><small>사장님 브리핑</small><b>오늘 확인할 일 1건이 있어요.</b><div class="chips"><span class="badge wait">1건 확인</span><span class="badge work">2건 진행</span><span class="badge idle">3명 직원</span></div></div>
+          </div>
+          <h3>알아서 판단하고, 결정만 올려요.</h3>
+          <p>필요한 결정만 위로 올립니다. 나머지는 직원이 진행해요.</p>
+        </article>
+
+        <article class="card" data-sc-tilt="4">
+          <div class="vig vig-cal" aria-hidden="true">
+            <div class="cal">
+              <span class="d">월</span><span class="d">화</span><span class="d">수</span><span class="d">목</span><span class="d">금</span><span class="d">토</span><span class="d">일</span>
+              <span></span><span class="on" style="--i:0"></span><span></span><span class="on" style="--i:1"></span><span></span><span></span><span></span>
+              <span></span><span class="on" style="--i:2"></span><span></span><span class="on" style="--i:3"></span><span></span><span></span><span></span>
+            </div>
+            <small>매주 화 · 목 10:00 · ACTIVE</small>
+          </div>
+          <h3>한 번 정하면 일과.</h3>
+          <p>아침 브리핑, 가격 감시처럼 정해진 시간에 스스로 돌아가요.</p>
+        </article>
+
+        <article class="card card-wide" data-sc-tilt="4">
+          <div class="vig vig-team" aria-hidden="true">
+            <div class="team-row"><span class="avatar">현</span><div><b>현진</b><small>블로그 콘텐츠</small></div><span class="badge work">작업 중</span></div>
+            <div class="team-row"><span class="avatar">태</span><div><b>태오</b><small>광고 · 제휴</small></div><span class="badge idle">대기 중</span></div>
+            <div class="team-row temp"><span class="avatar light">예</span><div><b>예린</b><small>리서치 · 임시</small></div><span class="badge done">합류</span></div>
+          </div>
+          <h3>부업, 혼자 하지 마세요.</h3>
+          <p>일이 늘면 팀도 늘어요. 필요할 때 늘리고, 끝나면 줄여요.</p>
+        </article>
+
       </div>
     </div>
   </section>
 
-  <!-- 4 · 팀 -->
-  <section class="team" id="team" data-sc-act="pan" data-sc-span="3.6">
-    <div data-sc-stage class="team-stage">
-      <div class="rail" data-sc-pan="0.06">
-        <div class="rail-lead">
-          <p class="cap-h">일이 늘면<br />팀도 늘어납니다.</p>
-        </div>
-        <article class="emp-card" style="--i:1">
-          <div class="row"><span class="avatar">현</span><div><b>현진</b><small>블로그 콘텐츠</small></div></div>
-          <ul><li>글 작성</li><li>영상 편집</li></ul>
-          <div class="ctx"><div class="chips"><span class="badge done">네이버 블로그</span><span class="badge idle">워드프레스</span><span class="badge idle">캔바</span></div></div>
-        </article>
-        <article class="emp-card" style="--i:2">
-          <div class="row"><span class="avatar">태</span><div><b>태오</b><small>광고</small></div></div>
-          <ul><li>쿠팡파트너스</li><li>제휴 메일</li></ul>
-          <div class="ctx"><div class="chips"><span class="badge done">Gmail</span><span class="badge idle">노션</span></div></div>
-        </article>
-        <article class="emp-card temp" style="--i:3">
-          <div class="row"><span class="avatar light">예</span><div><b>예린</b><small>리서치 · 임시</small></div></div>
-          <ul><li>자료 정리</li></ul>
-          <div class="ctx"><div class="chips"><span class="badge idle">웹 검색</span></div></div>
-        </article>
-        <article class="emp-card next" style="--i:4">
-          <div class="row"><span class="avatar light">+</span><div><b>다음 직원</b><small>필요할 때</small></div></div>
-          <ul><li>유튜브</li><li>인스타</li></ul>
-          <div class="ctx"><div class="chips"><span class="badge idle">유튜브</span><span class="badge idle">인스타그램</span></div></div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5 · 마무리 -->
+  <!-- 4 · the ending -->
   <section class="close" id="close" data-sc-act="pin" data-sc-span="1.4">
     <div data-sc-stage class="close-stage" data-sc-spotlight>
-      <figure class="hero-loop close-loop" aria-hidden="true">
+      <figure class="loop close-loop" data-loop="ending" aria-hidden="true">
         <img src="/assets/landing-v2/film/ending-poster.jpg" alt="" decoding="async" />
         <video muted playsinline loop preload="auto" poster="/assets/landing-v2/film/ending-poster.jpg"></video>
       </figure>
       <div class="close-inner">
-        <ol class="journey" id="journey" data-sc-cue="0 1 0 0">
-          <li data-stage="request"><b>말하기</b><small></small></li>
-          <li data-stage="assign"><b>배정</b><small></small></li>
-          <li data-stage="work"><b>작업</b><small></small></li>
-          <li data-stage="approve"><b>확인</b><small></small></li>
-          <li data-stage="result"><b>완료</b><small></small></li>
-          <li data-stage="routine"><b>루틴</b><small></small></li>
-        </ol>
         <div class="first-line" data-sc-cue="0 1 0 0">
           <div class="msg me">이번 주 네이버 블로그에 올릴 글 하나 만들어줘.</div>
           <p class="cap-h">이 한마디로 시작했습니다.</p>
