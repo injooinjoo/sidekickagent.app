@@ -64,11 +64,18 @@
   // One plate per scene: the poster (landscape or portrait by viewport), then
   // the clip once it has data. The clip's playhead is the scene's progress,
   // so the work on screen advances exactly as far as the visitor has scrolled.
-  var heroVideo = document.querySelector('.hero-loop video');
-  if (heroVideo) {
-    heroVideo.src = '/assets/landing-v2/film/' + (MOBILE ? 'hero-m.mp4' : 'hero.mp4');
-    if (!REDUCED) { heroVideo.load(); var tryPlay = function () { var pr = heroVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }; heroVideo.addEventListener('canplay', tryPlay); ['touchend', 'click', 'scroll'].forEach(function (e) { addEventListener(e, tryPlay, { passive: true, once: true }); }); }
-  }
+  // Two loops that play on their own: the opening under the headline and the
+  // last scene under the close. Muted, inline, primed on the first gesture
+  // for browsers that refuse to autoplay.
+  Array.prototype.forEach.call(document.querySelectorAll('.hero-loop video'), function (v) {
+    var name = v.closest('.close-loop') ? 'ending' : 'hero';
+    v.src = '/assets/landing-v2/film/' + name + (MOBILE ? '-m.mp4' : '.mp4');
+    if (REDUCED) return;
+    v.load();
+    var tryPlay = function () { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); };
+    v.addEventListener('canplay', tryPlay);
+    ['touchend', 'click', 'scroll'].forEach(function (e) { addEventListener(e, tryPlay, { passive: true, once: true }); });
+  });
   var plates = Array.prototype.map.call(document.querySelectorAll('.scene[data-hg-ready="1"]'), function (fig) {
     var id = fig.getAttribute('data-hg');
     var base = '/assets/landing-v2/film/' + id;
