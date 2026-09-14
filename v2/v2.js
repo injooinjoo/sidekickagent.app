@@ -285,33 +285,63 @@
   read();
 
   // ---- scene plates (Higgsfield) ----------------------------------------
-  // A figure marked data-hg-ready="1" gets its poster and, outside reduced
-  // motion, its clip. currentTime follows the scene's progress. See
-  // HIGGSFIELD_ASSET_PLAN.md for the files and how they are cut.
-  Array.prototype.forEach.call(document.querySelectorAll('.scene[data-hg-ready="1"]'), function (fig) {
+  // Each figure marked data-hg-ready="1" gets its poster (landscape or
+  // portrait by viewport) and, outside reduced motion, its clip. The hero
+  // plate follows the hero act's --sc-p; a session plate is shown only during
+  // the scenes it names and its clip follows that scene's own progress (or a
+  // sub-range of it, so two plates can share the long work scene). Phones
+  // get the portrait cut. See HIGGSFIELD_ASSET_PLAN.md.
+  var MOBILE = innerWidth < 860;
+  var plates = Array.prototype.map.call(document.querySelectorAll('.scene[data-hg-ready="1"]'), function (fig) {
     var id = (fig.getAttribute('data-hg') || '').toLowerCase();
     var base = '/assets/landing-v2/higgsfield/' + id;
-    var img = new Image(); img.src = base + '-poster.jpg'; img.alt = ''; fig.appendChild(img);
-    if (REDUCED) return;
-    var v = document.createElement('video');
-    v.muted = true; v.playsInline = true; v.preload = 'none'; v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-    v.src = base + (innerWidth < 860 ? '-m.mp4' : '.mp4');
-    fig.appendChild(v);
-    v.addEventListener('loadedmetadata', function () { fig.classList.add('has-clip'); });
-    v.load();
-    fig._clip = v;
+    var img = new Image(); img.src = base + (MOBILE ? '-poster-m.jpg' : '-poster.jpg'); img.alt = ''; img.decoding = 'async'; fig.appendChild(img);
+    var rec = { fig: fig, v: null, scenes: (fig.getAttribute('data-scenes') || '').split(' ').filter(Boolean), range: (fig.getAttribute('data-scene-range') || '0 1').split(' ').map(parseFloat), loading: false, src: base + (MOBILE ? '-m.mp4' : '.mp4') };
+    fig._plate = rec;
+    return rec;
   });
-  function driveClips() {
-    Array.prototype.forEach.call(document.querySelectorAll('.scene.has-clip'), function (fig) {
-      var v = fig._clip; if (!v || !v.duration) return;
-      var host = fig.closest('[data-sc-act]');
-      var p = host ? parseFloat(getComputedStyle(host).getPropertyValue('--sc-p')) || 0 : 0;
-      if (fig.classList.contains('scene-session')) p = state.p;
-      var t = p * (v.duration - 0.05);
-      if (Math.abs(v.currentTime - t) > 0.04 && !v.seeking) v.currentTime = t;
+  function loadPlate(rec) {
+    if (rec.loading || REDUCED) return;
+    rec.loading = true;
+    var v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto'; v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    v.src = rec.src;
+    v.addEventListener('loadeddata', function () { rec.v = v; rec.fig.classList.add('has-clip'); });
+    rec.fig.appendChild(v);
+    v.load();
+  }
+  function seek(v, t) {
+    if (!v || !v.duration) return;
+    if (Math.abs(v.currentTime - t) > 0.04 && !v.seeking) v.currentTime = t;
+  }
+  function drivePlates() {
+    var s = sceneAt(state.p);
+    var sessionNear = Math.abs(session.getBoundingClientRect().top) < innerHeight * 3.5;
+    plates.forEach(function (rec) {
+      if (rec.scenes.length) {
+        var on = rec.scenes.indexOf(s.id) >= 0 && s.q >= rec.range[0] && s.q <= rec.range[1];
+        rec.fig.classList.toggle('is-on', on);
+        if (sessionNear) loadPlate(rec);
+        if (on && rec.v) seek(rec.v, clamp01((s.q - rec.range[0]) / (rec.range[1] - rec.range[0])) * (rec.v.duration - 0.05));
+      } else {
+        // The hero sits at the top of the document, so its act progress never
+        // starts at 0. Drive the plate from the hero's own travel instead: 0 with
+        // the page at rest, 1 once the hero has scrolled off.
+        var host = rec.fig.closest('[data-sc-act]');
+        var r = host ? host.getBoundingClientRect() : null;
+        var near = r && r.bottom > -innerHeight && r.top < innerHeight * 2;
+        if (near || scrollY < innerHeight * 2) loadPlate(rec);
+        var p = r ? clamp01(-r.top / Math.max(r.height, 1)) : 0;
+        if (rec.v) seek(rec.v, p * (rec.v.duration - 0.05));
+      }
     });
   }
-  addEventListener('scroll', function () { requestAnimationFrame(driveClips); }, { passive: true });
+  plates.forEach(function (rec) { if (!rec.scenes.length) rec.fig.classList.add('is-on'); });
+  addEventListener('scroll', function () { requestAnimationFrame(drivePlates); }, { passive: true });
+  addEventListener('load', drivePlates);
+  document.addEventListener('DOMContentLoaded', drivePlates);
+  setTimeout(drivePlates, 400);
+  drivePlates();
 
   ScrollCraft.mount(document.body);
 })();

@@ -1,14 +1,15 @@
 # Higgsfield asset plan · Sidekick Landing V2
 
-Status on 2026-09-14: **not generated.** The Higgsfield CLI on this Mac
-(`/opt/homebrew/bin/higgsfield`) reports `Not authenticated`, and the Hermes MCP
-refresh token for `mcp.higgsfield.ai` is expired and rejected by the token
-endpoint (`invalid_grant`). Both routes need a browser login that only Injoo can
-perform. The page ships with its scene slots empty and reads correctly without
-them; every slot below is wired so a generated clip drops in without touching
-the markup's structure.
-
-To unblock: `higgsfield auth login`, then run the commands in §4.
+Status on 2026-09-14 (later the same day): **generated and mounted.** Injoo
+completed `higgsfield auth login`; the six scenes were generated with Nano
+Banana Pro (stills, 16:9 and 9:16, 2k) and Kling 2.6 (5 s image-to-video from
+each still, no sound), encoded for scrubbing and mounted as
+`apps/site/assets/landing-v2/higgsfield/hg-0N.mp4` (1600px, GOP 8),
+`hg-0N-m.mp4` (720px portrait, GOP 4) and their first-frame posters. Rerolls:
+HG-02 and HG-06 landscape stills (came back as collages), HG-06 portrait clip (a
+person entered the frame). Per-call cost at the CLI's own estimate: 2 credits a
+still, 5 credits a clip, 14 stills + 13 clips, about 93 credits; account balance
+after the run: 625.45 credits.
 
 ## 1. Role split (from the brief, §11)
 
