@@ -19,8 +19,8 @@
   // backend answers whether a plan may open a card window at all.
   //
   // D76 removed the permanent Free tier: these three paid plans are the whole
-  // catalog. Free entry is the one cardless account trial, which the app starts
-  // at the first real work execution — it is not a plan, so it is not here.
+  // catalog. Free entry is the one cardless account trial, which the backend
+  // opens at signup — it is not a plan, so it is not here.
   const PLANS = {
     birdie: { label: 'Birdie', storage: '5GB', sold: true },
     eagle: { label: 'Eagle', storage: '25GB', sold: true },
@@ -70,6 +70,10 @@
     user: null,
     billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {} },
     subscription: null,
+    // /membership/status 의 답. 이 계정이 웹에서 사도 되는지(can_purchase_on_web)와
+    // 어디서 구독 중인지(subscription_state)는 서버만 안다. 아직 못 읽었으면 null 이다.
+    membership: null,
+    membershipChecked: false,
     // 플랜 변경 견적. 서버가 방금 낸 숫자만 들고 있고, 선택이 바뀌면 버린다 —
     // 어제 견적으로 오늘 결제 버튼을 만들 수는 없다.
     quote: null,
@@ -115,6 +119,40 @@
       && (state.billing.mode === 'live' || (local && state.billing.mode === 'test'));
   }
 
+  // 한 계정의 구독은 한 곳에서만 산다. 로그인한 사람에게 웹 결제(새 구독·다시 시작하기)를
+  // 열어도 되는지는 서버의 /membership/status 가 정하고, 이 페이지는 그 답을 따른다.
+  // 답을 아직 못 받았거나 받지 못했으면 열지 않는다 — 결제는 서버가 한 번 더 막지만,
+  // 막힐 결제 창을 여는 것부터 하지 않는다. 아직 로그인하지 않은 방문자에게는 가격과 버튼을 그대로 보여 준다.
+  const WEB_PURCHASE_BLOCK_COPY = {
+    pending: '구독 상태를 확인하고 있어요.',
+    unconfirmed: '구독 상태를 확인하지 못해 결제를 열지 않았어요. 잠시 뒤 이 페이지를 다시 열어 주세요.',
+    apple: '이미 App Store에서 구독 중이에요. 한 계정의 구독은 한 곳에서만 유지돼서 웹에서는 결제할 수 없어요. 구독 관리는 App Store에서 해요.',
+    elsewhere: '이미 다른 곳에서 구독 중이라 웹에서는 결제할 수 없어요. 구독한 곳에서 관리해 주세요.'
+  };
+
+  function webPurchaseBlock() {
+    if (!state.token) return null;
+    if (!state.membershipChecked) return 'pending';
+    const membership = state.membership;
+    if (!membership) return 'unconfirmed';
+    if (membership.subscription_state === 'APPLE_ACTIVE') return 'apple';
+    if (membership.can_purchase_on_web !== true) return 'elsewhere';
+    return null;
+  }
+
+  // 서버가 409 subscription_exists 로 결제를 거절했을 때의 문구. 일반 오류로 뭉뚱그리지 않는다.
+  function subscriptionExistsCopy() {
+    const current = state.membership && state.membership.subscription_state;
+    if (typeof current === 'string' && current.indexOf('WEB_') === 0) {
+      return '이미 웹에서 구독 중이에요. 새로 결제하지 않았고 청구되지 않았어요.';
+    }
+    return '이미 App Store에서 구독 중이에요. 한 계정의 구독은 한 곳에서만 유지돼서 웹에서는 결제하지 않았고 청구되지 않았어요. 구독 관리는 App Store에서 해요.';
+  }
+
+  function isSubscriptionExists(error) {
+    return Boolean(error) && error.status === 409 && error.detail === 'subscription_exists';
+  }
+
   function renderSubscription() {
     const panel = $('subscription-panel');
     const subscription = state.subscription;
@@ -126,17 +164,23 @@
     const fundingLabel = subscription.funding_mode === 'included' ? 'Sidekick AI' : '내 AI 계정';
     $('subscription-line').textContent = `${plan ? plan.label : subscription.plan_id} · ${fundingLabel}`;
     const until = new Date(subscription.current_period_end * 1000).toLocaleDateString('ko-KR');
+    // 다른 곳(App Store)의 구독이 살아 있거나 서버가 웹 결제를 허락하지 않으면 다시 시작하기를
+    // 내놓지 않는다. 해지는 언제나 할 수 있어야 하므로 해지 버튼은 이 조건과 무관하다.
+    const resumeBlocked = Boolean(webPurchaseBlock());
     $('subscription-renewal').textContent = subscription.cancel_at_period_end
-      ? `해지해서 이용이 중단됐어요. ${until} 전까지는 추가 결제 없이 다시 시작할 수 있어요.`
+      ? (resumeBlocked
+        ? '해지해서 이용이 중단됐어요. 지금은 웹에서 다시 시작할 수 없어요.'
+        : `해지해서 이용이 중단됐어요. ${until} 전까지는 추가 결제 없이 다시 시작할 수 있어요.`)
       : `${until}에 다음 달 금액이 결제돼요.`;
     $('cancel-button').hidden = Boolean(subscription.cancel_at_period_end);
-    $('resume-button').hidden = !subscription.resumable;
+    $('resume-button').hidden = !subscription.resumable || resumeBlocked;
   }
 
   function render() {
     if (!PLANS[state.plan]) state.plan = DEFAULT_PLAN;
     const authenticated = Boolean(state.token);
     const subscribed = Boolean(state.subscription && state.subscription.active);
+    const purchaseBlock = webPurchaseBlock();
 
     planCards.forEach((card) => {
       const id = card.dataset.plan;
@@ -170,10 +214,13 @@
         ? state.quote : null;
       // 로그인은 여기서 요구하지 않는다. 누르면 로그인 화면이 열리고,
       // 끝나면 이 구매가 이어진다.
-      button.disabled = !(ready || (changeable && (!quoted || quoted.applies_now)));
+      // 서버가 웹 결제를 허락하지 않은 계정에는 결제·바꾸기 버튼을 모두 닫는다.
+      button.disabled = Boolean(purchaseBlock) || !(ready || (changeable && (!quoted || quoted.applies_now)));
       button.hidden = current;
       button.textContent = state.busy && state.plan === id ? '연결 중…'
         : !plan.sold ? '지금은 구매할 수 없어요'
+        : purchaseBlock === 'pending' && (ready || changeable) ? '구독 상태를 확인하는 중이에요'
+        : purchaseBlock && (ready || changeable) ? '웹에서는 결제할 수 없어요'
         : ready ? `${plan.label} 시작하기`
         : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
         : changeable && quoted ? '지금은 바꿀 수 없어요'
@@ -205,6 +252,7 @@
         ? '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 준비가 끝나면 바로 열려요.'
         : !publicCheckoutReady()
         ? '지금은 웹에서 구매할 수 없어요. 앱에서 계속 사용할 수 있어요.'
+        : purchaseBlock ? WEB_PURCHASE_BLOCK_COPY[purchaseBlock]
         : subscribed ? '이미 구독 중이에요.'
         : '카드는 토스페이먼츠 등록창에서 입력해요.';
       $('checkout-status').textContent = status;
@@ -230,6 +278,8 @@
     if (!response.ok) {
       const error = new Error('request_failed');
       error.status = response.status;
+      // 서버가 준 짧은 사유 코드(예: subscription_exists)만 들고 간다. 화면 문구는 이 페이지가 정한다.
+      error.detail = data && typeof data.detail === 'string' ? data.detail : '';
       throw error;
     }
     return data;
@@ -252,14 +302,23 @@
   }
 
   async function loadSubscription() {
-    if (!state.token) { state.subscription = null; return render(); }
-    try {
-      // Deliberately not gated on sales being open: someone who already bought
-      // must be able to read and cancel even after new sales close.
-      state.subscription = await api('/membership/toss/status', { method: 'GET' });
-    } catch (_) {
+    if (!state.token) {
       state.subscription = null;
+      state.membership = null;
+      state.membershipChecked = false;
+      return render();
     }
+    // Deliberately not gated on sales being open: someone who already bought
+    // must be able to read and cancel even after new sales close. The account's
+    // purchase permission is read alongside, because the Toss status only knows
+    // about the web subscription and not one held on the App Store.
+    const [subscription, membership] = await Promise.all([
+      api('/membership/toss/status', { method: 'GET' }).catch(() => null),
+      api('/membership/status', { method: 'GET' }).catch(() => null)
+    ]);
+    state.subscription = subscription;
+    state.membership = membership && typeof membership === 'object' ? membership : null;
+    state.membershipChecked = true;
     render();
   }
 
@@ -509,6 +568,8 @@
   async function startCheckout() {
     const plan = PLANS[state.plan];
     if (!publicCheckoutReady() || !state.token || !plan.sold || state.busy) return;
+    const purchaseBlock = webPurchaseBlock();
+    if (purchaseBlock) { say(WEB_PURCHASE_BLOCK_COPY[purchaseBlock], true); render(); return; }
     state.busy = true;
     render();
     try {
@@ -529,10 +590,12 @@
         successUrl: intent.success_url,
         failUrl: intent.fail_url
       });
-    } catch (_) {
+    } catch (error) {
       state.busy = false;
       sessionStorage.removeItem(SELECTION_KEY);
-      say('카드 등록 창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+      say(isSubscriptionExists(error)
+        ? subscriptionExistsCopy()
+        : '카드 등록 창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
       render();
     }
   }
@@ -545,6 +608,7 @@
     const subscription = state.subscription;
     if (!publicCheckoutReady() || !state.token || !plan || !plan.sold || state.busy) return;
     if (!subscription || !subscription.active || subscription.plan_id === planId) return;
+    if (webPurchaseBlock()) { say(WEB_PURCHASE_BLOCK_COPY[webPurchaseBlock()], true); return; }
     const body = JSON.stringify({ plan_id: planId, funding_mode: state.funding });
     const quoted = state.quote && state.quote.to_plan_id === planId && state.quote.funding_mode === state.funding
       ? state.quote : null;
@@ -601,13 +665,17 @@
 
   $('resume-button').addEventListener('click', async () => {
     if (!state.token || state.busy) return;
+    const purchaseBlock = webPurchaseBlock();
+    if (purchaseBlock) { say(WEB_PURCHASE_BLOCK_COPY[purchaseBlock], true); render(); return; }
     state.busy = true;
     render();
     try {
       state.subscription = await api('/membership/toss/resume', { method: 'POST' });
       say('다시 시작했어요. 추가로 결제되는 금액은 없어요.', false);
-    } catch (_) {
-      say('다시 시작하지 못했어요. 결제 기간이 끝났다면 새로 구독해 주세요.', true);
+    } catch (error) {
+      say(isSubscriptionExists(error)
+        ? subscriptionExistsCopy()
+        : '다시 시작하지 못했어요. 결제 기간이 끝났다면 새로 구독해 주세요.', true);
     }
     state.busy = false;
     render();
@@ -626,6 +694,13 @@
     try { selection = JSON.parse(sessionStorage.getItem(SELECTION_KEY) || 'null'); } catch (_) { selection = null; }
     if (!authKey || !customerKey || !selection) return;
     if (!state.token) return say('결제를 마치려면 같은 계정으로 다시 로그인해 주세요.', true);
+    // 카드 창을 여는 사이 App Store 구독이 생겼을 수 있다. 서버가 이미 막았다고 말한 계정은
+    // 첫 달 결제를 요청하지 않는다. 확인하지 못한 경우는 서버의 재확인에 맡긴다.
+    const purchaseBlock = webPurchaseBlock();
+    if (purchaseBlock === 'apple' || purchaseBlock === 'elsewhere') {
+      sessionStorage.removeItem(SELECTION_KEY);
+      return say(`${WEB_PURCHASE_BLOCK_COPY[purchaseBlock]} 청구되지 않았어요.`, true);
+    }
 
     state.busy = true;
     say('카드 등록을 확인하고 첫 달을 결제하고 있어요.', false);
@@ -644,8 +719,13 @@
       sessionStorage.removeItem(SELECTION_KEY);
       state.subscription = result;
       say(result.active ? '구독이 시작됐어요. 앱에서 바로 쓸 수 있어요.' : '결제를 확인하지 못했어요. 청구되지 않았어요.', !result.active);
-    } catch (_) {
-      say('결제를 확인하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.', true);
+    } catch (error) {
+      if (isSubscriptionExists(error)) {
+        sessionStorage.removeItem(SELECTION_KEY);
+        say(subscriptionExistsCopy(), true);
+      } else {
+        say('결제를 확인하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.', true);
+      }
     }
     state.busy = false;
     render();

@@ -1,15 +1,39 @@
 # Higgsfield asset plan · Sidekick Landing V2
 
-Status on 2026-09-14 (later the same day): **generated and mounted.** Injoo
-completed `higgsfield auth login`; the six scenes were generated with Nano
-Banana Pro (stills, 16:9 and 9:16, 2k) and Kling 2.6 (5 s image-to-video from
-each still, no sound), encoded for scrubbing and mounted as
-`apps/site/assets/landing-v2/higgsfield/hg-0N.mp4` (1600px, GOP 8),
-`hg-0N-m.mp4` (720px portrait, GOP 4) and their first-frame posters. Rerolls:
-HG-02 and HG-06 landscape stills (came back as collages), HG-06 portrait clip (a
-person entered the frame). Per-call cost at the CLI's own estimate: 2 credits a
-still, 5 credits a clip, 14 stills + 13 clips, about 93 credits; account balance
-after the run: 625.45 credits.
+## Third cut (2026-09-14, later): the film is the page
+
+Injoo's direction after seeing the first two cuts: the video must be the main
+thing, not a background behind HTML animations, and the work itself (making a
+video, writing the Naver blog post, the Instagram carousel, the WordPress
+schedule) must happen inside the footage as the visitor scrolls.
+
+So the page now runs eight ten-second scenes of one working morning, one
+person, one desk, shot in the same documentary grade, each scrubbed by the
+scene's own scroll progress. The only interface left on the page is the
+approval card (a real control, because scrolling must never publish) and a
+few words in the lower-left corner naming what the film is doing.
+
+| ID | Scene | What happens in the footage |
+|---|---|---|
+| s1 | 말하기 | She speaks into the phone; the recording circle pulses, a message bubble slides up |
+| s2 | 직원 배정 · 조사 | The browser scrolls through camping chairs, she writes a note |
+| s3 | 영상 제작 | Phone on a tripod films the chair under a ring light; the edit timeline advances on the laptop |
+| s4 | 네이버 블로그 | Text fills the blog editor under a green header; a second photo drops into the article |
+| s5 | 인스타그램 | Her thumb swipes the square carousel; the caption scrolls |
+| s6 | 워드프레스 | The cursor drags the article card onto a calendar day; a confirmation badge appears |
+| s7 | 확인 | The phone held still, thumb hovering over two buttons, waiting |
+| s8 | 게시 완료 | A notification slides down, the article scrolls on the laptop, she lifts the mug |
+
+Generation: Nano Banana Pro stills (16:9 and 9:16, 2k) with the first-cut desk
+still as an image reference for continuity, then Kling 2.6 ten-second
+image-to-video from each still, no sound. Encoded for scrolling at 1600px
+(keyframe every 8 frames) and 720px portrait (every 4), first-frame posters,
+under `apps/site/assets/landing-v2/film/sN{,-m}.mp4` and `sN-poster{,-m}.jpg`.
+The first-cut plates (hg-01..06) were removed.
+
+The earlier plan below is kept as history.
+
+---
 
 ## 1. Role split (from the brief, §11)
 

@@ -1,5 +1,14 @@
 # Sidekick Landing V2 · ScrollCraft brief
 
+> Third cut, 2026-09-14: Injoo redirected the build twice after seeing it.
+> First, use the whole viewport. Then, and decisively: the film is the page.
+> The generated footage carries the work itself (영상 제작, 네이버 블로그,
+> 인스타그램, 워드프레스) and scroll scrubs through it; HTML is reduced to the
+> words in the corner, the channel chips, the scene rail and the approval card.
+> The grammar below is therefore closer to a filmic one-shot now, chaptered by
+> the eight scenes, with the approval-that-waits kept as the signature move.
+> The original brief follows unchanged as the record of where it started.
+
 Self-authored under explicit creative delegation. Injoo supplied a full written
 brief (journey, emotional rhythm, hero copy, section copy, bans, technical
 constraints). Every answer below is taken from that brief verbatim where it
