@@ -15,14 +15,14 @@
   // ---- the scenario: eight scenes, one request ---------------------------
   var REQUEST = '이번 주 네이버 블로그에 올릴 글 하나 만들어줘.';
   var SCENES = [
-    { id: 's1', stage: 'request', w: 1.0 },
-    { id: 's2', stage: 'assign', w: 1.2 },
-    { id: 's3', stage: 'work', w: 1.4, channel: 'video' },
-    { id: 's4', stage: 'work', w: 1.4, channel: 'naver' },
-    { id: 's5', stage: 'work', w: 1.2, channel: 'instagram' },
-    { id: 's6', stage: 'work', w: 1.2, channel: 'wordpress' },
-    { id: 's7', stage: 'approve', w: 1.5 },
-    { id: 's8', stage: 'result', w: 1.0 }
+    { id: 's1', stage: 'request', w: 1.8 },
+    { id: 's2', stage: 'assign', w: 2.0 },
+    { id: 's3', stage: 'work', w: 2.4, channel: 'video' },
+    { id: 's4', stage: 'work', w: 2.4, channel: 'naver' },
+    { id: 's5', stage: 'work', w: 2.0, channel: 'instagram' },
+    { id: 's6', stage: 'work', w: 2.0, channel: 'wordpress' },
+    { id: 's7', stage: 'approve', w: 2.2 },
+    { id: 's8', stage: 'result', w: 1.8 }
   ];
   var TOTAL = SCENES.reduce(function (s, x) { return s + x.w; }, 0);
   var TITLES = { base: '가을 캠핑 의자, 3만원대에서 고른 3가지', short: '3만원대 캠핑 의자 3가지' };
@@ -51,12 +51,8 @@
     for (var i = 0; i < SCENES.length; i++) { if (SCENES[i].id === id) return acc; acc += SCENES[i].w / TOTAL; }
     return 0;
   }
-  var siteHeader = document.querySelector('.site-header');
-  function syncHeader() {
-    if (siteHeader) document.documentElement.style.setProperty('--header-h', Math.round(siteHeader.getBoundingClientRect().height) + 'px');
-  }
-  syncHeader();
-  var headerH = function () { return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64; };
+  function syncHeader() {}
+  var headerH = function () { return 0; };
   function travel() { return Math.max(session.offsetHeight - stick.offsetHeight, 1); }
   function sessionTop() { return session.getBoundingClientRect().top + scrollY; }
   function scrollToScene(id, extra) {
@@ -68,6 +64,11 @@
   // One plate per scene: the poster (landscape or portrait by viewport), then
   // the clip once it has data. The clip's playhead is the scene's progress,
   // so the work on screen advances exactly as far as the visitor has scrolled.
+  var heroVideo = document.querySelector('.hero-loop video');
+  if (heroVideo) {
+    heroVideo.src = '/assets/landing-v2/film/' + (MOBILE ? 'hero-m.mp4' : 'hero.mp4');
+    if (!REDUCED) { heroVideo.load(); var tryPlay = function () { var pr = heroVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }; heroVideo.addEventListener('canplay', tryPlay); ['touchend', 'click', 'scroll'].forEach(function (e) { addEventListener(e, tryPlay, { passive: true, once: true }); }); }
+  }
   var plates = Array.prototype.map.call(document.querySelectorAll('.scene[data-hg-ready="1"]'), function (fig) {
     var id = fig.getAttribute('data-hg');
     var base = '/assets/landing-v2/film/' + id;
@@ -237,8 +238,8 @@
   }
   function schedule() { if (!raf) raf = requestAnimationFrame(read); }
   addEventListener('scroll', schedule, { passive: true });
-  addEventListener('resize', function () { syncHeader(); schedule(); });
-  addEventListener('load', function () { syncHeader(); read(); });
+  addEventListener('resize', schedule);
+  addEventListener('load', read);
   document.addEventListener('DOMContentLoaded', read);
   setTimeout(read, 400);
   read();
