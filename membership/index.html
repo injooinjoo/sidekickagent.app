@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="ko">
 <head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMGMBQR225"></script>
+  <script src="/analytics.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- js.tosspayments.com is the only third party this page may load, and the
-       script is fetched on demand rather than on every visit. The card window
-       Toss opens lives on its own domains, so those are the frame/form targets;
-       nothing else is reachable. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com https://wdjlokfsehsnvcipkods.supabase.co; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
+  <!-- Toss loads only when checkout needs it. Google Analytics measures this
+       page with analytics storage denied and all advertising signals disabled. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com https://wdjlokfsehsnvcipkods.supabase.co https://*.google-analytics.com https://analytics.google.com; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com https://www.googletagmanager.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
   <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="Sidekick 멤버십을 플랜과 AI 계정 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
