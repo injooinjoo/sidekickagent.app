@@ -140,6 +140,22 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-name { color: var(--muted); font-size: 14px; }
 .plan-head em { padding: 2px 8px; border: 1px solid var(--accent-border); border-radius: 999px; color: var(--accent);
   background: var(--accent-soft); font-size: 11px; font-style: normal; font-weight: 800; }
+.plan-visual { margin: 16px 0 2px; overflow: hidden; min-height: 138px; border: 1px solid var(--line);
+  border-radius: 15px; background: var(--sunken); }
+.plan-visual-bar { height: 28px; padding: 0 9px; display: flex; align-items: center; gap: 5px;
+  border-bottom: 1px solid var(--line); background: var(--card); }
+.plan-visual-bar i { width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
+.plan-visual-bar i:first-child { background: var(--brand); }
+.plan-visual-bar span { margin-left: auto; color: var(--soft); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
+.plan-visual-work { min-height: 109px; padding: 12px; display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-content: center; }
+.plan-visual-work--grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+.plan-visual-avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center;
+  justify-content: center; background: var(--ink); color: #fff; font-size: 10px; font-weight: 700; }
+.plan-visual-task { min-width: 0; padding: 8px 9px; display: flex; flex-direction: column; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 9px; background: var(--card); box-shadow: 0 2px 7px rgba(26,29,33,.04); }
+.plan-visual-work:not(.plan-visual-work--grid) .plan-visual-task:last-child { grid-column: 2; }
+.plan-visual-task b { overflow: hidden; color: var(--ink-soft); font-size: 9px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.plan-visual-task small { overflow: hidden; color: var(--soft); font-size: 7px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .plan-price { display: flex; align-items: baseline; gap: 5px; margin: 18px 0 0; }
 .plan-price strong { font-size: 38px; letter-spacing: -.03em; }
 .plan-price span { color: var(--muted); font-size: 14px; }
