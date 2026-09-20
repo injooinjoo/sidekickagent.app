@@ -68,7 +68,7 @@
     challengeId: null,
     token: sessionStorage.getItem('sidekick_web_access_token') || '',
     user: null,
-    billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {} },
+    billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false },
     subscription: null,
     // /membership/status 의 답. 이 계정이 웹에서 사도 되는지(can_purchase_on_web)와
     // 어디서 구독 중인지(subscription_state)는 서버만 안다. 아직 못 읽었으면 null 이다.
@@ -116,7 +116,8 @@
     const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     return Boolean(state.billing.sales_enabled)
       && Boolean(state.billing.client_key)
-      && (state.billing.mode === 'live' || (local && state.billing.mode === 'test'));
+      && (state.billing.mode === 'live'
+        || (state.billing.mode === 'test' && (local || state.billing.review_checkout_allowed === true)));
   }
 
   // 한 계정의 구독은 한 곳에서만 산다. 로그인한 사람에게 웹 결제(새 구독·다시 시작하기)를
@@ -287,16 +288,18 @@
 
   async function loadBillingConfig() {
     try {
-      const config = await api('/membership/toss/config', { method: 'GET' });
+      const path = state.token ? '/membership/toss/config/authenticated' : '/membership/toss/config';
+      const config = await api(path, { method: 'GET' });
       state.billing = {
         sales_enabled: config.sales_enabled === true,
         mode: config.mode === 'live' || config.mode === 'test' ? config.mode : 'unavailable',
         client_key: typeof config.client_key === 'string' ? config.client_key : '',
         // Korean won, server-owned. The page prints these and knows no others.
-        plans: config.plans && typeof config.plans === 'object' ? config.plans : {}
+        plans: config.plans && typeof config.plans === 'object' ? config.plans : {},
+        review_checkout_allowed: config.review_checkout_allowed === true
       };
     } catch (_) {
-      state.billing = { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {} };
+      state.billing = { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false };
     }
     render();
   }
@@ -515,6 +518,7 @@
   async function afterSignIn() {
     closeSignin();
     render();
+    await loadBillingConfig();
     await loadSubscription();
     await completePendingAuthorization();
     const subscribed = Boolean(state.subscription && state.subscription.active);
