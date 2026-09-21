@@ -1,0 +1,8 @@
+# The scroll-craft verification harness installs playwright-core here to drive
+# a real browser over the page. It must never be committed: apps/site is served
+# as-is, and test_domain_contract.py globs every index.html under it, so a
+# vendored dependency tree turns into dozens of "page" failures.
+node_modules/
+package.json
+package-lock.json
+__pycache__/

@@ -1,0 +1,672 @@
+/* 사이드킥 V3 랜딩 — page styles.
+ *
+ * scrollcraft.css is the mechanism and is never edited here. This file is the
+ * theme (six colours, one face) plus the markup this page invented: the hero
+ * planes, the peak's card stack, the close, and the instruction log.
+ *
+ * The palette is not new. --sc-accent is #ff330d verbatim from
+ * apps/site/styles.css, which takes it from the app's own theme. One accent,
+ * locked for the page. The canvas is graphite rather than black because #000
+ * has no air in it. */
+
+:root {
+  color-scheme: dark;
+
+  --sc-canvas:     #0b0c0e;
+  --sc-surface:    #14161a;
+  --sc-ink:        #f2f3f5;
+  --sc-ink-soft:   #98a0ab;
+  --sc-accent:     #ff330d;
+  --sc-accent-ink: #0b0c0e;
+
+  /* One family. The page is Korean and the app ships this stack; a second
+     Korean face at display weight would be a costume, not a voice. */
+  --sc-font-display: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                     "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
+  --sc-font-text:    var(--sc-font-display);
+
+  --bar-h: 60px;
+  --log-h: 62px;
+  --log-clear: calc(var(--log-h) + 2.7rem);
+  --line: rgba(255, 255, 255, 0.11);
+  --line-soft: rgba(255, 255, 255, 0.07);
+  --raise: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  background: var(--sc-canvas);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Light text on dark needs compensation on three axes: leading, tracking, one
+   step of weight. Dark-mode type set with light-mode metrics reads thin. */
+.sc-body, .sc-lede, p { letter-spacing: 0.005em; }
+
+::selection { background: var(--sc-accent); color: var(--sc-accent-ink); }
+
+.sc-visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Without JS the engine never runs, so its pre-paint states would leave the
+   page blank. Everything it would have animated is simply visible. */
+html:not(.sc-js) [data-sc-cue],
+html:not(.sc-js) [data-sc-in],
+html:not(.sc-js) [data-sc-stagger] > * { opacity: 1; transform: none; }
+html:not(.sc-js) [data-sc-reveal] { clip-path: none; }
+html:not(.sc-js) .log { display: none; }
+html:not(.sc-js) .kit__img--before { display: none; }
+
+/* ---------------------------------------------------------------- chrome -- */
+
+.skip {
+  position: fixed; top: 8px; left: 8px; z-index: 60;
+  padding: 10px 16px; border-radius: var(--sc-r-pill);
+  background: var(--sc-accent); color: var(--sc-accent-ink);
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  transform: translateY(-160%);
+}
+.skip:focus-visible { transform: none; }
+
+/* The shared site bar, carried verbatim from every other page. v3 may only
+   re-ink it for a dark ground and let the film show through: no background
+   image, no second menu, no change to the wordmark's size. */
+.site-header {
+  position: fixed; inset: 0 0 auto 0; z-index: 40;
+  min-height: var(--bar-h);
+  background: linear-gradient(to bottom, rgba(11, 12, 14, 0.78), rgba(11, 12, 14, 0));
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  border-bottom: 0;
+}
+.site-header .brand img { height: 19px; }
+.nav a { color: var(--sc-ink-soft); }
+.nav a:hover, .nav a[aria-current="page"] { color: var(--sc-ink); }
+.header-cta {
+  background: rgba(255, 255, 255, 0.07); color: var(--sc-ink);
+  border: 1px solid var(--line);
+}
+.header-cta:hover { background: rgba(255, 255, 255, 0.13); color: var(--sc-ink); }
+
+/* ---------------------------------------------------------------- buttons - */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; white-space: nowrap;
+  padding: 14px 26px; border: 1px solid transparent; border-radius: var(--sc-r-pill);
+  font: inherit; font-size: 16px; font-weight: 700; letter-spacing: -0.01em;
+  text-decoration: none; cursor: pointer;
+  transition: background-color 150ms var(--sc-ease-out),
+              border-color 150ms var(--sc-ease-out),
+              color 150ms var(--sc-ease-out),
+              transform 120ms var(--sc-ease-out);
+}
+.btn--primary { background: var(--sc-accent); color: var(--sc-accent-ink); }
+.btn--primary:hover { background: #ff4a29; }
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.06); color: var(--sc-ink);
+  border-color: var(--line); backdrop-filter: blur(8px);
+}
+.btn--ghost:hover { background: rgba(255, 255, 255, 0.12); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ------------------------------------------------------------------- hero - */
+
+.hero__stage { background: var(--sc-canvas); }
+
+.plane { position: absolute; left: 50%; translate: -50% 0; pointer-events: none; }
+/* A global img rule would shrink an absolutely positioned plane to the
+   viewport on phones and the whole scene would collapse. Planes opt out. */
+.plane img { display: block; width: 100%; height: auto; max-width: none; }
+
+.plane--sky { inset: -8% -6%; left: auto; translate: none; }
+.plane--sky img { width: 100%; height: 100%; object-fit: cover; }
+
+.plane--mid     { bottom: -12%; width: max(1750px, 132vw); opacity: 0.92; }
+.plane--subject { bottom: -9%;  width: min(1120px, 86vw); pointer-events: auto; }
+.plane--fore    { bottom: -16%; width: max(1950px, 146vw); }
+
+/* Density behind the headline only, sized to the word. A full-frame overlay
+   would flatten the whole photograph to fix one line. */
+.hero__haze {
+  position: absolute; inset-inline: 0; top: 10%; height: 46%;
+  z-index: 1;
+  background: radial-gradient(62% 100% at 50% 52%, rgba(6, 7, 9, 0.74), rgba(6, 7, 9, 0) 74%);
+}
+
+/* Planes travel past the stage floor and get clipped there. This hides the
+   clip line at any scroll position. */
+.hero__floor {
+  position: absolute; inset: auto 0 0 0; height: 260px;
+  background: linear-gradient(to bottom, rgba(11, 12, 14, 0), var(--sc-canvas) 86%);
+  z-index: 6;
+}
+
+.hero__title {
+  position: absolute; inset-inline: 0; top: 22%;
+  display: flex; justify-content: center;
+  z-index: 2;                       /* between the mid plane (1) and her (3) */
+}
+.hero__h1 {
+  margin: 0;
+  font-family: var(--sc-font-display);
+  font-size: clamp(3.6rem, 17vw, 15rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  color: var(--sc-ink);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.82), 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.plane--mid  { z-index: 1; }
+.plane--subject { z-index: 3; }
+.plane--fore { z-index: 5; }
+.hero__copy { z-index: 8; }
+
+.hero__copy {
+  position: absolute; inset-inline: var(--sc-gutter); bottom: clamp(3.5rem, 11vh, 7rem);
+  display: flex; flex-direction: column; align-items: center; gap: var(--sc-5);
+  text-align: center;
+}
+.hero__sub {
+  margin: 0; max-width: 24ch;
+  font-size: clamp(1.05rem, 0.9rem + 0.9vw, 1.5rem);
+  font-weight: 600; line-height: 1.5; color: var(--sc-ink);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+}
+
+/* --------------------------------------------------------- 2 · argument --- */
+
+.argument { display: grid; place-items: center; }
+.argument__bed { position: absolute; inset: 0; }
+.argument__ground {
+  width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.55;
+}
+/* Density where the text is, not a full-frame overlay, and a sibling of the
+   copy rather than a child of it so the verification pass can measure it. */
+.argument__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, rgba(11, 12, 14, 0.94) 0%, rgba(11, 12, 14, 0.82) 46%, rgba(11, 12, 14, 0.25) 88%);
+}
+.argument__lines {
+  position: relative; z-index: 2;
+  width: min(var(--sc-maxw), 100%);
+  padding-inline: var(--sc-gutter);
+  display: grid;
+}
+.argument__lines > p {
+  grid-area: 1 / 1;
+  margin: 0; max-width: 21ch;
+  font-size: clamp(1.7rem, 1.1rem + 2.6vw, 3.4rem);
+  font-weight: 700; line-height: 1.28; letter-spacing: -0.035em;
+}
+.sc-lede--turn { color: var(--sc-accent); max-width: 15ch; }
+
+@media (max-width: 860px) {
+  .argument__scrim {
+    background: linear-gradient(to bottom, rgba(11, 12, 14, 0.42) 0%, rgba(11, 12, 14, 0.88) 38%, rgba(11, 12, 14, 0.94) 100%);
+  }
+  .argument__ground { opacity: 0.45; }
+}
+
+/* -------------------------------------------------------------- 3 · kit --- */
+
+.act--kit { padding-block: var(--sc-section) calc(var(--sc-section) * 0.7); }
+.kit {
+  display: grid; gap: clamp(2.5rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  align-items: center;
+}
+.kit__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 2px;
+}
+.kit__list li {
+  font-size: clamp(1.35rem, 1rem + 1.5vw, 2.3rem);
+  font-weight: 800; letter-spacing: -0.04em; line-height: 1.34;
+}
+.kit__list li:last-child { color: var(--sc-accent); }
+
+.kit__figure { position: relative; margin: 0; }
+.kit__img {
+  display: block; width: 100%; height: auto;
+  border-radius: var(--sc-r-lg);
+}
+.kit__figure > .kit__img--before { position: relative; }
+.kit__wipe {
+  position: absolute; inset: 0; display: block;
+  border-radius: var(--sc-r-lg); overflow: hidden;
+}
+.kit__figure figcaption {
+  margin-top: var(--sc-4);
+  font-size: 14px; color: var(--sc-ink-soft);
+}
+
+/* ----------------------------------------------------------- 4 · models --- */
+
+.rail {
+  display: flex; align-items: stretch; gap: clamp(1rem, 2vw, 1.75rem);
+  height: 100%; padding-inline: var(--sc-gutter);
+  padding-block: clamp(5rem, 14vh, 9rem) var(--log-clear);
+}
+.rail__lead, .rail__tail {
+  flex: 0 0 auto; align-self: center;
+  width: clamp(17rem, 27vw, 24rem);
+}
+.rail__lead h2 { margin: 0 0 var(--sc-4); }
+.rail__lead .sc-body { margin: 0; color: var(--sc-ink-soft); }
+.rail__note { margin: 0; font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem); line-height: 1.6; color: var(--sc-ink-soft); }
+.rail__note b { color: var(--sc-ink); }
+
+.model {
+  flex: 0 0 auto; align-self: center;
+  width: clamp(13rem, 19vw, 17rem);
+  min-height: 10.5rem;
+  display: flex; flex-direction: column; justify-content: center; gap: 7px;
+  padding: var(--sc-6);
+  border: 1px solid var(--line); border-radius: var(--sc-r-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  box-shadow: inset 0 1px 0 var(--sc-edge);
+  /* Items settle in sequence as the rail travels, so it reads as a drawer
+     being pulled rather than a slideshow on rails. The first is exempt. */
+  opacity: 0.58;
+  transform: translateY(18px);
+  transition: opacity 420ms var(--sc-ease-out), transform 420ms var(--sc-ease-out);
+}
+.model.is-in { opacity: 1; transform: none; }
+.model h3 {
+  margin: 0; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+  font-weight: 800; letter-spacing: -0.035em;
+}
+.model p { margin: 0; font-size: 15px; color: var(--sc-ink-soft); }
+
+/* ------------------------------------------------------- 5 · peak stack --- */
+
+.peak { display: grid; grid-template-rows: auto 1fr; background: var(--sc-canvas); }
+
+.peak__head {
+  padding: clamp(4.4rem, 10vh, 6rem) var(--sc-gutter) 0;
+  width: min(var(--sc-maxw), 100%); margin-inline: auto;
+}
+.peak__head h2 { margin: 0; max-width: 16ch; }
+
+.peak__close {
+  margin: var(--sc-4) 0 0; max-width: 34ch;
+  font-size: clamp(0.98rem, 0.9rem + 0.45vw, 1.2rem);
+  font-weight: 600; color: var(--sc-ink-soft);
+}
+
+.stack {
+  position: relative;
+  width: min(68rem, 100% - var(--sc-gutter) * 2);
+  margin-inline: auto;
+  align-self: end;
+  height: clamp(19rem, 46vh, 27rem);
+  margin-bottom: var(--log-clear);
+  overflow: hidden;
+  /* Card N+1 climbs over card N. Both windows live here so every card can
+     read every other card's progress. */
+  --p1: clamp(0, calc((var(--sc-p, 0) - 0.28) / 0.24), 1);
+  --p2: clamp(0, calc((var(--sc-p, 0) - 0.56) / 0.24), 1);
+}
+
+.stack__card {
+  position: absolute; inset: auto 0 0 0;
+  height: clamp(16rem, 37vh, 23rem);
+  display: grid; grid-template-columns: 38% 1fr; align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--line); border-radius: var(--sc-r-lg);
+  background: var(--sc-surface);
+  box-shadow: var(--raise), inset 0 1px 0 var(--sc-edge);
+  transform: translate3d(0, calc((1 - var(--self)) * 118% - var(--lift) * 2.4rem), 0)
+             scale(calc(1 - var(--lift) * 0.038));
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+.stack__card::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--sc-canvas);
+  opacity: calc(var(--lift) * 0.42);
+  pointer-events: none;
+}
+.stack__card:nth-child(1) { --self: 1;          --lift: calc(var(--p1) + var(--p2)); z-index: 1; }
+.stack__card:nth-child(2) { --self: var(--p1);  --lift: var(--p2);                   z-index: 2; }
+.stack__card:nth-child(3) { --self: var(--p2);  --lift: 0;                           z-index: 3; }
+
+.stack__card > img {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 42%;
+}
+.stack__body {
+  display: flex; flex-direction: column; align-items: flex-start;
+  justify-content: flex-start; gap: 9px;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+.stack__body h3 {
+  margin: 0; font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.4rem);
+  font-weight: 800; letter-spacing: -0.04em;
+}
+.stack__body p { margin: 0; font-size: clamp(0.94rem, 0.88rem + 0.3vw, 1.05rem); color: var(--sc-ink-soft); }
+.stack__who { font-size: 13px !important; color: rgba(152, 160, 171, 0.7) !important; }
+
+/* The app's own status vocabulary, carried over from the V2 site. */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--sc-r-pill);
+  font-size: 12px; font-weight: 700; letter-spacing: 0;
+}
+.chip--work { background: rgba(31, 106, 125, 0.28); color: #8fd2e4; }
+.chip--wait { background: rgba(255, 51, 13, 0.16); color: #ff8a6d; }
+.chip--demo { background: rgba(255, 255, 255, 0.09); color: var(--sc-ink-soft); }
+
+/* ----------------------------------------------------------- 6 · report --- */
+
+.act--report { padding-block: calc(var(--sc-section) * 0.72); }
+.report {
+  display: grid; gap: clamp(2.5rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+}
+.says { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.says li {
+  align-self: start;
+  padding: 12px 18px;
+  border-radius: 20px 20px 20px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-soft);
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
+  font-weight: 600;
+}
+.says li:nth-child(2) { margin-left: clamp(1rem, 4vw, 3rem); }
+.says li:nth-child(3) { margin-left: clamp(2rem, 8vw, 6rem); color: var(--sc-accent); border-color: rgba(255, 51, 13, 0.3); background: rgba(255, 51, 13, 0.08); }
+
+.report__phone { display: flex; justify-content: center; }
+.phone {
+  width: min(19rem, 78vw);
+  border: 8px solid #1c1f24; border-radius: 34px;
+  background: #0f1115; box-shadow: var(--raise);
+  overflow: hidden;
+}
+.phone__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 4px; font-size: 12px; font-weight: 700; color: var(--sc-ink-soft);
+}
+.phone__bar i { width: 44px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.22); }
+.phone__scr { padding: 14px 16px 20px; }
+.phone__kicker { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--sc-ink-soft); }
+.phone__scr h4 { margin: 0 0 14px; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.4; }
+.phone__rows { display: grid; gap: 1px; background: var(--line-soft); border-radius: 14px; overflow: hidden; }
+.phone__rows > div {
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 13px; background: rgba(255, 255, 255, 0.035); font-size: 13px;
+}
+.phone__rows b { font-weight: 700; }
+.phone__rows span:last-child { margin-left: auto; color: var(--sc-ink-soft); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sc-ink-soft); flex: 0 0 auto; }
+.dot--work { background: #4fb3cc; }
+.dot--attn { background: var(--sc-accent); }
+.phone__foot { margin: 12px 0 0; font-size: 12px; color: var(--sc-ink-soft); }
+
+/* ------------------------------------------------------------- 7 · join --- */
+
+.join { display: grid; place-items: center; background: var(--sc-canvas); }
+.join__ground { position: absolute; inset: 0; }
+.join__ground img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+.join__scrim {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 88%, rgba(11, 12, 14, 0.96) 18%, rgba(11, 12, 14, 0.62) 58%, rgba(11, 12, 14, 0.3) 100%),
+    linear-gradient(to bottom, rgba(11, 12, 14, 0.7), rgba(11, 12, 14, 0) 34%);
+}
+/* A pointer light that follows the cursor across the close, from the
+   spotlight device's own --sc-mx / --sc-my. */
+@media (hover: hover) and (pointer: fine) {
+  .join__scrim::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(28rem 28rem at calc(var(--sc-mx, 0.5) * 100%) calc(var(--sc-my, 0.5) * 100%),
+                rgba(255, 51, 13, 0.1), transparent 70%);
+  }
+}
+
+.join__inner {
+  position: relative; z-index: 2;
+  width: min(var(--sc-maxw), 100%);
+  padding: clamp(4rem, 9vh, 6rem) var(--sc-gutter) clamp(7rem, 15vh, 10rem);
+  height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(1.1rem, 2.6vh, 1.9rem);
+  text-align: center;
+}
+.join__inner h2 { margin: 0; }
+
+/* The composer the instruction log has been using all page, now live. Geometry
+   and weight match the log strip so the hand-off reads as one object. */
+.compose {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  width: min(34rem, 100%);
+  padding: 7px 7px 7px 20px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-pill);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 var(--sc-edge);
+}
+.compose:focus-within { border-color: rgba(255, 51, 13, 0.55); }
+.compose__input {
+  flex: 1 1 auto; min-width: 0;
+  background: none; border: 0; outline: none;
+  font: inherit; font-size: 16px; color: var(--sc-ink);
+  caret-color: var(--sc-accent);
+}
+.compose__input::placeholder { color: var(--sc-ink-soft); }
+.compose__go { padding: 12px 20px; font-size: 15px; }
+.compose__note {
+  position: absolute; inset: calc(100% + 10px) 0 auto 0;
+  margin: 0; font-size: 13px; color: var(--sc-ink-soft);
+}
+.compose__note[data-state="error"] { color: #ff8a6d; }
+.compose__note[data-state="done"] { color: var(--sc-ink); font-weight: 700; }
+
+.stores {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 10px;
+  margin-top: clamp(1.4rem, 3vh, 2.2rem);
+}
+.stores__lead {
+  flex-basis: 100%; margin: 0 0 2px;
+  font-size: 13px; font-weight: 700; color: var(--sc-ink-soft);
+}
+.store {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 9px 18px 9px 14px;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sc-ink); text-decoration: none;
+}
+.store[aria-disabled="true"] { opacity: 0.62; }
+a.store:hover { background: rgba(255, 255, 255, 0.1); }
+.store svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.store span { display: grid; text-align: left; line-height: 1.25; }
+.store small { font-size: 11px; color: var(--sc-ink-soft); }
+.store b { font-size: 15px; font-weight: 700; }
+
+/* The shared footer, re-inked for the dark ground and compacted so it fits
+   inside the closing stage. The page still finishes on the close: the seller
+   identity every page has to carry is part of that screen rather than a strip
+   of links after it. */
+.join .footer {
+  position: absolute; inset: auto var(--sc-gutter) clamp(0.9rem, 2.5vh, 1.6rem) var(--sc-gutter);
+  margin: 0; padding: clamp(0.9rem, 2.4vh, 1.5rem) 0 0;
+  max-width: none;
+  border-top: 1px solid var(--line-soft);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(0.7rem, 2vh, 1.4rem) clamp(1.5rem, 4vw, 3rem);
+  align-items: start; text-align: left;
+  color: var(--sc-ink-soft);
+}
+.join .foot-brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.join .foot-brand img { width: auto; height: 14px; opacity: 0.85; margin: 0; }
+.join .foot-brand p { margin: 0; font-size: 12px; }
+.join .foot-brand small { font-size: 11px; opacity: 0.75; }
+.join .foot-cols { display: flex; gap: clamp(1.4rem, 4vw, 3rem); }
+.join .foot-col { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.join .foot-col h4 {
+  margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  color: rgba(152, 160, 171, 0.65); text-transform: none;
+}
+.join .foot-col a { font-size: 12px; font-weight: 600; color: var(--sc-ink-soft); text-decoration: none; }
+.join .foot-col a:hover { color: var(--sc-ink); }
+.join .biz {
+  grid-column: 1 / -1; margin: 0;
+  display: flex; flex-wrap: wrap; gap: 4px 14px;
+  font-style: normal; font-size: 11px;
+  color: rgba(152, 160, 171, 0.7);
+}
+.join .biz span { color: inherit; }
+
+/* ------------------------------------------- the instruction log (signature) */
+
+.log {
+  position: fixed; inset: auto 0 0 0; z-index: 30;
+  isolation: isolate;
+  pointer-events: none;
+  padding: 0 var(--sc-gutter) max(10px, env(safe-area-inset-bottom));
+  transition: transform 520ms var(--sc-ease-out), opacity 380ms var(--sc-ease-out);
+}
+.log--docked { transform: translateY(130%); opacity: 0; }
+
+.log::before {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 190px;
+  background: linear-gradient(to bottom, rgba(11, 12, 14, 0), rgba(11, 12, 14, 0.72) 62%, rgba(11, 12, 14, 0.9));
+  pointer-events: none;
+}
+.log__past, .log__now {
+  position: relative;
+  width: min(34rem, 100%); margin-inline: auto;
+}
+.log__past {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 0 22px 5px;
+}
+.log__past span {
+  display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 12px; color: rgba(152, 160, 171, 0.45);
+}
+.log__past span:last-child { color: rgba(152, 160, 171, 0.66); }
+
+.log__now {
+  margin-block: 0;
+  min-height: var(--log-h);
+  display: flex; align-items: center; gap: 2px;
+  padding: 7px 20px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-pill);
+  background: rgba(16, 18, 21, 0.86);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 var(--sc-edge), 0 10px 40px rgba(0, 0, 0, 0.5);
+  font-size: 15px; font-weight: 600; line-height: 1.4;
+}
+.log__caret {
+  width: 2px; height: 1.15em; flex: 0 0 auto;
+  margin-right: 8px;
+  background: var(--sc-accent);
+  animation: caret 1.05s steps(1, end) infinite;
+}
+@keyframes caret { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+/* ----------------------------------------------------------------- phone -- */
+
+@media (max-width: 860px) {
+  .kit, .report { grid-template-columns: 1fr; }
+  .report__phone { order: -1; }
+}
+
+@media (max-width: 700px) {
+  :root { --bar-h: 52px; --log-h: 54px; --log-clear: calc(var(--log-h) + 3.8rem); }
+
+  /* Portrait art direction, not a shrunk desktop composition: the title sits
+     above her rather than behind her, the planes travel less, and the near
+     foreground is pushed out so it cannot eat the headline. */
+  .hero__title { top: 17%; }
+  .hero__h1 { font-size: clamp(3rem, 21vw, 6rem); }
+  /* The mobile plate is cropped in on the figure, so it needs its own
+     aspect and its own anchor; the desktop width would shrink her to a
+     smudge sitting on a very wide wall. */
+  .plane--subject { width: min(430px, 112vw); bottom: -3%; }
+  .plane--mid  { width: max(1150px, 210vw); bottom: -6%; }
+  .plane--fore { width: max(1300px, 235vw); bottom: -12%; }
+  .hero__copy { bottom: calc(var(--log-clear) + 0.5rem); gap: var(--sc-4); }
+  .hero__sub { font-size: 1.02rem; }
+
+  .argument__lines > p { font-size: clamp(1.45rem, 6vw, 2rem); max-width: none; }
+
+  .kit__list li { font-size: clamp(1.25rem, 6.4vw, 1.8rem); }
+
+  .rail { padding-block: clamp(4.5rem, 12vh, 7rem) var(--log-clear); }
+  .rail__lead, .rail__tail { width: min(20rem, 76vw); }
+  .model { width: min(13.5rem, 62vw); min-height: 9.5rem; padding: var(--sc-5); }
+
+  .peak__head { padding-top: clamp(4rem, 10vh, 5.5rem); }
+  .stack { width: calc(100% - var(--sc-gutter) * 2); }
+  .stack__card {
+    grid-template-columns: 1fr;
+    grid-template-rows: 44% 1fr;
+    height: clamp(15rem, 39vh, 22rem);
+    bottom: 0;
+  }
+  .stack { height: clamp(18rem, 44vh, 26rem); margin-bottom: var(--log-clear); }
+  .stack__card > img { object-position: 50% 38%; }
+
+  /* At phone height the absolute footer and the centred block fight for the
+     same pixels, so the footer joins the flow and `auto` holds it to the
+     floor. Nothing overlaps and nothing is cut. */
+  .join__inner {
+    padding: clamp(6rem, 13vh, 7rem) var(--sc-gutter) 0.9rem;
+    gap: 0.85rem;
+  }
+  .join .footer {
+    position: static; inset: auto;
+    width: 100%; margin-top: auto;
+  }
+  .join__inner h2 { font-size: clamp(1.9rem, 8.4vw, 2.5rem); }
+  .stores { margin-top: 0.9rem; }
+  .compose { flex-wrap: wrap; border-radius: 22px; padding: 10px; }
+  .compose__input { padding: 6px 10px; flex-basis: 100%; }
+  .compose__go { width: 100%; }
+  .compose__note { position: static; margin-top: 6px; }
+  .store { flex: 1 1 auto; justify-content: center; }
+  .join .footer { grid-template-columns: 1fr; gap: 0.6rem; }
+  .join .foot-cols { flex-wrap: wrap; gap: 0.5rem 1.4rem; }
+  .join .foot-brand p { display: none; }
+}
+
+/* ------------------------------------------------------- reduced motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Fewer and gentler, not zero: the depth survives in the static
+     composition and the deck's meaning, three running at once, survives by
+     showing three at once.
+
+     The stage keeps its pin. The engine sets a pinned act's height from its
+     span whether or not motion is reduced, so unpinning here would leave the
+     peak's 3.4 viewport-heights as genuinely empty scroll. */
+  .log__caret { animation: none; }
+  .log { transition: none; }
+
+  .stack {
+    height: auto; overflow: visible; align-self: center;
+    display: grid; gap: var(--sc-3);
+  }
+  .stack__card {
+    position: static;
+    height: clamp(7.6rem, 17.5vh, 11rem);
+    transform: none !important;
+  }
+  .stack__card::after { opacity: 0; }
+  .stack__body { padding: var(--sc-4) var(--sc-5); gap: 3px; justify-content: center; }
+  .stack__body h3 { font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); }
+
+  .model { opacity: 1; transform: none; }
+  .kit__img--before { display: none; }
+}
