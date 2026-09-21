@@ -191,6 +191,12 @@ html:not(.sc-js) .kit__img--before { display: none; }
   background: radial-gradient(46% 78% at 50% 72%, rgba(8, 12, 20, 0.86) 0%, rgba(8, 12, 20, 0.6) 52%, rgba(8, 12, 20, 0) 100%);
 }
 
+/* The hero's floor fades to canvas; the room fades up out of it. */
+.room__topfade {
+  position: absolute; inset: 0 0 auto 0; height: 34%;
+  background: linear-gradient(to bottom, var(--sc-canvas) 0%, rgba(12, 15, 20, 0) 100%);
+}
+
 /* Act 1's room is lit now; a corner of density under the trailing copy. */
 .room__scrim {
   position: absolute; inset: 0;
@@ -198,7 +204,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 }
 
 .hero__copy {
-  position: absolute; inset-inline: var(--sc-gutter); bottom: clamp(3.5rem, 11vh, 7rem);
+  position: absolute; inset-inline: var(--sc-gutter); bottom: clamp(3.5rem, 11svh, 7rem);
   display: flex; flex-direction: column; align-items: center; gap: var(--sc-5);
   text-align: center;
 }
@@ -280,7 +286,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .rail {
   display: flex; align-items: stretch; gap: clamp(1rem, 2vw, 1.75rem);
   height: 100%; padding-inline: var(--sc-gutter);
-  padding-block: clamp(5rem, 14vh, 9rem) var(--log-clear);
+  padding-block: clamp(5rem, 14svh, 9rem) var(--log-clear);
 }
 .rail__lead, .rail__tail {
   flex: 0 0 auto; align-self: center;
@@ -318,7 +324,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .peak { display: grid; grid-template-rows: auto 1fr; background: var(--sc-canvas); }
 
 .peak__head {
-  padding: clamp(4.4rem, 10vh, 6rem) var(--sc-gutter) 0;
+  padding: clamp(4.4rem, 10svh, 6rem) var(--sc-gutter) 0;
   width: min(var(--sc-maxw), 100%); margin-inline: auto;
 }
 .peak__head h2 { margin: 0; max-width: 16ch; }
@@ -334,7 +340,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
   width: calc(100% - var(--sc-gutter) * 2);
   margin-inline: auto;
   align-self: end;
-  height: clamp(19rem, 46vh, 27rem);
+  height: clamp(19rem, 46svh, 27rem);
   margin-bottom: var(--log-clear);
   overflow: hidden;
   /* Card N+1 climbs over card N. Both windows live here so every card can
@@ -345,7 +351,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 
 .stack__card {
   position: absolute; inset: auto 0 0 0;
-  height: clamp(16rem, 37vh, 23rem);
+  height: clamp(16rem, 37svh, 23rem);
   display: grid; grid-template-columns: 38% 1fr; align-items: stretch;
   overflow: hidden;
   border: 1px solid var(--line); border-radius: var(--sc-r-lg);
@@ -468,10 +474,10 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .join__inner {
   position: relative; z-index: 2;
   width: min(var(--sc-maxw), 100%);
-  padding: clamp(4rem, 9vh, 6rem) var(--sc-gutter) clamp(7rem, 15vh, 10rem);
+  padding: clamp(4rem, 9svh, 6rem) var(--sc-gutter) clamp(7rem, 15svh, 10rem);
   height: 100%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(1.1rem, 2.6vh, 1.9rem);
+  gap: clamp(1.1rem, 2.6svh, 1.9rem);
   text-align: center;
 }
 .join__inner h2 { margin: 0; }
@@ -488,7 +494,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .prereg__done {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   width: min(34rem, 100%);
-  padding: clamp(1.1rem, 3vh, 1.7rem) var(--sc-5);
+  padding: clamp(1.1rem, 3svh, 1.7rem) var(--sc-5);
   border: 1px solid rgba(255, 51, 13, 0.32); border-radius: var(--sc-r-lg);
   background: rgba(255, 51, 13, 0.08);
   outline: none;
@@ -597,7 +603,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .stores {
   display: flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: 12px;
-  margin-top: clamp(1.4rem, 3vh, 2.2rem);
+  margin-top: clamp(1.4rem, 3svh, 2.2rem);
 }
 .stores__lead {
   flex-basis: 100%; margin: 0 0 2px;
@@ -622,12 +628,12 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
    identity every page has to carry is part of that screen rather than a strip
    of links after it. */
 .join .footer {
-  position: absolute; inset: auto var(--sc-gutter) clamp(0.9rem, 2.5vh, 1.6rem) var(--sc-gutter);
-  margin: 0; padding: clamp(0.9rem, 2.4vh, 1.5rem) 0 0;
+  position: absolute; inset: auto var(--sc-gutter) clamp(0.9rem, 2.5svh, 1.6rem) var(--sc-gutter);
+  margin: 0; padding: clamp(0.9rem, 2.4svh, 1.5rem) 0 0;
   max-width: none;
   border-top: 1px solid var(--line-soft);
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(0.7rem, 2vh, 1.4rem) clamp(1.5rem, 4vw, 3rem);
+  gap: clamp(0.7rem, 2svh, 1.4rem) clamp(1.5rem, 4vw, 3rem);
   align-items: start; text-align: left;
   color: var(--sc-ink-soft);
 }
@@ -708,58 +714,102 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
 }
 
 @media (max-width: 700px) {
-  :root { --bar-h: 120px; --log-h: 54px; --log-clear: calc(var(--log-h) + 3.8rem); }
+  /* A phone in Safari shows about 390 x 664, not 390 x 844: the address bar and
+     toolbar take the rest. Everything here is composed for that frame, and
+     sized in svh so it holds when the toolbars come and go. */
+  :root { --bar-h: 120px; --log-h: 44px; --log-clear: calc(var(--log-h) + 1.5rem); }
 
-  /* Portrait art direction, not a shrunk desktop composition: the title sits
-     above her rather than behind her, the planes travel less, and the near
-     foreground is pushed out so it cannot eat the headline. */
-  .hero__title { top: 17%; }
-  .hero__h1 { font-size: clamp(3rem, 21vw, 6rem); }
-  /* The mobile plate is cropped in on the figure, so it needs its own
-     aspect and its own anchor; the desktop width would shrink her to a
-     smudge sitting on a very wide wall. */
-  .plane--subject { width: min(400px, 104vw); bottom: -2%; }
-  .plane--mid  { width: max(1150px, 210vw); bottom: -6%; }
-  .hero__copy { bottom: calc(var(--log-clear) + 0.5rem); gap: var(--sc-4); }
-  .hero__sub { font-size: 1.02rem; }
+  /* The shared bar wraps to two rows here and is 120px tall, 18% of the
+     screen. Fixed, it sat over the copy of every act. On a phone it belongs to
+     the top of the page and scrolls away with it. */
+  .site-header { position: absolute; }
 
-  .argument__lines > p { font-size: clamp(1.45rem, 6vw, 2rem); max-width: none; }
+  /* ---- hero: the word first, then her ------------------------------------
+     Stacked, not overlapped: the wordmark sits whole under the bar on the
+     first screen and she starts beneath it. The planes still travel at their
+     own rates, so she rises across the word as the visitor scrolls. */
+  .hero__title { top: calc(var(--bar-h) + 0.25rem); }
+  .hero__h1 { font-size: clamp(3rem, 21vw, 5.6rem); }
+  /* Tall and soft, so its own box never shows as an edge around the word. */
+  .hero__haze {
+    top: 0; height: 62%;
+    background: radial-gradient(90% 46% at 50% 44%, rgba(8, 12, 20, 0.7) 0%, rgba(8, 12, 20, 0.4) 55%, rgba(8, 12, 20, 0) 100%);
+  }
+  /* The engine starts her plane 115px low (rate -2.3 at p = 0), so the anchor
+     gives that back: on the first screen her head meets the foot of the word. */
+  .plane--subject {
+    top: calc(var(--bar-h) + 21vw + 1.5rem - 100px); bottom: auto;
+    width: auto; height: 92svh;
+  }
+  .plane--subject img { width: auto; height: 100%; }
+  .plane--mid  { width: max(1150px, 210vw); bottom: -4%; }
+  .hero__copyscrim { height: 40%; }
+  .hero__copy { bottom: calc(var(--log-clear) + 0.4rem); gap: var(--sc-3); }
+  .hero__sub { font-size: 1rem; }
+  .hero__copy .btn { padding: 12px 24px; font-size: 15px; }
 
-  .kit__list li { font-size: clamp(1.25rem, 6.4vw, 1.8rem); }
+  .sc-body { font-size: 1rem; }
+  .room__copy { max-width: none; }
+  /* On a phone the copy is a band across the whole frame, and the clip's
+     glowing phone sits right under it. A corner of density is not enough. */
+  .room__scrim {
+    background: linear-gradient(to top, rgba(8, 12, 20, 0.96) 0%, rgba(8, 12, 20, 0.9) 34%, rgba(8, 12, 20, 0.55) 52%, rgba(8, 12, 20, 0) 72%);
+  }
 
-  .rail { padding-block: clamp(4.5rem, 12vh, 7rem) var(--log-clear); }
-  .rail__lead, .rail__tail { width: min(20rem, 76vw); }
-  .model { width: min(13.5rem, 62vw); min-height: 9.5rem; padding: var(--sc-5); }
+  .argument__lines > p { font-size: clamp(1.4rem, 6vw, 1.9rem); max-width: none; }
 
-  .peak__head { padding-top: calc(var(--bar-h) + 0.9rem); }
-  .stack { width: calc(100% - var(--sc-gutter) * 2); }
+  .act--kit, .act--report { padding-block: 3.5rem; }
+  .kit__list li { font-size: clamp(1.2rem, 6vw, 1.7rem); }
+
+  .rail { padding-block: 2.5rem var(--log-clear); }
+  .rail__lead, .rail__tail { width: min(19rem, 76vw); }
+  .model { width: min(12.5rem, 58vw); min-height: 8.5rem; padding: var(--sc-5); }
+
+  /* ---- peak: two lines of heading, then the deck gets the rest ---------- */
+  .peak__head { padding-top: 1.75rem; }
+  .peak__head h2 { font-size: clamp(1.5rem, 6.6vw, 1.95rem); max-width: none; }
+  .peak__close { margin-top: var(--sc-2); font-size: 0.9rem; }
+  .stack { width: calc(100% - var(--sc-gutter) * 2); height: 56svh; margin-bottom: var(--log-clear); }
   .stack__card {
     grid-template-columns: 1fr;
-    grid-template-rows: 44% 1fr;
-    height: clamp(15rem, 39vh, 22rem);
-    bottom: 0;
+    grid-template-rows: 46% 1fr;
+    height: 47svh; bottom: 0;
   }
-  .stack { height: clamp(18rem, 44vh, 26rem); margin-bottom: var(--log-clear); }
+  .stack__body { padding: 0.9rem 1rem; gap: 4px; }
+  .stack__body h3 { font-size: 1.3rem; }
+  .stack__body p { font-size: 0.88rem; }
 
-  /* At phone height the absolute footer and the centred block fight for the
-     same pixels, so the footer joins the flow and `auto` holds it to the
-     floor. Nothing overlaps and nothing is cut. */
+  /* ---- the log: one quiet line --------------------------------------------
+     Two lines of history plus a 54px composer was 17% of a phone screen and
+     sat on top of whatever act was showing. */
+  .log__past { display: none; }
+  .log__now { font-size: 13px; padding: 4px 16px; }
+  .log::before { height: 110px; }
+
+  /* ---- close: everything in one 664px frame ------------------------------ */
   .join__inner {
-    padding: calc(var(--bar-h) + 0.75rem) var(--sc-gutter) 0.9rem;
-    gap: 0.85rem;
+    padding: 1.75rem var(--sc-gutter) 0.8rem;
+    gap: 0.7rem; justify-content: flex-start;
   }
+  .join__inner h2 { font-size: clamp(1.6rem, 7.4vw, 2.1rem); margin-top: 0.5rem; }
   .join .footer {
     position: static; inset: auto;
     width: 100%; margin-top: auto;
+    grid-template-columns: 1fr; gap: 0.35rem;
+    padding-top: 0.7rem;
   }
-  .join__inner h2 { font-size: clamp(1.9rem, 8.4vw, 2.5rem); }
-  .stores { margin-top: 0.9rem; }
-  .prereg__go { width: 100%; }
-  .sheet__panel { padding: 1.5rem 1.25rem; }
-  .store { flex: 1 1 auto; justify-content: center; }
-  .join .footer { grid-template-columns: 1fr; gap: 0.6rem; }
-  .join .foot-cols { flex-wrap: wrap; gap: 0.5rem 1.4rem; }
+  .join .foot-cols { flex-wrap: wrap; gap: 0 1.2rem; }
+  .join .foot-col a { padding-block: 6px; }
   .join .foot-brand p { display: none; }
+  .join .biz { gap: 1px 10px; font-size: 10.5px; }
+  .stores { margin-top: 0.5rem; gap: 8px; }
+  .stores__lead { margin-bottom: 0; }
+  .store { flex: 1 1 auto; justify-content: center; padding: 7px 12px; }
+  .prereg { gap: 8px; }
+  .prereg__go { width: 100%; padding: 14px 20px; font-size: 16px; }
+  .prereg__note { font-size: 12px; }
+  .prereg__done { padding: 0.9rem 1rem; }
+  .sheet__panel { padding: 1.5rem 1.25rem; }
 }
 
 /* ------------------------------------------------------- reduced motion --- */
@@ -781,7 +831,7 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
   }
   .stack__card {
     position: static;
-    height: clamp(7.6rem, 17.5vh, 11rem);
+    height: clamp(7.6rem, 17.5svh, 11rem);
     transform: none !important;
   }
   .stack__card::after { opacity: 0; }
