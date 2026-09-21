@@ -4,12 +4,14 @@
 
   Grammar: filmic one-shot. Eight acts, one continuous grade, no visible
   sequence and no way to jump: the seven statements are one argument, not a
-  menu. World: low-key cinematic, generated from one style preamble.
+  menu. World: blue-hour cinematic, warm and open rather than low-key, with
+  real footage generated from one style preamble.
 
   The signature move is the instruction log pinned to the bottom edge. It is
   empty on the first screen, it types one line of the visitor's own voice per
-  act, and the close hands the caret back. Everything it does is in v3.js and
-  reads scroll state; the engine is untouched.
+  act, and it docks away as the close arrives so the last thing asked for is
+  theirs to answer. Everything it does is in v3.js and reads scroll state; the
+  engine is untouched.
 -->
 <html lang="ko">
 <head>
@@ -26,7 +28,7 @@
 <meta name="robots" content="noindex" />
 <link rel="canonical" href="https://sidekickagent.app/v3/" />
 <link rel="icon" type="image/png" href="/assets/favicon.png">
-<meta name="theme-color" content="#0b0c0e">
+<meta name="theme-color" content="#0c0f14">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="사이드킥">
 <meta property="og:locale" content="ko_KR">
@@ -34,8 +36,8 @@
 <meta property="og:description" content="컴퓨터 필요 없음. 세팅 필요 없음. 폰 하나면 충분.">
 <meta property="og:url" content="https://sidekickagent.app/v3/">
 <meta name="twitter:card" content="summary">
-<link rel="preload" as="image" href="assets/hero-sky.webp" fetchpriority="high">
-<link rel="preload" as="image" href="assets/hero-subject.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/hero2-sky-poster.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/hero2-subject.webp" fetchpriority="high">
 <link rel="stylesheet" href="/styles.css" />
 <link rel="stylesheet" href="scrollcraft.css">
 <link rel="stylesheet" href="v3.css">
@@ -46,7 +48,7 @@
 <span data-sc-progress></span>
 <div class="sc-grain" aria-hidden="true"></div>
 
-<a class="skip" href="#join">본문 건너뛰고 대기 리스트로</a>
+<a class="skip" href="#join">본문 건너뛰고 사전등록으로</a>
 
 <header class="site-header">
   <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
@@ -61,21 +63,22 @@
 
 <main id="top">
 
-  <!-- 0 · 히어로 — 숨을 참는 느낌.
-       Six planes at different rates. The title rides between the rooftop
-       silhouettes and the subject, so she and the near railing pass in front
-       of it. Copy and CTA ride at 1x; nothing readable is parallaxed. -->
-  <section class="hero" data-sc-act="pin" data-sc-span="2" data-sc-drift="#0b0c0e" aria-labelledby="hero-h">
+  <!-- 0 · 히어로 — 설렘. Blue hour on a rooftop, string lights on.
+       Six planes at different rates. The title rides between the lit rooftops
+       and the subject, so she and the near string lights pass in front of it.
+       Copy and CTA ride at 1x; nothing readable is parallaxed. -->
+  <section class="opening" data-sc-act="pin" data-sc-span="2" data-sc-drift="#0c0f14" aria-labelledby="hero-h">
     <div data-sc-stage class="hero__stage">
+      <!-- The back plane is footage: clouds drift and windows come on, so the
+           first screen is already moving before anybody scrolls. -->
       <div class="plane plane--sky" data-sc-parallax="-0.35" aria-hidden="true">
-        <picture>
-          <source media="(max-width: 700px)" srcset="assets/hero-sky-m.webp">
-          <img src="assets/hero-sky.webp" width="1920" height="1280" alt="" decoding="async" fetchpriority="high">
-        </picture>
+        <video class="ambient" data-ambient="loop" muted loop playsinline preload="none"
+               poster="assets/hero2-sky-poster.webp"
+               data-src="assets/hero2-sky.mp4" data-src-mobile="assets/hero2-sky-m.mp4"></video>
       </div>
 
       <div class="plane plane--mid" data-sc-parallax="-0.95" aria-hidden="true">
-        <img src="assets/hero-mid.webp" width="1920" height="1280" alt="" decoding="async">
+        <img src="assets/hero2-mid.webp" width="1920" height="1280" alt="" decoding="async">
       </div>
 
       <div class="hero__haze" aria-hidden="true"></div>
@@ -86,58 +89,57 @@
 
       <div class="plane plane--subject" data-sc-parallax="-2.3">
         <picture>
-          <source media="(max-width: 700px)" srcset="assets/hero-subject-m.webp">
-          <img src="assets/hero-subject.webp" width="1536" height="1024"
-               alt="새벽 옥상 난간에 앉아 휴대폰 화면 불빛만으로 얼굴이 밝혀진 사람" decoding="async" fetchpriority="high">
+          <source media="(max-width: 700px)" srcset="assets/hero2-subject-m.webp">
+          <img src="assets/hero2-subject.webp" width="1536" height="1024"
+               alt="해 질 녘 루프탑 테이블에 앉아 커피를 곁에 두고 미소 지으며 휴대폰을 보는 사람" decoding="async" fetchpriority="high">
         </picture>
       </div>
 
       <div class="plane plane--fore" data-sc-parallax="-3.6" aria-hidden="true">
-        <picture>
-          <source media="(max-width: 700px)" srcset="assets/hero-fore-m.webp">
-          <img src="assets/hero-fore.webp" width="1920" height="1280" alt="" decoding="async">
-        </picture>
+        <img src="assets/hero2-fore.webp" width="1600" height="1067" alt="" decoding="async">
       </div>
 
       <div class="hero__floor" aria-hidden="true"></div>
       <div class="sc-scrim sc-scrim--bottom" aria-hidden="true"></div>
 
+      <div class="hero__copyscrim" aria-hidden="true"></div>
       <div class="hero__copy" data-sc-cue="0 0.82 0 0.24">
         <p class="hero__sub" data-sc-kinetic="lines">AI 부업은 사이드킥에서 시작한다.</p>
-        <a class="btn btn--primary" href="#join">대기 리스트 등록</a>
+        <a class="btn btn--primary" href="#join">사전등록하기</a>
       </div>
     </div>
   </section>
 
-  <!-- 1 · 인식 — 나잖아. The camera pushes into the room under the reader's hand. -->
+  <!-- 1 · 인식 — 나잖아. The camera glides into a room like theirs, under their hand. -->
   <section class="act act--room" data-sc-act="scrub" data-sc-span="2.2" data-sc-dwell="0.34"
-           data-sc-drift="#0c0d10" data-say="부업 뭐부터 시작해야 할지 모르겠어." aria-labelledby="a1-h">
+           data-sc-drift="#0d1118" data-say="부업 뭐부터 시작해야 할지 모르겠어." aria-labelledby="a1-h">
     <div data-sc-stage>
-      <img class="sc-stage__poster" src="assets/01-poster.webp" alt="" decoding="async">
-      <video data-sc-scrub data-sc-src="assets/01.mp4" data-sc-src-mobile="assets/01-m.mp4"
-             muted playsinline preload="none" aria-label="새벽 두 시, 휴대폰 화면만 켜져 있는 원룸으로 카메라가 천천히 들어간다"></video>
+      <img class="sc-stage__poster" src="assets/01b-poster.webp" alt="" decoding="async">
+      <video data-sc-scrub data-sc-src="assets/01b.mp4" data-sc-src-mobile="assets/01b-m.mp4"
+             muted playsinline preload="none" aria-label="해 질 녘, 스탠드가 켜진 아늑한 방 책상 위 휴대폰으로 카메라가 천천히 다가간다"></video>
       <div class="sc-scrim sc-scrim--trail" aria-hidden="true"></div>
+      <div class="room__scrim" aria-hidden="true"></div>
       <div class="sc-copy sc-copy--trail" data-sc-cue="0.04 0.9 0.09 0.2">
         <h2 class="sc-display sc-display--lg" id="a1-h" data-sc-kinetic="lines">AI 시대, 부업은<br>재능이 아니라 도구입니다.</h2>
-        <p class="sc-body">새벽 두 시에 폰을 켜는 사람이 당신만은 아닙니다. 다들 뭐라도 하나 굴려보려고 켭니다.</p>
+        <p class="sc-body">퇴근하고, 주말에, 자기 전에. 다들 폰 하나로 작게 시작합니다.</p>
       </div>
     </div>
   </section>
 
   <!-- 2 · 갈증 — 진짜 있나. The frame holds; four sentences cross over inside it. -->
-  <section class="act act--argument" data-sc-act="pin" data-sc-span="2" data-sc-drift="#101216"
+  <section class="act act--argument" data-sc-act="pin" data-sc-span="2" data-sc-drift="#101620"
            data-say="제일 빨리 돈 되는 걸로 골라줘." aria-labelledby="a2-h">
     <div data-sc-stage class="argument">
-      <picture class="argument__bed">
-        <source media="(max-width: 700px)" srcset="assets/02-ground-m.webp">
-        <img class="argument__ground" src="assets/02-ground.webp" width="1600" height="900" alt="" decoding="async">
-      </picture>
+      <div class="argument__bed">
+        <video class="ambient argument__ground" data-ambient="loop" muted loop playsinline preload="none"
+               poster="assets/02b-ground.webp" data-src="assets/02b-ground.mp4" aria-hidden="true"></video>
+      </div>
       <div class="argument__scrim" aria-hidden="true"></div>
       <div class="argument__lines">
         <h2 class="sc-visually-hidden" id="a2-h">AI로 수익을 만드는 가장 쉬운 방법</h2>
         <p class="sc-lede" data-sc-cue="0 0.34 0">“AI로 돈 버는 법”을 검색합니다.</p>
         <p class="sc-lede" data-sc-cue="0.28 0.6">강의를 삽니다. 툴을 깝니다. 프롬프트를 외웁니다.</p>
-        <p class="sc-lede" data-sc-cue="0.54 0.86">반년 뒤에도 똑같은 걸 검색하고 있습니다. 몰라서가 아니라, 직접 해야 해서요.</p>
+        <p class="sc-lede" data-sc-cue="0.54 0.86">그러다 바빠서 멈춥니다. 몰라서가 아니라, 전부 직접 해야 해서요.</p>
         <p class="sc-lede sc-lede--turn" data-sc-cue="0.78 1 0.12 0.04" data-sc-kinetic="lines">가장 쉬운 방법은, 직접 안 하는 겁니다.</p>
       </div>
     </div>
@@ -169,7 +171,7 @@
 
   <!-- 4 · 신뢰 — 이미 갖고 있다. The quietest act on the page: the silence the peak
        arrives from. Lateral travel reads as breadth, which is what a model list is. -->
-  <section class="act act--models" data-sc-act="pan" data-sc-span="2.6" data-sc-drift="#0d1013"
+  <section class="act act--models" data-sc-act="pan" data-sc-span="2.6" data-sc-drift="#0e131b"
            data-say="쓰던 GPT 계정 그대로 쓸게." aria-labelledby="a4-h">
     <div data-sc-stage>
       <div class="rail" data-sc-pan="0.05">
@@ -192,7 +194,7 @@
   <!-- 5 · 확장 — PEAK. The largest span on the page. Three cards climb over each
        other, so three businesses running at once is shown rather than claimed.
        Card one is the act's ground: it is already in place at p = 0. -->
-  <section class="act act--peak" data-sc-act="pin" data-sc-span="3.4" data-sc-drift="#14181d"
+  <section class="act act--peak" data-sc-act="pin" data-sc-span="3.4" data-sc-drift="#141b26"
            data-say="유튜브랑 블로그, 스토어까지 네가 굴려." aria-labelledby="a5-h">
     <div data-sc-stage class="peak">
       <div class="peak__head" data-sc-cue="0 1 0 0.07">
@@ -202,7 +204,8 @@
 
       <div class="stack" data-stack>
         <article class="stack__card" style="--from: 0; --to: 0.001">
-          <img src="assets/05-blog.webp" width="880" height="1320" alt="밤의 책상, 기계식 키보드 위에 올려둔 두 손" decoding="async">
+          <video class="ambient" data-ambient="loop" muted loop playsinline preload="none"
+                 poster="assets/05b-blog.webp" data-src="assets/05b-blog.mp4" aria-label="저녁 책상에서 노트북을 두드리는 손, 옆에는 김이 오르는 커피"></video>
           <div class="stack__body">
             <span class="chip chip--work">작업 중</span>
             <h3>블로그</h3>
@@ -212,7 +215,8 @@
         </article>
 
         <article class="stack__card" style="--from: 0.28; --to: 0.52">
-          <img src="assets/05-youtube.webp" width="880" height="1320" alt="소프트박스와 삼각대가 세워진 밤의 홈스튜디오" decoding="async">
+          <video class="ambient" data-ambient="loop" muted loop playsinline preload="none"
+                 poster="assets/05b-youtube.webp" data-src="assets/05b-youtube.mp4" aria-label="홈스튜디오의 카메라 렌즈를 맞추는 손"></video>
           <div class="stack__body">
             <span class="chip chip--work">작업 중</span>
             <h3>유튜브</h3>
@@ -222,7 +226,8 @@
         </article>
 
         <article class="stack__card" style="--from: 0.56; --to: 0.8">
-          <img src="assets/05-store.webp" width="880" height="1320" alt="택배 상자가 쌓인 방 한쪽의 포장 자리" decoding="async">
+          <video class="ambient" data-ambient="loop" muted loop playsinline preload="none"
+                 poster="assets/05b-store.webp" data-src="assets/05b-store.mp4" aria-label="테이블 위 택배 상자를 테이프로 봉하는 손"></video>
           <div class="stack__body">
             <span class="chip chip--wait">확인 필요</span>
             <h3>쇼핑몰</h3>
@@ -249,55 +254,59 @@
       </div>
 
       <div class="report__phone" data-sc-in data-sc-tilt="5">
-        <div class="phone" role="img" aria-label="사이드킥 앱의 주간 브리핑 예시 화면">
-          <div class="phone__bar"><span>9:41</span><i></i></div>
-          <div class="phone__scr">
-            <p class="phone__kicker">주간 브리핑 <span class="chip chip--demo">예시</span></p>
+        <div class="handset" role="img" aria-label="사이드킥 앱의 주간 브리핑 예시 화면">
+          <div class="handset__bar"><span>9:41</span><i></i></div>
+          <div class="handset__scr">
+            <p class="handset__kicker">주간 브리핑 <span class="chip chip--demo">예시</span></p>
             <h4>이번 주, 확인할 일은 둘입니다.</h4>
-            <div class="phone__rows">
-              <div><span class="dot dot--work"></span><b>블로그</b><span>초안 예약됨</span></div>
-              <div><span class="dot dot--attn"></span><b>유튜브</b><span>썸네일 확인</span></div>
-              <div><span class="dot dot--attn"></span><b>쇼핑몰</b><span>문의 답변 승인</span></div>
+            <div class="handset__rows">
+              <div><span class="pip pip--work"></span><b>블로그</b><span>초안 예약됨</span></div>
+              <div><span class="pip pip--attn"></span><b>유튜브</b><span>썸네일 확인</span></div>
+              <div><span class="pip pip--attn"></span><b>쇼핑몰</b><span>문의 답변 승인</span></div>
             </div>
-            <p class="phone__foot">필요한 결정만 위로 올립니다.</p>
+            <p class="handset__foot">필요한 결정만 위로 올립니다.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 7 · 결심 — 내 차례. The close. The instruction log docks into the page, the
-       composer clears, and the caret is the visitor's. Last element on the page;
-       the footer lives inside the stage so there is no dead tail after the CTA. -->
-  <section class="act act--join" id="join" data-sc-act="pin" data-sc-span="1.35" data-sc-drift="#0b0c0e"
+  <!-- 7 · 결심 — 내 차례. The close. The instruction log docks away and the ask
+       turns around: six acts of telling the page what to do, then one thing it
+       asks of the visitor. Last element on the page; the footer lives inside
+       the stage so there is no dead tail after the CTA. -->
+  <section class="act act--join" id="join" data-sc-act="pin" data-sc-span="1.35" data-sc-drift="#0c0f14"
            data-say="" data-last aria-labelledby="a7-h">
     <div data-sc-stage class="join" data-sc-spotlight>
-      <picture class="join__ground">
-        <source media="(max-width: 700px)" srcset="assets/07-dawn-m.webp">
-        <img src="assets/07-dawn.webp" width="1920" height="1080"
-             alt="첫 빛이 드는 새벽 옥상 난간. 아무도 앉아 있지 않다." decoding="async">
-      </picture>
+      <!-- Plays once as the close arrives and holds on the sun. The poster is the
+           last frame, so reduced motion and no-JS both land on the sunrise. -->
+      <div class="join__ground">
+        <video class="ambient" data-ambient="once" muted playsinline preload="none"
+               poster="assets/07b-sunrise-poster.webp"
+               data-src="assets/07b-sunrise.mp4" data-src-mobile="assets/07b-sunrise-m.mp4"
+               aria-label="서울 위로 해가 떠오른다"></video>
+      </div>
       <div class="join__scrim" aria-hidden="true"></div>
 
       <div class="join__inner">
-        <h2 class="sc-display sc-display--lg" id="a7-h" data-sc-cue="0.04" data-sc-rise="0">내일 새벽엔,<br>혼자가 아닙니다.</h2>
+        <h2 class="sc-display sc-display--lg" id="a7-h" data-sc-cue="0.04" data-sc-rise="0">내일 아침엔,<br>팀이 일하고 있습니다.</h2>
 
-        <!-- The input carries no `name`, deliberately: without JS this submits
-             as a plain GET to the membership page and the address must not end
-             up in a URL.
+        <!-- 사전등록 is having an account, so this asks for no address of its
+             own: the sign-in sheet mints or finds the account and that is the
+             registration. The button carries a link's href to /membership/ so
+             it still goes somewhere useful with JavaScript off. -->
+        <div class="prereg" data-prereg>
+          <a class="btn btn--primary prereg__go" href="/membership/" data-prereg-go>사전등록하기</a>
+          <p class="prereg__note" data-prereg-note role="status">로그인하면 바로 등록돼요. 런칭하면 가장 먼저 알려드릴게요.</p>
+        </div>
 
-             With JS: data-endpoint wins when there is one to post to. Until
-             then data-mailto opens the visitor's own mail app addressed to
-             support@, which reaches a real inbox without standing up a service
-             to hold addresses. -->
-        <form class="compose compose--live" id="waitlist" data-waitlist data-endpoint=""
-              data-mailto="support@sidekickagent.app" action="/membership/" method="get">
-          <label class="sc-visually-hidden" for="wl-email">이메일 주소</label>
-          <input class="compose__input" id="wl-email" type="email"
-                 autocomplete="email" inputmode="email" placeholder="이메일을 남겨두세요" required>
-          <button class="btn btn--primary compose__go" type="submit">대기 리스트 등록</button>
-          <p class="compose__note" data-waitlist-note role="status">메일 앱이 열립니다. 그대로 보내주시면 등록돼요.</p>
-        </form>
+        <div class="prereg__done" data-prereg-done hidden>
+          <span class="prereg__tick" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <p class="prereg__done-head">사전등록되었어요.</p>
+          <p class="prereg__done-sub">런칭하면 알려드릴게요.</p>
+        </div>
 
         <!-- Pre-launch. The listings do not exist yet, so these are not links:
              filling data-store-url on each turns them into one. The repo's own
@@ -354,6 +363,43 @@
   <div class="log__past" data-log-past></div>
   <p class="log__now"><span class="log__caret"></span><span data-log-now></span></p>
 </aside>
+
+
+<!-- The same doors as /membership/, because a second set would mint a second
+     account for the same person. The token lives under the same
+     sessionStorage key, so signing in here carries over there and back. -->
+<div class="sheet" id="signin-sheet" hidden aria-modal="true" role="dialog" aria-labelledby="signin-h">
+  <div class="sheet__panel">
+    <button class="sheet__close" type="button" id="close-signin" aria-label="닫기">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <h2 id="signin-h">사이드킥 사전등록</h2>
+    <p class="sheet__lede">로그인하면 그대로 사전등록돼요. 런칭하면 가장 먼저 알려드릴게요.</p>
+    <div class="sheet__doors">
+      <button class="door" type="button" id="google-button">Google로 계속하기</button>
+      <button class="door" type="button" id="apple-button">Apple로 계속하기</button>
+      <button class="door" type="button" id="chatgpt-button">ChatGPT로 계속하기</button>
+      <button class="door" type="button" id="otp-toggle">이메일 · 휴대폰으로 계속하기</button>
+    </div>
+    <div class="otp" id="otp-block" hidden>
+      <div class="otp__tabs" role="tablist" aria-label="로그인 방법">
+        <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
+        <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
+      </div>
+      <form id="email-form">
+        <label for="signin-value" class="sc-visually-hidden" id="value-label">이메일</label>
+        <div class="otp__row"><input id="signin-value" type="email" autocomplete="email" required><button type="submit">인증번호</button></div>
+      </form>
+      <form id="code-form" hidden>
+        <label for="signin-code" class="sc-visually-hidden">인증번호</label>
+        <div class="otp__row"><input id="signin-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required><button type="submit">확인</button></div>
+      </form>
+    </div>
+    <p class="sheet__status" id="auth-status" aria-live="polite"></p>
+    <p class="sheet__status" id="social-status" aria-live="polite" hidden></p>
+    <p class="sheet__legal">계속하면 <a href="/terms/">서비스 약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>
+  </div>
+</div>
 
 <script src="scrollcraft.js"></script>
 <script src="v3.js"></script>

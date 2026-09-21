@@ -2,7 +2,7 @@
  *
  * The engine (scrollcraft.js) drives the acts and is never edited. Everything
  * here is this page only: the instruction log that is the signature move, the
- * rail's staggered settle, the pre-launch store buttons, and the waitlist.
+ * ambient footage, the rail's staggered settle, the pre-launch store buttons, and 사전등록.
  */
 (function () {
   "use strict";
@@ -15,9 +15,9 @@
   /* The instruction log.                                                    */
   /*                                                                         */
   /* One line per act, in the visitor's own voice, typed as they arrive and   */
-  /* kept afterwards. By the close the strip holds a day's work and then      */
-  /* clears, and the field it clears into is the waitlist. The strip is       */
-  /* aria-hidden: every line it types is a heading the page already states.   */
+  /* kept afterwards. By the close the strip holds a day's work, and then it  */
+  /* docks away so the last ask is the page's. The strip is aria-hidden:      */
+  /* every line it types is a heading the page already states.                */
   /* --------------------------------------------------------------------- */
 
   var log = document.querySelector("[data-log]");
@@ -89,8 +89,8 @@
       type(next < 0 ? "" : acts[next].getAttribute("data-say") || "");
     }
 
-    // The strip docks out as the close takes the screen, and the close's own
-    // composer, which is the same object at the same width, takes over.
+    // The strip docks out as the close takes the screen: six acts of telling
+    // the page what to do, and then the one thing it asks back.
     if (join) {
       var top = join.getBoundingClientRect().top;
       log.classList.toggle("log--docked", top < vh * 0.62);
@@ -107,6 +107,39 @@
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onScroll, { passive: true });
     readScroll();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Ambient footage.                                                        */
+  /*                                                                         */
+  /* Each clip is a poster until it is near the screen, plays while it is on  */
+  /* it, and pauses when it leaves, so six videos never decode at once. Under */
+  /* reduced motion, or when the visitor asked to save data, nothing loads    */
+  /* and the posters carry the page.                                          */
+  /* --------------------------------------------------------------------- */
+
+  var clips = [].slice.call(document.querySelectorAll("video[data-ambient]"));
+  var saveData = navigator.connection && navigator.connection.saveData;
+  if (clips.length && !reduce && !saveData && "IntersectionObserver" in window) {
+    var small = window.matchMedia("(max-width: 700px)").matches;
+    var watch = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var v = e.target;
+        if (e.isIntersecting) {
+          if (!v.getAttribute("src")) {
+            v.src = (small && v.getAttribute("data-src-mobile")) || v.getAttribute("data-src");
+          }
+          // "once" holds on its last frame; replaying the sunrise every time
+          // the close scrolls back in would turn a payoff into a screensaver.
+          if (v.getAttribute("data-ambient") === "once" && v.ended) return;
+          var played = v.play();
+          if (played && played.catch) played.catch(function () { /* autoplay refused: the poster stays */ });
+        } else if (v.getAttribute("data-ambient") !== "once") {
+          v.pause();
+        }
+      });
+    }, { rootMargin: "25% 0px", threshold: 0.01 });
+    clips.forEach(function (v) { watch.observe(v); });
   }
 
   /* --------------------------------------------------------------------- */
@@ -155,70 +188,280 @@
   });
 
   /* --------------------------------------------------------------------- */
-  /* The waitlist.                                                           */
+  /* 사전등록.                                                                */
   /*                                                                         */
-  /* data-endpoint is empty until there is somewhere to post to. Until then   */
-  /* the form says so plainly and hands the visitor to the membership page    */
-  /* rather than pretending to have taken their address. The email is never   */
-  /* put in a URL.                                                            */
+  /* Having an account is the registration, so this asks for no address of    */
+  /* its own. It opens the same four doors /membership/ opens, under the same */
+  /* sessionStorage key, so a person signing in here lands on the account     */
+  /* they already have instead of minting a second one.                       */
   /* --------------------------------------------------------------------- */
 
-  var form = document.querySelector("[data-waitlist]");
-  if (form) {
-    var note = form.querySelector("[data-waitlist-note]");
-    var input = form.querySelector(".compose__input");
-    var go = form.querySelector(".compose__go");
+  var API_ORIGIN = "https://api.sidekickagent.app";
+  // Google and Apple are Supabase logins in the app and the backend takes a
+  // Supabase JWT as a bearer, so the web uses the same door rather than a
+  // second one: a redirect, and a token read back out of the URL fragment.
+  var SUPABASE_ORIGIN = "https://wdjlokfsehsnvcipkods.supabase.co";
+  var SUPABASE_PROVIDERS = { google: "Google", apple: "Apple" };
+  var RETURN_URL = "https://sidekickagent.app/v3/";
+  var TOKEN_KEY = "sidekick_web_access_token";
 
-    var say = function (text, state) {
-      note.textContent = text;
-      if (state) note.setAttribute("data-state", state);
-      else note.removeAttribute("data-state");
+  var OTP_METHODS = {
+    email: { label: "이메일", type: "email", autocomplete: "email", placeholder: "" },
+    phone: { label: "휴대폰", type: "tel", autocomplete: "tel", placeholder: "010-1234-5678" }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sheet = $("signin-sheet");
+  var prereg = document.querySelector("[data-prereg]");
+  var preregDone = document.querySelector("[data-prereg-done]");
+  var preregGo = document.querySelector("[data-prereg-go]");
+
+  if (sheet && prereg) {
+    var auth = { token: "", method: "email", challengeId: null, busy: false };
+    try { auth.token = sessionStorage.getItem(TOKEN_KEY) || ""; } catch (e) { auth.token = ""; }
+
+    var keep = function (token) {
+      auth.token = token || "";
+      try {
+        if (token) sessionStorage.setItem(TOKEN_KEY, token);
+        else sessionStorage.removeItem(TOKEN_KEY);
+      } catch (e) { /* private mode: the session simply does not outlive the tab */ }
     };
 
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var email = (input.value || "").trim();
-      if (!input.checkValidity() || !email) {
-        say("이메일 주소를 확인해 주세요.", "error");
-        input.focus();
-        return;
-      }
-
-      var endpoint = (form.getAttribute("data-endpoint") || "").trim();
-      var mailto = (form.getAttribute("data-mailto") || "").trim();
-
-      // No endpoint yet, so the address goes where a person reads it rather
-      // than into a service nobody stood up. The visitor's own mail app sends
-      // it, so nothing here stores or transmits it on their behalf.
-      if (!endpoint && mailto) {
-        var href = "mailto:" + mailto
-          + "?subject=" + encodeURIComponent("사이드킥 대기 리스트 등록")
-          + "&body=" + encodeURIComponent("대기 리스트에 등록해 주세요.\n\n이메일: " + email + "\n");
-        say("메일 앱을 열었습니다. 그대로 보내주시면 등록됩니다.", "done");
-        location.href = href;
-        return;
-      }
-      if (!endpoint) {
-        say("대기 리스트는 준비 중입니다. 멤버십에서 먼저 구성해 주세요.", null);
-        setTimeout(function () { location.href = "/membership/"; }, 900);
-        return;
-      }
-
-      go.disabled = true;
-      say("등록하는 중…", null);
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, source: "v3-landing" })
+    var api = function (path, options) {
+      options = options || {};
+      var headers = { "Content-Type": "application/json" };
+      if (auth.token) headers.Authorization = "Bearer " + auth.token;
+      return fetch(API_ORIGIN + path, {
+        method: options.method || "GET",
+        headers: headers,
+        body: options.body
       }).then(function (r) {
-        if (!r.ok) throw new Error(String(r.status));
-        form.reset();
-        say("등록됐습니다. 출시되면 가장 먼저 알려드릴게요.", "done");
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          if (!r.ok) {
+            var err = new Error("request_failed");
+            err.status = r.status;
+            throw err;
+          }
+          return data;
+        });
+      });
+    };
+
+    var status = function (node, message, isError) {
+      if (!node) return;
+      node.hidden = !message;
+      node.textContent = message || "";
+      node.classList.toggle("is-error", Boolean(isError));
+    };
+    var authSay = function (m, e) { status($("auth-status"), m, e); };
+    var socialSay = function (m, e) { status($("social-status"), m, e); };
+
+    /* --- the two states of the close ---------------------------------- */
+
+    var showRegistered = function () {
+      prereg.hidden = true;
+      preregDone.hidden = false;
+    };
+
+    var closeSheet = function () {
+      sheet.classList.remove("is-open");
+      document.body.style.overflow = "";
+      var done = function () { sheet.hidden = true; sheet.removeEventListener("transitionend", done); };
+      sheet.addEventListener("transitionend", done);
+      // Transitions can be off or cut short; the sheet must not stay half-drawn.
+      setTimeout(done, 400);
+    };
+
+    var openSheet = function () {
+      sheet.hidden = false;
+      // Two frames: adding the class in the same frame as unhiding skips the
+      // transition entirely, because the start state was never painted.
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { sheet.classList.add("is-open"); });
+      });
+      document.body.style.overflow = "hidden";
+      var first = sheet.querySelector(".door");
+      if (first) first.focus({ preventScroll: true });
+    };
+
+    var afterSignIn = function () {
+      closeSheet();
+      showRegistered();
+      preregDone.setAttribute("tabindex", "-1");
+      preregDone.focus({ preventScroll: true });
+    };
+
+    /* --- who is here -------------------------------------------------- */
+
+    // The backend is the authority on who this is; a provider only proved the
+    // person holds the account.
+    var confirmSession = function () {
+      if (!auth.token) return Promise.resolve(false);
+      return api("/auth/session").then(function () { return true; }).catch(function () {
+        keep("");
+        return false;
+      });
+    };
+
+    // Supabase's implicit flow returns the session in the fragment. Reading it
+    // and clearing it immediately keeps the token out of history.
+    var adoptRedirect = function () {
+      var hash = location.hash || "";
+      if (hash.indexOf("access_token=") === -1) {
+        if (hash.indexOf("error=") !== -1) {
+          var failed = new URLSearchParams(hash.slice(1));
+          socialSay(failed.get("error_description") || "로그인이 완료되지 않았어요.", true);
+          history.replaceState(null, "", location.pathname + location.search);
+        }
+        return Promise.resolve(false);
+      }
+      var token = String(new URLSearchParams(hash.slice(1)).get("access_token") || "").trim();
+      history.replaceState(null, "", location.pathname + location.search);
+      if (!token) return Promise.resolve(false);
+      keep(token);
+      return api("/auth/session").then(function () { return true; }).catch(function () {
+        keep("");
+        socialSay("로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.", true);
+        return false;
+      });
+    };
+
+    adoptRedirect().then(function (adopted) {
+      if (adopted) { showRegistered(); return; }
+      // An existing session is an existing account, and an account is the
+      // registration, so a returning visitor is already done.
+      return confirmSession().then(function (ok) { if (ok) showRegistered(); });
+    });
+
+    /* --- the doors ----------------------------------------------------- */
+
+    preregGo.addEventListener("click", function (e) {
+      e.preventDefault();
+      openSheet();
+    });
+    $("close-signin").addEventListener("click", closeSheet);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeSheet(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !sheet.hidden) closeSheet();
+    });
+
+    var startSupabase = function (provider) {
+      if (!SUPABASE_PROVIDERS[provider]) return;
+      socialSay(SUPABASE_PROVIDERS[provider] + "으로 이동하고 있어요.", false);
+      var url = new URL(SUPABASE_ORIGIN + "/auth/v1/authorize");
+      url.searchParams.set("provider", provider);
+      url.searchParams.set("redirect_to", RETURN_URL);
+      location.assign(url.toString());
+    };
+    $("google-button").addEventListener("click", function () { startSupabase("google"); });
+    $("apple-button").addEventListener("click", function () { startSupabase("apple"); });
+
+    // ChatGPT is a device code, not a redirect: the backend starts it, the
+    // person approves in a new tab, and this page polls until it lands.
+    $("chatgpt-button").addEventListener("click", function () {
+      if (auth.busy) return;
+      auth.busy = true;
+      socialSay("ChatGPT 승인 창을 여는 중이에요.", false);
+      api("/auth/oauth/chatgpt/start", { method: "POST", body: JSON.stringify({}) })
+        .then(function (started) {
+          var approval = started.verification_uri_complete || started.verification_uri || started.url;
+          if (!approval) throw new Error("no approval url");
+          window.open(approval, "_blank", "noopener");
+          socialSay("새 창에서 승인하면 이어서 등록돼요.", false);
+          var deadline = Date.now() + 5 * 60 * 1000;
+          var poll = function () {
+            if (Date.now() > deadline) {
+              socialSay("승인이 확인되지 않았어요. 다시 시도해 주세요.", true);
+              return;
+            }
+            return new Promise(function (r) { setTimeout(r, 3000); })
+              .then(function () {
+                return api("/auth/oauth/chatgpt/poll", {
+                  method: "POST",
+                  body: JSON.stringify({ challenge_id: started.challenge_id || started.id })
+                });
+              })
+              .then(function (polled) {
+                if (!polled.access_token) return poll();
+                keep(polled.access_token);
+                socialSay("", false);
+                afterSignIn();
+              });
+          };
+          return poll();
+        })
+        .catch(function () { socialSay("ChatGPT 로그인을 시작하지 못했어요.", true); })
+        .then(function () { auth.busy = false; });
+    });
+
+    /* --- the one-time code --------------------------------------------- */
+
+    $("otp-toggle").addEventListener("click", function () {
+      var block = $("otp-block");
+      block.hidden = !block.hidden;
+      if (!block.hidden) $("signin-value").focus();
+    });
+
+    var applyMethod = function (method) {
+      var chosen = OTP_METHODS[method] ? method : "email";
+      auth.method = chosen;
+      auth.challengeId = null;
+      var config = OTP_METHODS[chosen];
+      var input = $("signin-value");
+      [].slice.call(sheet.querySelectorAll("[data-method]")).forEach(function (tab) {
+        var on = tab.getAttribute("data-method") === chosen;
+        tab.classList.toggle("is-selected", on);
+        tab.setAttribute("aria-selected", String(on));
+      });
+      input.type = config.type;
+      input.autocomplete = config.autocomplete;
+      input.placeholder = config.placeholder;
+      input.value = "";
+      $("value-label").textContent = config.label;
+      // Switching method abandons any code already sent, so the second form
+      // must not stay open offering to verify the other identity.
+      $("code-form").hidden = true;
+      $("signin-code").value = "";
+      authSay("", false);
+      input.focus();
+    };
+    [].slice.call(sheet.querySelectorAll("[data-method]")).forEach(function (tab) {
+      tab.addEventListener("click", function () { applyMethod(tab.getAttribute("data-method")); });
+    });
+
+    $("email-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      authSay("인증번호를 보내고 있어요.", false);
+      api("/auth/start", {
+        method: "POST",
+        body: JSON.stringify({ method: auth.method, value: $("signin-value").value.trim() })
+      }).then(function (result) {
+        auth.challengeId = result.challenge_id;
+        $("code-form").hidden = false;
+        $("signin-code").focus();
+        authSay((result.value_masked || "입력한 " + OTP_METHODS[auth.method].label) + "로 인증번호를 보냈어요.", false);
       }).catch(function () {
-        say("지금은 등록이 어렵습니다. 잠시 후 다시 시도해 주세요.", "error");
-      }).then(function () {
-        go.disabled = false;
+        authSay("인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.", true);
+      });
+    });
+
+    $("code-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!auth.challengeId) return;
+      authSay("인증번호를 확인하고 있어요.", false);
+      api("/auth/verify", {
+        method: "POST",
+        body: JSON.stringify({ challenge_id: auth.challengeId, code: $("signin-code").value.trim() })
+      }).then(function (result) {
+        if (!result.access_token) throw new Error("no token");
+        keep(result.access_token);
+        authSay("", false);
+        afterSignIn();
+      }).catch(function () {
+        authSay("인증번호가 맞지 않아요. 다시 확인해 주세요.", true);
       });
     });
   }
+
 })();

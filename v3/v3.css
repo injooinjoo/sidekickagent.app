@@ -6,24 +6,30 @@
  *
  * The palette is not new. --sc-accent is #ff330d verbatim from
  * apps/site/styles.css, which takes it from the app's own theme. One accent,
- * locked for the page. The canvas is graphite rather than black because #000
- * has no air in it. */
+ * locked for the page.
+ *
+ * Second grade. The first was graphite at 2am and it read as frightening. This
+ * one is blue hour: a deep navy canvas, warm practicals, shadows you can see
+ * into. Still dark, no longer bleak. */
 
 :root {
   color-scheme: dark;
 
-  --sc-canvas:     #0b0c0e;
-  --sc-surface:    #14161a;
+  --sc-canvas:     #0c0f14;
+  --sc-surface:    #161b23;
   --sc-ink:        #f2f3f5;
   --sc-ink-soft:   #98a0ab;
   --sc-accent:     #ff330d;
-  --sc-accent-ink: #0b0c0e;
+  --sc-accent-ink: #0c0f14;
 
   /* One family. The page is Korean and the app ships this stack; a second
      Korean face at display weight would be a costume, not a voice. */
   --sc-font-display: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
                      "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
   --sc-font-text:    var(--sc-font-display);
+
+  --sc-gutter: max(20px, calc((100vw - 1232px) / 2));
+  --sc-maxw: 100%;
 
   --bar-h: 60px;
   --log-h: 62px;
@@ -45,6 +51,12 @@ body {
 
 ::selection { background: var(--sc-accent); color: var(--sc-accent-ink); }
 
+/* Any class that sets `display` outranks the UA sheet's
+   `[hidden] { display: none }`, so a component toggled with the attribute
+   stays on screen while the script believes it is gone. Several here do set
+   it, so the attribute is restated once with the weight to win. */
+[hidden] { display: none !important; }
+
 .sc-visually-hidden {
   position: absolute; width: 1px; height: 1px; margin: -1px;
   padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
@@ -65,7 +77,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
   position: fixed; top: 8px; left: 8px; z-index: 60;
   padding: 10px 16px; border-radius: var(--sc-r-pill);
   background: var(--sc-accent); color: var(--sc-accent-ink);
-  font-size: 14px; font-weight: 700; text-decoration: none;
+  font-size: 14px; font-weight: 600; text-decoration: none;
   transform: translateY(-160%);
 }
 .skip:focus-visible { transform: none; }
@@ -76,7 +88,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .site-header {
   position: fixed; inset: 0 0 auto 0; z-index: 40;
   min-height: var(--bar-h);
-  background: linear-gradient(to bottom, rgba(11, 12, 14, 0.78), rgba(11, 12, 14, 0));
+  background: linear-gradient(to bottom, rgba(12, 15, 20, 0.78), rgba(12, 15, 20, 0));
   -webkit-backdrop-filter: none; backdrop-filter: none;
   border-bottom: 0;
 }
@@ -95,7 +107,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
   display: inline-flex; align-items: center; justify-content: center;
   gap: 8px; white-space: nowrap;
   padding: 14px 26px; border: 1px solid transparent; border-radius: var(--sc-r-pill);
-  font: inherit; font-size: 16px; font-weight: 700; letter-spacing: -0.01em;
+  font: inherit; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
   text-decoration: none; cursor: pointer;
   transition: background-color 150ms var(--sc-ease-out),
               border-color 150ms var(--sc-ease-out),
@@ -112,6 +124,14 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Ambient footage: a poster until the script plays it, and only a poster under
+   reduced motion or with JavaScript off. */
+.ambient {
+  position: absolute; inset: 0;
+  display: block; width: 100%; height: 100%;
+  object-fit: cover;
+}
+
 /* ------------------------------------------------------------------- hero - */
 
 .hero__stage { background: var(--sc-canvas); }
@@ -121,26 +141,26 @@ html:not(.sc-js) .kit__img--before { display: none; }
    viewport on phones and the whole scene would collapse. Planes opt out. */
 .plane img { display: block; width: 100%; height: auto; max-width: none; }
 
-.plane--sky { inset: -8% -6%; left: auto; translate: none; }
-.plane--sky img { width: 100%; height: 100%; object-fit: cover; }
+.plane--sky { inset: -8% -6%; translate: none; }
 
-.plane--mid     { bottom: -12%; width: max(1750px, 132vw); opacity: 0.92; }
-.plane--subject { bottom: -9%;  width: min(1120px, 86vw); pointer-events: auto; }
-.plane--fore    { bottom: -16%; width: max(1950px, 146vw); }
+.plane--mid     { bottom: -14%; width: max(1750px, 132vw); }
+.plane--subject { bottom: -10%; width: min(1180px, 90vw); pointer-events: auto; }
+.plane--fore    { inset: -26% -8%; translate: none; }
+.plane--fore img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Density behind the headline only, sized to the word. A full-frame overlay
    would flatten the whole photograph to fix one line. */
 .hero__haze {
-  position: absolute; inset-inline: 0; top: 10%; height: 46%;
+  position: absolute; inset-inline: 0; top: 6%; height: 58%;
   z-index: 1;
-  background: radial-gradient(62% 100% at 50% 52%, rgba(6, 7, 9, 0.74), rgba(6, 7, 9, 0) 74%);
+  background: radial-gradient(64% 100% at 50% 50%, rgba(8, 12, 20, 0.78) 0%, rgba(8, 12, 20, 0.6) 46%, rgba(8, 12, 20, 0) 78%);
 }
 
 /* Planes travel past the stage floor and get clipped there. This hides the
    clip line at any scroll position. */
 .hero__floor {
   position: absolute; inset: auto 0 0 0; height: 260px;
-  background: linear-gradient(to bottom, rgba(11, 12, 14, 0), var(--sc-canvas) 86%);
+  background: linear-gradient(to bottom, rgba(12, 15, 20, 0), var(--sc-canvas) 86%);
   z-index: 6;
 }
 
@@ -164,6 +184,19 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .plane--fore { z-index: 5; }
 .hero__copy { z-index: 8; }
 
+/* She wears cream and the table is lit, and the subtitle lands on both. */
+.hero__copyscrim {
+  position: absolute; inset: auto 0 0 0; height: 46%;
+  z-index: 7;
+  background: radial-gradient(46% 78% at 50% 72%, rgba(8, 12, 20, 0.86) 0%, rgba(8, 12, 20, 0.6) 52%, rgba(8, 12, 20, 0) 100%);
+}
+
+/* Act 1's room is lit now; a corner of density under the trailing copy. */
+.room__scrim {
+  position: absolute; inset: 0;
+  background: radial-gradient(70% 80% at 100% 100%, rgba(8, 12, 20, 0.9) 0%, rgba(8, 12, 20, 0.66) 44%, rgba(8, 12, 20, 0) 82%);
+}
+
 .hero__copy {
   position: absolute; inset-inline: var(--sc-gutter); bottom: clamp(3.5rem, 11vh, 7rem);
   display: flex; flex-direction: column; align-items: center; gap: var(--sc-5);
@@ -180,15 +213,12 @@ html:not(.sc-js) .kit__img--before { display: none; }
 
 .argument { display: grid; place-items: center; }
 .argument__bed { position: absolute; inset: 0; }
-.argument__ground {
-  width: 100%; height: 100%;
-  object-fit: cover; opacity: 0.55;
-}
+.argument__ground { opacity: 0.42; }
 /* Density where the text is, not a full-frame overlay, and a sibling of the
    copy rather than a child of it so the verification pass can measure it. */
 .argument__scrim {
   position: absolute; inset: 0;
-  background: linear-gradient(105deg, rgba(11, 12, 14, 0.94) 0%, rgba(11, 12, 14, 0.82) 46%, rgba(11, 12, 14, 0.25) 88%);
+  background: linear-gradient(105deg, rgba(12, 15, 20, 0.94) 0%, rgba(12, 15, 20, 0.82) 46%, rgba(12, 15, 20, 0.25) 88%);
 }
 .argument__lines {
   position: relative; z-index: 2;
@@ -200,15 +230,15 @@ html:not(.sc-js) .kit__img--before { display: none; }
   grid-area: 1 / 1;
   margin: 0; max-width: 21ch;
   font-size: clamp(1.7rem, 1.1rem + 2.6vw, 3.4rem);
-  font-weight: 700; line-height: 1.28; letter-spacing: -0.035em;
+  font-weight: 600; line-height: 1.28; letter-spacing: -0.035em;
 }
 .sc-lede--turn { color: var(--sc-accent); max-width: 15ch; }
 
 @media (max-width: 860px) {
   .argument__scrim {
-    background: linear-gradient(to bottom, rgba(11, 12, 14, 0.42) 0%, rgba(11, 12, 14, 0.88) 38%, rgba(11, 12, 14, 0.94) 100%);
+    background: linear-gradient(to bottom, rgba(12, 15, 20, 0.42) 0%, rgba(12, 15, 20, 0.88) 38%, rgba(12, 15, 20, 0.94) 100%);
   }
-  .argument__ground { opacity: 0.45; }
+  .argument__ground { opacity: 0.32; }
 }
 
 /* -------------------------------------------------------------- 3 · kit --- */
@@ -224,6 +254,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
   display: grid; gap: 2px;
 }
 .kit__list li {
+  color: var(--sc-ink);
   font-size: clamp(1.35rem, 1rem + 1.5vw, 2.3rem);
   font-weight: 800; letter-spacing: -0.04em; line-height: 1.34;
 }
@@ -264,7 +295,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
   flex: 0 0 auto; align-self: center;
   width: clamp(13rem, 19vw, 17rem);
   min-height: 10.5rem;
-  display: flex; flex-direction: column; justify-content: center; gap: 7px;
+  display: flex; flex-direction: column; justify-content: center; gap: 8px;
   padding: var(--sc-6);
   border: 1px solid var(--line); border-radius: var(--sc-r-lg);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
@@ -300,7 +331,7 @@ html:not(.sc-js) .kit__img--before { display: none; }
 
 .stack {
   position: relative;
-  width: min(68rem, 100% - var(--sc-gutter) * 2);
+  width: calc(100% - var(--sc-gutter) * 2);
   margin-inline: auto;
   align-self: end;
   height: clamp(19rem, 46vh, 27rem);
@@ -335,13 +366,10 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .stack__card:nth-child(2) { --self: var(--p1);  --lift: var(--p2);                   z-index: 2; }
 .stack__card:nth-child(3) { --self: var(--p2);  --lift: 0;                           z-index: 3; }
 
-.stack__card > img {
-  display: block; width: 100%; height: 100%;
-  object-fit: cover; object-position: 50% 42%;
-}
+.stack__card > .ambient { position: relative; inset: auto; }
 .stack__body {
   display: flex; flex-direction: column; align-items: flex-start;
-  justify-content: flex-start; gap: 9px;
+  justify-content: flex-start; gap: 8px;
   padding: clamp(1.25rem, 3vw, 2.25rem);
 }
 .stack__body h3 {
@@ -353,9 +381,9 @@ html:not(.sc-js) .kit__img--before { display: none; }
 
 /* The app's own status vocabulary, carried over from the V2 site. */
 .chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: 8px;
   padding: 4px 10px; border-radius: var(--sc-r-pill);
-  font-size: 12px; font-weight: 700; letter-spacing: 0;
+  font-size: 12px; font-weight: 600; letter-spacing: 0;
 }
 .chip--work { background: rgba(31, 106, 125, 0.28); color: #8fd2e4; }
 .chip--wait { background: rgba(255, 51, 13, 0.16); color: #ff8a6d; }
@@ -369,8 +397,9 @@ html:not(.sc-js) .kit__img--before { display: none; }
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   align-items: center;
 }
-.says { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.says { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .says li {
+  color: var(--sc-ink);
   align-self: start;
   padding: 12px 18px;
   border-radius: 20px 20px 20px 6px;
@@ -383,42 +412,48 @@ html:not(.sc-js) .kit__img--before { display: none; }
 .says li:nth-child(3) { margin-left: clamp(2rem, 8vw, 6rem); color: var(--sc-accent); border-color: rgba(255, 51, 13, 0.3); background: rgba(255, 51, 13, 0.08); }
 
 .report__phone { display: flex; justify-content: center; }
-.phone {
+.handset {
   width: min(19rem, 78vw);
+  color: var(--sc-ink);
   border: 8px solid #1c1f24; border-radius: 34px;
   background: #0f1115; box-shadow: var(--raise);
   overflow: hidden;
 }
-.phone__bar {
+.handset__bar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px 4px; font-size: 12px; font-weight: 700; color: var(--sc-ink-soft);
+  padding: 10px 16px 4px; font-size: 12px; font-weight: 600; color: var(--sc-ink-soft);
 }
-.phone__bar i { width: 44px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.22); }
-.phone__scr { padding: 14px 16px 20px; }
-.phone__kicker { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--sc-ink-soft); }
-.phone__scr h4 { margin: 0 0 14px; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.4; }
-.phone__rows { display: grid; gap: 1px; background: var(--line-soft); border-radius: 14px; overflow: hidden; }
-.phone__rows > div {
-  display: flex; align-items: center; gap: 9px;
+.handset__bar i { width: 44px; height: 4px; border-radius: var(--sc-r-pill); background: rgba(255, 255, 255, 0.22); }
+.handset__scr { padding: 14px 16px 20px; }
+.handset__kicker { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--sc-ink-soft); }
+.handset__scr h4 {
+  margin: 0 0 14px; font-size: 17px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1.4;
+  color: var(--sc-ink);
+}
+.handset__rows { display: grid; gap: 1px; background: var(--line-soft); border-radius: var(--sc-r-md); overflow: hidden; }
+.handset__rows > div {
+  display: flex; align-items: center; gap: 8px;
   padding: 11px 13px; background: rgba(255, 255, 255, 0.035); font-size: 13px;
 }
-.phone__rows b { font-weight: 700; }
-.phone__rows span:last-child { margin-left: auto; color: var(--sc-ink-soft); }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sc-ink-soft); flex: 0 0 auto; }
-.dot--work { background: #4fb3cc; }
-.dot--attn { background: var(--sc-accent); }
-.phone__foot { margin: 12px 0 0; font-size: 12px; color: var(--sc-ink-soft); }
+.handset__rows b { font-weight: 600; color: var(--sc-ink); }
+.handset__rows span:last-child { margin-left: auto; color: var(--sc-ink-soft); }
+.pip { width: 7px; height: 7px; border-radius: 50%; background: var(--sc-ink-soft); flex: 0 0 auto; }
+.pip--work { background: #4fb3cc; }
+.pip--attn { background: var(--sc-accent); }
+.handset__foot { margin: 12px 0 0; font-size: 12px; color: var(--sc-ink-soft); }
 
 /* ------------------------------------------------------------- 7 · join --- */
 
 .join { display: grid; place-items: center; background: var(--sc-canvas); }
 .join__ground { position: absolute; inset: 0; }
-.join__ground img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+
 .join__scrim {
   position: absolute; inset: 0;
   background:
-    radial-gradient(120% 90% at 50% 88%, rgba(11, 12, 14, 0.96) 18%, rgba(11, 12, 14, 0.62) 58%, rgba(11, 12, 14, 0.3) 100%),
-    linear-gradient(to bottom, rgba(11, 12, 14, 0.7), rgba(11, 12, 14, 0) 34%);
+    radial-gradient(90% 70% at 50% 42%, rgba(12, 15, 20, 0.62) 0%, rgba(12, 15, 20, 0.28) 60%, rgba(12, 15, 20, 0) 100%),
+    linear-gradient(to top, rgba(12, 15, 20, 0.94) 0%, rgba(12, 15, 20, 0.72) 20%, rgba(12, 15, 20, 0) 46%),
+    linear-gradient(to bottom, rgba(12, 15, 20, 0.6), rgba(12, 15, 20, 0) 26%);
 }
 /* A pointer light that follows the cursor across the close, from the
    spotlight device's own --sc-mx / --sc-my. */
@@ -441,47 +476,137 @@ html:not(.sc-js) .kit__img--before { display: none; }
 }
 .join__inner h2 { margin: 0; }
 
-/* The composer the instruction log has been using all page, now live. Geometry
-   and weight match the log strip so the hand-off reads as one object. */
-.compose {
-  position: relative;
-  display: flex; align-items: center; gap: 8px;
+/* 사전등록: one button, and the done state it becomes. No address field,
+   because the account is the registration. */
+.prereg {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
   width: min(34rem, 100%);
-  padding: 7px 7px 7px 20px;
-  border: 1px solid var(--line); border-radius: var(--sc-r-pill);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 var(--sc-edge);
 }
-.compose:focus-within { border-color: rgba(255, 51, 13, 0.55); }
-.compose__input {
-  flex: 1 1 auto; min-width: 0;
-  background: none; border: 0; outline: none;
-  font: inherit; font-size: 16px; color: var(--sc-ink);
+.prereg__go { padding: 16px 34px; font-size: 17px; }
+.prereg__note { margin: 0; font-size: 13px; color: var(--sc-ink-soft); }
+
+.prereg__done {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: min(34rem, 100%);
+  padding: clamp(1.1rem, 3vh, 1.7rem) var(--sc-5);
+  border: 1px solid rgba(255, 51, 13, 0.32); border-radius: var(--sc-r-lg);
+  background: rgba(255, 51, 13, 0.08);
+  outline: none;
+}
+.prereg__tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; margin-bottom: 2px;
+  border-radius: 50%; background: var(--sc-accent); color: var(--sc-accent-ink);
+}
+.prereg__tick svg { width: 20px; height: 20px; }
+.prereg__done-head {
+  margin: 0; font-size: clamp(1.1rem, 1rem + 0.6vw, 1.4rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  color: var(--sc-ink);
+}
+.prereg__done-sub { margin: 0; font-size: 14px; color: var(--sc-ink-soft); }
+
+/* ----------------------------------------------------- the sign-in sheet - */
+
+.sheet {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  padding: var(--sc-gutter);
+  background: rgba(6, 7, 9, 0.72);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 260ms var(--sc-ease-out);
+}
+.sheet.is-open { opacity: 1; }
+
+.sheet__panel {
+  position: relative;
+  width: min(25rem, 100%);
+  max-height: 100%; overflow-y: auto;
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  border: 1px solid var(--line); border-radius: var(--sc-r-lg);
+  background: var(--sc-surface);
+  box-shadow: var(--raise), inset 0 1px 0 var(--sc-edge);
+  transform: translateY(14px) scale(0.98);
+  transition: transform 300ms var(--sc-ease-out);
+  text-align: left;
+}
+.sheet.is-open .sheet__panel { transform: none; }
+
+.sheet__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 34px; height: 34px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06); color: var(--sc-ink-soft);
+  cursor: pointer;
+}
+.sheet__close:hover { background: rgba(255, 255, 255, 0.12); color: var(--sc-ink); }
+.sheet__close svg { width: 17px; height: 17px; }
+
+.sheet__panel h2 {
+  margin: 0 0 6px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.035em;
+}
+.sheet__lede { margin: 0 0 var(--sc-6); font-size: 14px; line-height: 1.55; color: var(--sc-ink-soft); }
+
+.sheet__doors { display: grid; gap: 8px; }
+.door {
+  width: 100%; padding: 14px 18px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-md);
+  background: rgba(255, 255, 255, 0.05); color: var(--sc-ink);
+  font: inherit; font-size: 15px; font-weight: 600; text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms var(--sc-ease-out), border-color 150ms var(--sc-ease-out);
+}
+.door:hover { background: rgba(255, 255, 255, 0.11); }
+.door:active { transform: translateY(1px); }
+
+.otp { margin-top: var(--sc-5); display: grid; gap: 12px; }
+.otp__tabs { display: flex; gap: 8px; }
+.otp__tabs button {
+  flex: 1 1 0; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-pill);
+  background: none; color: var(--sc-ink-soft);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.otp__tabs button.is-selected {
+  background: rgba(255, 51, 13, 0.14); border-color: rgba(255, 51, 13, 0.4); color: var(--sc-ink);
+}
+.otp__row { display: flex; gap: 8px; }
+.otp__row input {
+  flex: 1 1 auto; min-width: 0; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-md);
+  background: rgba(255, 255, 255, 0.04); color: var(--sc-ink);
+  font: inherit; font-size: 15px;
   caret-color: var(--sc-accent);
 }
-.compose__input::placeholder { color: var(--sc-ink-soft); }
-.compose__go { padding: 12px 20px; font-size: 15px; }
-.compose__note {
-  position: absolute; inset: calc(100% + 10px) 0 auto 0;
-  margin: 0; font-size: 13px; color: var(--sc-ink-soft);
+.otp__row input::placeholder { color: rgba(152, 160, 171, 0.7); }
+.otp__row input:focus-visible { border-color: rgba(255, 51, 13, 0.55); outline: none; }
+.otp__row button {
+  flex: 0 0 auto; padding: 12px 16px;
+  border: 0; border-radius: var(--sc-r-md);
+  background: var(--sc-accent); color: var(--sc-accent-ink);
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
 }
-.compose__note[data-state="error"] { color: #ff8a6d; }
-.compose__note[data-state="done"] { color: var(--sc-ink); font-weight: 700; }
+
+.sheet__status { margin: var(--sc-4) 0 0; font-size: 13px; color: var(--sc-ink-soft); }
+.sheet__status.is-error { color: #ff8a6d; }
+.sheet__legal { margin: var(--sc-5) 0 0; font-size: 11px; line-height: 1.6; color: rgba(152, 160, 171, 0.7); }
+.sheet__legal a { display: inline-block; padding-block: 6px; color: var(--sc-ink-soft); }
 
 .stores {
   display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 10px;
+  flex-wrap: wrap; gap: 12px;
   margin-top: clamp(1.4rem, 3vh, 2.2rem);
 }
 .stores__lead {
   flex-basis: 100%; margin: 0 0 2px;
-  font-size: 13px; font-weight: 700; color: var(--sc-ink-soft);
+  font-size: 13px; font-weight: 600; color: var(--sc-ink-soft);
 }
 .store {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; gap: 12px;
   padding: 9px 18px 9px 14px;
-  border: 1px solid var(--line); border-radius: 14px;
+  border: 1px solid var(--line); border-radius: var(--sc-r-md);
   background: rgba(255, 255, 255, 0.05);
   color: var(--sc-ink); text-decoration: none;
 }
@@ -490,7 +615,7 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
 .store svg { width: 22px; height: 22px; flex: 0 0 auto; }
 .store span { display: grid; text-align: left; line-height: 1.25; }
 .store small { font-size: 11px; color: var(--sc-ink-soft); }
-.store b { font-size: 15px; font-weight: 700; }
+.store b { font-size: 15px; font-weight: 600; }
 
 /* The shared footer, re-inked for the dark ground and compacted so it fits
    inside the closing stage. The page still finishes on the close: the seller
@@ -508,15 +633,15 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
 }
 .join .foot-brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .join .foot-brand img { width: auto; height: 14px; opacity: 0.85; margin: 0; }
-.join .foot-brand p { margin: 0; font-size: 12px; }
-.join .foot-brand small { font-size: 11px; opacity: 0.75; }
+.join .foot-brand p { margin: 0; font-size: 12px; color: var(--sc-ink-soft); }
+.join .foot-brand small { font-size: 11px; color: var(--sc-ink-soft); opacity: 0.75; }
 .join .foot-cols { display: flex; gap: clamp(1.4rem, 4vw, 3rem); }
-.join .foot-col { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.join .foot-col { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .join .foot-col h4 {
-  margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
   color: rgba(152, 160, 171, 0.65); text-transform: none;
 }
-.join .foot-col a { font-size: 12px; font-weight: 600; color: var(--sc-ink-soft); text-decoration: none; }
+.join .foot-col a { padding-block: 7px; font-size: 12px; font-weight: 600; color: var(--sc-ink-soft); text-decoration: none; }
 .join .foot-col a:hover { color: var(--sc-ink); }
 .join .biz {
   grid-column: 1 / -1; margin: 0;
@@ -539,7 +664,7 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
 
 .log::before {
   content: ""; position: absolute; inset: auto 0 0 0; height: 190px;
-  background: linear-gradient(to bottom, rgba(11, 12, 14, 0), rgba(11, 12, 14, 0.72) 62%, rgba(11, 12, 14, 0.9));
+  background: linear-gradient(to bottom, rgba(12, 15, 20, 0), rgba(12, 15, 20, 0.72) 62%, rgba(12, 15, 20, 0.9));
   pointer-events: none;
 }
 .log__past, .log__now {
@@ -583,7 +708,7 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
 }
 
 @media (max-width: 700px) {
-  :root { --bar-h: 52px; --log-h: 54px; --log-clear: calc(var(--log-h) + 3.8rem); }
+  :root { --bar-h: 120px; --log-h: 54px; --log-clear: calc(var(--log-h) + 3.8rem); }
 
   /* Portrait art direction, not a shrunk desktop composition: the title sits
      above her rather than behind her, the planes travel less, and the near
@@ -593,9 +718,8 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
   /* The mobile plate is cropped in on the figure, so it needs its own
      aspect and its own anchor; the desktop width would shrink her to a
      smudge sitting on a very wide wall. */
-  .plane--subject { width: min(430px, 112vw); bottom: -3%; }
+  .plane--subject { width: min(400px, 104vw); bottom: -2%; }
   .plane--mid  { width: max(1150px, 210vw); bottom: -6%; }
-  .plane--fore { width: max(1300px, 235vw); bottom: -12%; }
   .hero__copy { bottom: calc(var(--log-clear) + 0.5rem); gap: var(--sc-4); }
   .hero__sub { font-size: 1.02rem; }
 
@@ -607,7 +731,7 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
   .rail__lead, .rail__tail { width: min(20rem, 76vw); }
   .model { width: min(13.5rem, 62vw); min-height: 9.5rem; padding: var(--sc-5); }
 
-  .peak__head { padding-top: clamp(4rem, 10vh, 5.5rem); }
+  .peak__head { padding-top: calc(var(--bar-h) + 0.9rem); }
   .stack { width: calc(100% - var(--sc-gutter) * 2); }
   .stack__card {
     grid-template-columns: 1fr;
@@ -616,13 +740,12 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
     bottom: 0;
   }
   .stack { height: clamp(18rem, 44vh, 26rem); margin-bottom: var(--log-clear); }
-  .stack__card > img { object-position: 50% 38%; }
 
   /* At phone height the absolute footer and the centred block fight for the
      same pixels, so the footer joins the flow and `auto` holds it to the
      floor. Nothing overlaps and nothing is cut. */
   .join__inner {
-    padding: clamp(6rem, 13vh, 7rem) var(--sc-gutter) 0.9rem;
+    padding: calc(var(--bar-h) + 0.75rem) var(--sc-gutter) 0.9rem;
     gap: 0.85rem;
   }
   .join .footer {
@@ -631,10 +754,8 @@ a.store:hover { background: rgba(255, 255, 255, 0.1); }
   }
   .join__inner h2 { font-size: clamp(1.9rem, 8.4vw, 2.5rem); }
   .stores { margin-top: 0.9rem; }
-  .compose { flex-wrap: wrap; border-radius: 22px; padding: 10px; }
-  .compose__input { padding: 6px 10px; flex-basis: 100%; }
-  .compose__go { width: 100%; }
-  .compose__note { position: static; margin-top: 6px; }
+  .prereg__go { width: 100%; }
+  .sheet__panel { padding: 1.5rem 1.25rem; }
   .store { flex: 1 1 auto; justify-content: center; }
   .join .footer { grid-template-columns: 1fr; gap: 0.6rem; }
   .join .foot-cols { flex-wrap: wrap; gap: 0.5rem 1.4rem; }
