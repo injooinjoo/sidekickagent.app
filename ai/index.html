@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMGMBQR225"></script>
+  <script src="/analytics.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 이 페이지가 부르는 곳은 사이드킥 API와 개인정보 보호 설정의 Google Analytics뿐이다.
+       Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않고,
+       AI 서비스의 로그인 페이지는 새 탭이나 이동으로 열리므로 connect-src에 들이지 않는다. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://*.google-analytics.com https://analytics.google.com; img-src 'self'; style-src 'self'; script-src 'self' https://www.googletagmanager.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 사이드킥 프로젝트에 연결하세요." />
+  <title>AI 연결 · Sidekick</title>
+  <link rel="canonical" href="https://sidekickagent.app/ai/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="AI 연결 · Sidekick" />
+  <meta property="og:description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 사이드킥 프로젝트에 연결하세요." />
+  <meta property="og:url" content="https://sidekickagent.app/ai/" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/ai/ai.css" />
+  <script src="/auth.js" defer></script>
+  <script src="/ai/ai.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="/support/">도움말</a>
+      <a href="/privacy/">개인정보</a>
+      <a href="/terms/">이용약관</a>
+    </nav>
+    <button class="header-cta" type="button" id="account-button">로그인</button>
+  </header>
+
+  <main class="ai-shell">
+    <section class="ai-intro" aria-labelledby="page-title">
+      <p class="ai-eyebrow">SIDEKICK AI 연결</p>
+      <h1 id="page-title">내 AI를 프로젝트에 연결해요</h1>
+      <p>쓰고 있는 AI 서비스에 로그인하거나 API 키를 넣으면, 고른 프로젝트의 AI 직원이 그 AI로 일해요. 연결 정보는 암호화해 사이드킥 서버에만 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
+    </section>
+
+    <section class="ai-step" id="signin-step" aria-labelledby="signin-heading">
+      <h2 id="signin-heading">로그인</h2>
+      <p id="signin-line">사이드킥 계정으로 로그인하면 내 프로젝트를 불러와요.</p>
+      <button class="ai-button" type="button" id="open-signin">로그인</button>
+      <p class="ai-status" id="signin-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="workspace-step" aria-labelledby="workspace-heading" hidden>
+      <h2 id="workspace-heading">프로젝트</h2>
+      <label class="ai-label" for="workspace-select">AI를 연결할 프로젝트</label>
+      <select class="ai-select" id="workspace-select"></select>
+      <p class="ai-status" id="workspace-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="connections-step" aria-labelledby="connections-heading" hidden>
+      <h2 id="connections-heading">연결된 AI</h2>
+      <p class="ai-note" id="connections-empty" hidden>이 프로젝트에 연결한 AI가 아직 없어요.</p>
+      <ul class="connection-list" id="connection-list"></ul>
+      <p class="ai-status" id="connections-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="connect-step" aria-labelledby="connect-heading" hidden>
+      <div class="connect-head">
+        <h2 id="connect-heading">AI 연결</h2>
+        <button class="ai-button secondary" type="button" id="connect-cancel">취소</button>
+      </div>
+      <div class="connect-body" id="connect-body"></div>
+      <p class="ai-status" id="connect-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="providers-step" aria-labelledby="providers-heading" hidden>
+      <h2 id="providers-heading">연결할 AI 고르기</h2>
+      <p class="ai-note">계정으로 로그인하거나 API 키를 넣어 연결해요. 연결하면 이 프로젝트의 새 업무부터 그 AI를 써요.</p>
+      <div class="provider-grid" id="provider-featured"></div>
+      <details class="provider-more" id="provider-more" hidden>
+        <summary id="provider-more-summary">다른 AI 서비스</summary>
+        <div class="provider-grid" id="provider-rest"></div>
+      </details>
+      <p class="ai-status" id="providers-status" aria-live="polite"></p>
+    </section>
+
+    <footer class="footer">
+      <a href="/">홈</a>
+      <a href="/support/">도움말</a>
+      <a href="/privacy/">개인정보처리방침</a>
+      <a href="/terms/">이용약관</a>
+      <a href="/delete-account/">계정 및 데이터 삭제</a>
+      <small>© 2026 Sidekick</small>
+      <address class="biz">
+        <span>비욘드</span>
+        <span>대표 김인주</span>
+        <span>사업자등록번호 552-20-02389</span>
+        <span>서울특별시 서초구 효령로23길 54-6</span>
+        <span>010-5060-6843</span>
+      </address>
+    </footer>
+  </main>
+
+  <div class="signin-sheet" id="signin-sheet" hidden aria-modal="true" role="dialog" aria-label="로그인">
+    <div class="signin-inner">
+      <button class="sheet-close" type="button" id="close-signin" aria-label="닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true" data-icon="close"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="signin-body">
+        <span class="signin-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" data-icon="flash"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
+        </span>
+        <h2>사이드킥 로그인</h2>
+        <div class="doors">
+          <button class="door" type="button" id="google-button">Google로 로그인</button>
+          <button class="door" type="button" id="apple-button">Apple로 로그인</button>
+          <button class="door" type="button" id="chatgpt-button">ChatGPT로 로그인</button>
+          <button class="door" type="button" id="otp-toggle">이메일 · 휴대폰으로 로그인</button>
+        </div>
+        <div class="otp-block" id="otp-block" hidden>
+          <div class="method-tabs" role="tablist" aria-label="로그인 방법">
+            <button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>
+            <button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>
+          </div>
+          <form id="email-form">
+            <label for="email" id="value-label" class="sr-only">이메일</label>
+            <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호</button></div>
+          </form>
+          <form id="code-form" hidden>
+            <label for="code" class="sr-only">인증번호</label>
+            <div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required /><button type="submit">로그인</button></div>
+          </form>
+        </div>
+        <p class="form-status" id="auth-status" aria-live="polite"></p>
+        <p class="social-status" id="social-status" aria-live="polite" hidden></p>
+      </div>
+      <p class="legal">계속하면 <a href="/terms/">서비스 약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>
+    </div>
+  </div>
+</body>
+</html>

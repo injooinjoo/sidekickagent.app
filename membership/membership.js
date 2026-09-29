@@ -1,16 +1,13 @@
 (() => {
   'use strict';
 
-  const API_ORIGIN = 'https://api.sidekickagent.app';
-  // Google and Apple are Supabase logins in the app, and the backend accepts a
-  // Supabase JWT as a bearer for any authenticated route. So the web uses the
-  // same door rather than a second one: no SDK is loaded here — this page takes
-  // card details next door and every extra third-party script on it is a
-  // liability — just a redirect to Supabase's authorize endpoint and a token
-  // read back out of the URL fragment.
-  const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
-  const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
-  const RETURN_URL = 'https://sidekickagent.app/membership/';
+  // Sign-in lives in /auth.js, shared with /ai/: the same doors the app offers
+  // (Google, Apple, ChatGPT, email and phone code), the same bearer under the
+  // same sessionStorage key, and the one `api()` every call here goes through.
+  // No auth SDK is loaded — this page takes card details next door and every
+  // extra third-party script on it is a liability.
+  const auth = window.SidekickAuth;
+  const { api } = auth;
   const TOSS_SDK_URL = 'https://js.tosspayments.com/v2/standard';
   // Plan identity only. What each combination costs is Korean won held in the
   // backend's own catalog and served by /membership/toss/config, so this page
@@ -29,31 +26,6 @@
   // The first paid plan, and the landing place for any plan value this page does
   // not sell — including the removed `free`, which older links still carry.
   const DEFAULT_PLAN = 'birdie';
-  // The app offers six ways in and each mints its own account id, so the web
-  // must offer the same door rather than guess which account a purchase belongs
-  // to. Email and phone are both plain OTP through /auth/start, so they cost one
-  // field each; the social providers redirect into the app and still need a web
-  // callback before they can appear here.
-  // Every way in the app offers, so a purchase can be attached to the account
-  // the person already has instead of minting a second one on the desktop.
-  const AUTH_METHODS = {
-    email: {
-      label: '이메일',
-      inputType: 'email',
-      autocomplete: 'email',
-      placeholder: '',
-      note: '구글이나 애플로 시작했다면 위 버튼을 쓰는 편이 확실해요. 같은 이메일을 넣어도 같은 계정으로 이어져요.',
-      heading: '이메일로 로그인'
-    },
-    phone: {
-      label: '휴대폰',
-      inputType: 'tel',
-      autocomplete: 'tel',
-      placeholder: '010-1234-5678',
-      note: '앱에서 휴대폰 번호로 시작했다면 같은 번호로 로그인해요. 잇기가 필요 없는 같은 계정이에요.',
-      heading: '휴대폰으로 로그인'
-    }
-  };
   // The one thing that has to survive Toss's redirect. It is the same public
   // choice the person already made on this page — never an amount, an account,
   // an order or an entitlement, because none of those would be believed by the
@@ -61,12 +33,12 @@
   const SELECTION_KEY = 'sidekick_toss_selection';
 
   const state = {
-    method: 'email',
     plan: DEFAULT_PLAN,
     funding: 'connected',
     storage: 'managed',
-    challengeId: null,
-    token: sessionStorage.getItem('sidekick_web_access_token') || '',
+    // A copy of the shared sign-in's bearer, refreshed whenever it changes, so
+    // every "is this person signed in" below reads one field.
+    token: auth.token(),
     user: null,
     billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false },
     subscription: null,
@@ -82,7 +54,6 @@
 
   const $ = (id) => document.getElementById(id);
   const planCards = [...document.querySelectorAll('.plan-card')];
-  const methodTabs = [...document.querySelectorAll('[data-method]')];
   // 로그인 화면은 구매를 누른 순간에만 열린다. 그때 무엇을 사려던
   // 중이었는지 기억해 두었다가, 로그인이 끝나면 사람이 다시 누르지
   // 않아도 그 구매를 이어서 시작한다.
@@ -270,22 +241,6 @@
     node.textContent = message;
   }
 
-  async function api(path, options = {}) {
-    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    if (state.token) headers.Authorization = `Bearer ${state.token}`;
-    const response = await fetch(`${API_ORIGIN}${path}`, { ...options, headers });
-    let data = {};
-    try { data = await response.json(); } catch (_) { /* fail with bounded message below */ }
-    if (!response.ok) {
-      const error = new Error('request_failed');
-      error.status = response.status;
-      // 서버가 준 짧은 사유 코드(예: subscription_exists)만 들고 간다. 화면 문구는 이 페이지가 정한다.
-      error.detail = data && typeof data.detail === 'string' ? data.detail : '';
-      throw error;
-    }
-    return data;
-  }
-
   async function loadBillingConfig() {
     try {
       const path = state.token ? '/membership/toss/config/authenticated' : '/membership/toss/config';
@@ -340,150 +295,20 @@
     return sdkPromise;
   }
 
-  function applyAuthMethod(method) {
-    const chosen = AUTH_METHODS[method] ? method : 'email';
-    state.method = chosen;
-    state.challengeId = null;
-    const config = AUTH_METHODS[chosen];
-    const input = $('email');
-
-    methodTabs.forEach((tab) => {
-      const selected = tab.dataset.method === chosen;
-      tab.classList.toggle('is-selected', selected);
-      tab.setAttribute('aria-selected', String(selected));
-    });
-
-    input.type = config.inputType;
-    input.autocomplete = config.autocomplete;
-    input.placeholder = config.placeholder;
-    input.value = '';
-    // Switching method abandons any code already sent, so the second form must
-    // not stay open offering to verify a code for the other identity.
-    $('code-form').hidden = true;
-    $('code').value = '';
-    $('auth-status').textContent = '';
-    $('auth-status').classList.remove('is-error');
-    input.focus();
-  }
-
-  function showSocialStatus(message, isError) {
-    const node = $('social-status');
-    node.hidden = !message;
-    node.textContent = message || '';
-    node.classList.toggle('is-error', Boolean(isError));
-  }
-
-  // Supabase's implicit flow returns the session in the fragment. Reading it
-  // here and clearing it immediately keeps the token out of history and out of
-  // anything that later logs a URL.
-  async function adoptSupabaseRedirect() {
-    const hash = window.location.hash || '';
-    if (!hash.includes('access_token=')) {
-      if (hash.includes('error=')) {
-        const failed = new URLSearchParams(hash.slice(1));
-        showSocialStatus(failed.get('error_description') || '로그인이 완료되지 않았어요.', true);
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-      return false;
-    }
-    const params = new URLSearchParams(hash.slice(1));
-    const token = String(params.get('access_token') || '').trim();
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-    if (!token) return false;
-    state.token = token;
-    sessionStorage.setItem('sidekick_web_access_token', token);
-    try {
-      // The backend is the authority on who this is; the provider only proved
-      // the person holds the account.
-      const session = await api('/auth/session', { method: 'GET' });
-      state.user = session.user || null;
-      showSocialStatus('', false);
-      return true;
-    } catch (_) {
-      state.token = '';
-      sessionStorage.removeItem('sidekick_web_access_token');
-      showSocialStatus('로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.', true);
-      return false;
-    }
-  }
-
-  function startSupabaseLogin(provider) {
-    if (!SUPABASE_PROVIDERS[provider]) return;
-    showSocialStatus(`${SUPABASE_PROVIDERS[provider]}으로 이동하고 있어요.`, false);
-    const url = new URL(`${SUPABASE_ORIGIN}/auth/v1/authorize`);
-    url.searchParams.set('provider', provider);
-    url.searchParams.set('redirect_to', RETURN_URL);
-    window.location.assign(url.toString());
-  }
-
-  $('google-button').addEventListener('click', () => startSupabaseLogin('google'));
-  $('apple-button').addEventListener('click', () => startSupabaseLogin('apple'));
-
-  // ChatGPT is a device code, not a redirect: the backend starts it, the person
-  // approves in a new tab, and this page polls until the approval lands.
-  $('chatgpt-button').addEventListener('click', async () => {
-    if (state.busy) return;
-    state.busy = true;
-    showSocialStatus('ChatGPT 승인 창을 여는 중이에요.', false);
-    try {
-      const started = await api('/auth/oauth/chatgpt/start', { method: 'POST', body: JSON.stringify({}) });
-      const approvalUrl = started.verification_uri_complete || started.verification_uri || started.url;
-      if (!approvalUrl) throw new Error('no approval url');
-      window.open(approvalUrl, '_blank', 'noopener');
-      showSocialStatus('새 창에서 승인하면 이 페이지가 이어서 로그인해요.', false);
-      const deadline = Date.now() + 5 * 60 * 1000;
-      while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        const polled = await api('/auth/oauth/chatgpt/poll', {
-          method: 'POST',
-          body: JSON.stringify({ challenge_id: started.challenge_id || started.id })
-        });
-        if (polled.access_token) {
-          state.token = polled.access_token;
-          state.user = polled.user || null;
-          sessionStorage.setItem('sidekick_web_access_token', state.token);
-          showSocialStatus('', false);
-          await afterSignIn();
-          return;
-        }
-      }
-      showSocialStatus('승인이 확인되지 않았어요. 다시 시도해 주세요.', true);
-    } catch (_) {
-      showSocialStatus('ChatGPT 로그인을 시작하지 못했어요.', true);
-    } finally {
-      state.busy = false;
-      render();
-    }
-  });
-
-  methodTabs.forEach((tab) => tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method)));
-
   $('funding-toggle').addEventListener('click', () => {
     state.funding = state.funding === 'connected' ? 'included' : 'connected';
     state.quote = null;
     render();
   });
 
+  // 로그인 화면은 /auth.js 가 연다. 여기서는 무엇을 사려던 중이었는지만 기억한다.
   function openSignin(plan) {
     pendingPurchase = plan || null;
-    const sheet = $('signin-sheet');
-    sheet.hidden = false;
-    // 두 프레임을 기다렸다가 클래스를 붙인다: hidden을 벗기자마자
-    // 붙이면 브라우저가 시작 상태를 그리기 전이라 전환이 통째로 생략된다.
-    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('is-open')));
-    document.body.style.overflow = 'hidden';
-    const first = sheet.querySelector('.door');
-    if (first) first.focus({ preventScroll: true });
+    auth.open();
   }
 
   function closeSignin() {
-    const sheet = $('signin-sheet');
-    sheet.classList.remove('is-open');
-    document.body.style.overflow = '';
-    const done = () => { sheet.hidden = true; sheet.removeEventListener('transitionend', done); };
-    // 전환이 꺼져 있거나 잘려도 화면이 반쯤 덮인 채 남지는 않게 한다.
-    sheet.addEventListener('transitionend', done);
-    setTimeout(done, 400);
+    auth.close();
   }
 
   planCards.forEach((card) => {
@@ -500,22 +325,12 @@
   });
 
   $('open-signin').addEventListener('click', () => openSignin(null));
-  $('close-signin').addEventListener('click', closeSignin);
-  $('signin-sheet').addEventListener('click', (event) => {
-    if (event.target === $('signin-sheet')) closeSignin();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !$('signin-sheet').hidden) closeSignin();
-  });
-  $('otp-toggle').addEventListener('click', () => {
-    const block = $('otp-block');
-    block.hidden = !block.hidden;
-    if (!block.hidden) $('email').focus();
-  });
 
   // 로그인 직후 확인 화면을 한 장 더 끼우지 않는다: 고른 플랜 그대로
   // 토스 결제창이 바로 열린다.
   async function afterSignIn() {
+    state.token = auth.token();
+    state.user = auth.user();
     closeSignin();
     render();
     await loadBillingConfig();
@@ -529,45 +344,6 @@
       await startCheckout();
     }
   }
-
-  $('email-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    $('auth-status').classList.remove('is-error');
-    $('auth-status').textContent = '인증번호를 보내고 있어요.';
-    try {
-      const result = await api('/auth/start', {
-        method: 'POST',
-        body: JSON.stringify({ method: state.method, value: $('email').value.trim() })
-      });
-      state.challengeId = result.challenge_id;
-      $('code-form').hidden = false;
-      $('code').focus();
-      $('auth-status').textContent = `${result.value_masked || `입력한 ${AUTH_METHODS[state.method].label}`}로 인증번호를 보냈어요.`;
-    } catch (_) {
-      $('auth-status').classList.add('is-error');
-      $('auth-status').textContent = '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.';
-    }
-  });
-
-  $('code-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!state.challengeId) return;
-    $('auth-status').classList.remove('is-error');
-    $('auth-status').textContent = '인증번호를 확인하고 있어요.';
-    try {
-      const result = await api('/auth/verify', {
-        method: 'POST',
-        body: JSON.stringify({ challenge_id: state.challengeId, code: $('code').value.trim() })
-      });
-      state.token = result.access_token;
-      state.user = result.user || null;
-      sessionStorage.setItem('sidekick_web_access_token', state.token);
-      await afterSignIn();
-    } catch (_) {
-      $('auth-status').classList.add('is-error');
-      $('auth-status').textContent = '인증번호가 맞지 않거나 만료됐어요.';
-    }
-  });
 
   async function startCheckout() {
     const plan = PLANS[state.plan];
@@ -756,8 +532,13 @@
   // The Supabase redirect has to be adopted before anything asks the backend who
   // this is, or the first call goes out unauthenticated and the page renders the
   // signed-out state over a session that already exists.
-  adoptSupabaseRedirect()
-    .then(() => { render(); return loadBillingConfig(); })
+  auth.init({ onSignedIn: afterSignIn })
+    .then(() => {
+      state.token = auth.token();
+      state.user = auth.user();
+      render();
+      return loadBillingConfig();
+    })
     .then(loadSubscription)
     .then(completePendingAuthorization);
 })();
