@@ -3,12 +3,10 @@
  * Palette, reset, header and footer come from /styles.css, which this page
  * loads first. Every colour here is one of its tokens: nothing redeclares a
  * token and no colour is written by hand, so this page cannot drift into a
- * palette of its own. The sign-in sheet is the same markup as on the other
- * page that signs in, and is drawn the same way. */
+ * palette of its own. The header account slot and the sign-in sheet are drawn
+ * once, in /styles.css, for every page. */
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
-
-button.header-cta { border: 0; cursor: pointer; }
 
 .ai-shell { max-width: 860px; margin: 0 auto; padding: 40px 22px 74px; }
 .ai-intro { max-width: 680px; margin-bottom: 28px; }
@@ -17,7 +15,9 @@ button.header-cta { border: 0; cursor: pointer; }
 .ai-intro > p { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
 
 .ai-step { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 20px;
-  background: var(--card); box-shadow: var(--shadow-sm); }
+  background: var(--card); box-shadow: var(--shadow-sm);
+  /* A step scrolled into view lands below the sticky header, not under it. */
+  scroll-margin-top: calc(var(--header-h) + 12px); }
 .ai-step h2 { margin: 0 0 10px; font-size: 19px; letter-spacing: -.025em; }
 .ai-step > p { margin: 0 0 12px; font-size: 15px; }
 .ai-status { min-height: 0; margin: 10px 0 0 !important; color: var(--muted); font-size: 13px; }
@@ -26,6 +26,15 @@ button.header-cta { border: 0; cursor: pointer; }
 .ai-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .ai-hint { margin: 4px 0 0; color: var(--soft); font-size: 12px; }
 .ai-label { display: block; margin: 0 0 6px; color: var(--ink-soft); font-size: 13px; font-weight: 700; }
+.ai-intro > .ai-who { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; margin: 16px 0 0; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink-soft); font-size: 13px; }
+.ai-who strong { color: var(--ink); }
+.ai-next { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 14px; background: var(--bg); }
+.ai-next p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
+.ai-next p + p { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.ai-next-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+a.ai-button { text-decoration: none; }
+a.ai-button.secondary:hover { color: var(--ink); }
 
 .ai-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
   border: 1px solid var(--ink); border-radius: 12px; background: var(--ink); color: var(--card);
@@ -80,45 +89,6 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 
 .ai-shell .footer { margin-top: 40px; }
 
-/* The sign-in sheet: the same markup and look on every page that signs in. */
-.signin-sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
-  padding: 24px; background: rgba(26, 29, 33, .34); opacity: 0; transition: opacity .22s ease;
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.signin-sheet.is-open { opacity: 1; }
-.signin-inner { position: relative; width: 100%; max-width: 400px; min-height: 480px; display: flex;
-  flex-direction: column; align-items: center; justify-content: center; padding: 30px 26px 22px;
-  border-radius: 22px; background: var(--bg); box-shadow: var(--shadow);
-  transform: translateY(14px) scale(.985); transition: transform .26s cubic-bezier(.22, .61, .36, 1); }
-.signin-sheet.is-open .signin-inner { transform: none; }
-.sheet-close { position: absolute; top: 16px; left: 16px; width: 40px; height: 40px; display: inline-flex;
-  align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%;
-  background: var(--card); cursor: pointer; }
-.sheet-close svg { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
-.signin-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.signin-mark { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: var(--ink); }
-.signin-mark svg { width: 26px; height: 26px; fill: none; stroke: var(--card); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.signin-body h2 { margin: 22px 0 30px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
-.doors { width: 100%; display: flex; flex-direction: column; gap: 9px; }
-.door { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--hairline);
-  color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: background .14s ease; }
-.door:hover { background: var(--line-soft); }
-.otp-block { width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
-.method-tabs { display: flex; gap: 6px; margin: 10px 0; }
-.method-tabs button { flex: 1; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px;
-  background: var(--card); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
-.method-tabs button.is-selected { border-color: var(--ink); color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.signin-body form { width: 100%; margin-top: 10px; }
-.form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
-.form-row input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid var(--line); border-radius: 11px;
-  background: var(--card); color: var(--ink); }
-.form-row button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: var(--ink-soft);
-  color: var(--card); font-size: 12px; font-weight: 750; cursor: pointer; }
-.form-status, .social-status { min-height: 18px; margin: 8px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
-.form-status.is-error, .social-status.is-error { color: var(--accent); }
-.legal { margin: 26px 0 0; max-width: 340px; color: var(--soft); font-size: 12px; line-height: 1.6; text-align: center; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
 @media (max-width: 700px) {
   .provider-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -133,12 +103,3 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
   .device-code-value { font-size: 20px; }
 }
 
-@media (max-width: 900px) {
-  .signin-sheet { padding: 0; }
-  .signin-inner { max-width: none; min-height: 100%; border-radius: 0; justify-content: flex-start; padding-top: 84px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .signin-sheet, .signin-inner, .door { transition: none; }
-  .signin-inner { transform: none; }
-}

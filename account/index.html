@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMGMBQR225"></script>
+  <script src="/analytics.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 이 페이지가 부르는 곳은 사이드킥 API와 개인정보 보호 설정의 Google Analytics뿐이다.
+       Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않는다. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://*.google-analytics.com https://analytics.google.com; img-src 'self'; style-src 'self'; script-src 'self' https://www.googletagmanager.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="description" content="사이드킥 계정, 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인하세요." />
+  <title>내 계정 · Sidekick</title>
+  <link rel="canonical" href="https://sidekickagent.app/account/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/account/account.css" />
+  <script src="/auth.js" defer></script>
+  <script src="/account/account.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="/support/">도움말</a>
+      <a href="/privacy/">개인정보</a>
+      <a href="/terms/">이용약관</a>
+    </nav>
+    <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
+  </header>
+
+  <main class="account-shell">
+    <section class="account-intro" aria-labelledby="page-title">
+      <p class="account-eyebrow">SIDEKICK 계정</p>
+      <h1 id="page-title">내 계정</h1>
+      <p>로그인한 계정의 정보와 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인해요.</p>
+    </section>
+
+    <p class="account-status" id="account-loading" aria-live="polite">계정을 확인하고 있어요.</p>
+
+    <section class="account-card" id="account-gate" aria-labelledby="gate-heading" hidden>
+      <h2 id="gate-heading">로그인이 필요해요</h2>
+      <p>로그인하면 계정 정보, 멤버십 상태, 프로젝트와 AI 연결을 볼 수 있어요. 앱에서 쓰는 로그인 방법으로 로그인해야 같은 계정이 열려요.</p>
+      <div class="account-actions">
+        <button class="account-button" type="button" id="gate-signin">로그인</button>
+        <a class="account-button secondary" href="/support/">도움말 보기</a>
+      </div>
+      <p class="account-status" id="gate-status" aria-live="polite"></p>
+    </section>
+
+    <div id="account-view" hidden>
+      <section class="account-card" aria-labelledby="profile-heading">
+        <h2 id="profile-heading">계정</h2>
+        <dl class="account-rows">
+          <div><dt>로그인 방법</dt><dd id="profile-method"></dd></div>
+          <div id="profile-contact-row" hidden><dt id="profile-contact-label">이메일</dt><dd id="profile-contact"></dd></div>
+          <div><dt>계정 ID</dt><dd id="profile-id"></dd></div>
+        </dl>
+        <p class="account-note">앱과 다른 방법으로 로그인하면 다른 계정이 열릴 수 있어요. 앱에서 쓰는 방법으로 로그인했는지 확인해 주세요.</p>
+        <div class="account-actions">
+          <button class="account-button secondary" type="button" id="signout-button">로그아웃</button>
+        </div>
+      </section>
+
+      <section class="account-card" aria-labelledby="membership-heading">
+        <h2 id="membership-heading">멤버십</h2>
+        <dl class="account-rows" id="membership-rows" hidden></dl>
+        <p class="account-note" id="membership-note" hidden></p>
+        <p class="account-status" id="membership-status" aria-live="polite">멤버십 상태를 불러오고 있어요.</p>
+        <div class="account-actions" id="membership-actions" hidden></div>
+      </section>
+
+      <section class="account-card" aria-labelledby="projects-heading">
+        <div class="account-card-head">
+          <h2 id="projects-heading">프로젝트와 AI 연결</h2>
+          <a class="account-button secondary" href="/ai/" id="ai-manage">AI 연결 관리</a>
+        </div>
+        <p class="account-note">프로젝트마다 쓰는 AI를 연결할 수 있어요. 연결은 프로젝트별로 저장돼요.</p>
+        <ul class="project-list" id="project-list" hidden></ul>
+        <p class="account-status" id="projects-status" aria-live="polite">프로젝트를 불러오고 있어요.</p>
+        <div class="account-next" id="projects-next" hidden></div>
+      </section>
+
+      <section class="account-card" aria-labelledby="manage-heading">
+        <h2 id="manage-heading">계정 관리</h2>
+        <p>계정과 데이터 삭제는 사이드킥 앱의 내 정보 → 계정에서 요청해요. 삭제되는 항목과 되돌리는 방법을 먼저 확인해 주세요.</p>
+        <div class="account-actions">
+          <a class="account-button secondary" href="/delete-account/">계정 삭제 안내</a>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <a href="/">홈</a>
+      <a href="/support/">도움말</a>
+      <a href="/privacy/">개인정보처리방침</a>
+      <a href="/terms/">이용약관</a>
+      <a href="/delete-account/">계정 및 데이터 삭제</a>
+      <small>© 2026 Sidekick</small>
+      <address class="biz">
+        <span>비욘드</span>
+        <span>대표 김인주</span>
+        <span>사업자등록번호 552-20-02389</span>
+        <span>서울특별시 서초구 효령로23길 54-6</span>
+        <span>010-5060-6843</span>
+      </address>
+    </footer>
+  </main>
+</body>
+</html>

@@ -213,7 +213,7 @@
       ? '내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.'
       : 'Sidekick AI가 포함돼요. 따로 준비할 것 없이 바로 시작해요.';
 
-    $('account-pill').textContent = authenticated ? '내 계정' : '로그인';
+    // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
     $('open-signin').hidden = authenticated;
     if (authenticated) $('auth-status').textContent = '';
@@ -241,6 +241,30 @@
     node.textContent = message;
   }
 
+  // The server stopped accepting this bearer mid-visit (expired, revoked, signed
+  // out elsewhere). The page drops to the signed-out view it would have drawn
+  // for a new visitor: public prices, a 로그인 slot, no stale 내 계정.
+  function signedOutByServer() {
+    auth.signOut({ server: false, silent: true });
+    state.token = '';
+    state.user = null;
+    state.subscription = null;
+    state.membership = null;
+    state.membershipChecked = false;
+    state.quote = null;
+    render();
+  }
+
+  // Signed out from the header menu: the same view, and the prices a visitor sees.
+  async function afterSignOut() {
+    pendingPurchase = null;
+    signedOutByServer();
+    const status = $('checkout-status');
+    delete status.dataset.pinned;
+    status.classList.remove('is-error');
+    await loadBillingConfig();
+  }
+
   async function loadBillingConfig() {
     try {
       const path = state.token ? '/membership/toss/config/authenticated' : '/membership/toss/config';
@@ -253,7 +277,11 @@
         plans: config.plans && typeof config.plans === 'object' ? config.plans : {},
         review_checkout_allowed: config.review_checkout_allowed === true
       };
-    } catch (_) {
+    } catch (error) {
+      if (error && error.status === 401 && state.token) {
+        signedOutByServer();
+        return loadBillingConfig();
+      }
       state.billing = { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false };
     }
     render();
@@ -270,10 +298,19 @@
     // must be able to read and cancel even after new sales close. The account's
     // purchase permission is read alongside, because the Toss status only knows
     // about the web subscription and not one held on the App Store.
+    let refused = false;
+    const readOrNull = (path) => api(path, { method: 'GET' }).catch((error) => {
+      if (error && error.status === 401) refused = true;
+      return null;
+    });
     const [subscription, membership] = await Promise.all([
-      api('/membership/toss/status', { method: 'GET' }).catch(() => null),
-      api('/membership/status', { method: 'GET' }).catch(() => null)
+      readOrNull('/membership/toss/status'),
+      readOrNull('/membership/status')
     ]);
+    if (refused) {
+      signedOutByServer();
+      return loadBillingConfig();
+    }
     state.subscription = subscription;
     state.membership = membership && typeof membership === 'object' ? membership : null;
     state.membershipChecked = true;
@@ -532,7 +569,7 @@
   // The Supabase redirect has to be adopted before anything asks the backend who
   // this is, or the first call goes out unauthenticated and the page renders the
   // signed-out state over a session that already exists.
-  auth.init({ onSignedIn: afterSignIn })
+  auth.init({ onSignedIn: afterSignIn, onSignedOut: afterSignOut })
     .then(() => {
       state.token = auth.token();
       state.user = auth.user();

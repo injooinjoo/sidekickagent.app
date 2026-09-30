@@ -186,42 +186,13 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .ghost-button { margin-left: auto; min-height: 44px; padding: 0 18px; border: 1px solid var(--line);
   border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
 
-.signin-sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
-  padding: 24px; background: rgba(26,29,33,.34); opacity: 0; transition: opacity .22s ease;
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.signin-sheet.is-open { opacity: 1; }
-.signin-inner { position: relative; width: 100%; max-width: 400px; min-height: 480px; display: flex;
-  flex-direction: column; align-items: center; justify-content: center; padding: 30px 26px 22px;
-  border-radius: 22px; background: var(--bg); box-shadow: var(--shadow);
-  transform: translateY(14px) scale(.985); transition: transform .26s cubic-bezier(.22,.61,.36,1); }
-.signin-sheet.is-open .signin-inner { transform: none; }
-.sheet-close { position: absolute; top: 16px; left: 16px; width: 40px; height: 40px; display: inline-flex;
-  align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%;
-  background: var(--card); cursor: pointer; }
-.sheet-close svg { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
-.signin-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.signin-mark { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: var(--ink); }
-.signin-mark svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.signin-body h2 { margin: 22px 0 30px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
-.doors { width: 100%; display: flex; flex-direction: column; gap: 9px; }
-.door { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--hairline);
-  color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: background .14s ease; }
-.door:hover { background: #e4e8ec; }
-.otp-block { width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
-.legal { margin: 26px 0 0; max-width: 340px; color: var(--soft); font-size: 12px; line-height: 1.6; text-align: center; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
 @media (max-width: 900px) {
   .plan-grid { grid-template-columns: minmax(0, 1fr); }
   .plan-card { animation-delay: 0s; }
-  .signin-sheet { padding: 0; }
-  .signin-inner { max-width: none; min-height: 100%; border-radius: 0; justify-content: flex-start; padding-top: 84px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .plan-card { opacity: 1; transform: none; animation: none; }
   .plan-price strong.just-changed { animation: none; }
-  .signin-sheet, .signin-inner, .mode-toggle .knob, .mode-toggle .knob i, .door { transition: none; }
-  .signin-inner { transform: none; }
+  .mode-toggle .knob, .mode-toggle .knob i { transition: none; }
 }

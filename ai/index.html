@@ -33,7 +33,7 @@
       <a href="/privacy/">개인정보</a>
       <a href="/terms/">이용약관</a>
     </nav>
-    <button class="header-cta" type="button" id="account-button">로그인</button>
+    <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
   </header>
 
   <main class="ai-shell">
@@ -41,6 +41,7 @@
       <p class="ai-eyebrow">SIDEKICK AI 연결</p>
       <h1 id="page-title">내 AI를 프로젝트에 연결해요</h1>
       <p>쓰고 있는 AI 서비스에 로그인하거나 API 키를 넣으면, 고른 프로젝트의 AI 직원이 그 AI로 일해요. 연결 정보는 암호화해 사이드킥 서버에만 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
+      <p class="ai-who" id="ai-who" hidden></p>
     </section>
 
     <section class="ai-step" id="signin-step" aria-labelledby="signin-heading">
@@ -55,6 +56,7 @@
       <label class="ai-label" for="workspace-select">AI를 연결할 프로젝트</label>
       <select class="ai-select" id="workspace-select"></select>
       <p class="ai-status" id="workspace-status" aria-live="polite"></p>
+      <div class="ai-next" id="workspace-next" hidden></div>
     </section>
 
     <section class="ai-step" id="connections-step" aria-labelledby="connections-heading" hidden>

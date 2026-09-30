@@ -92,6 +92,12 @@
   const FALLBACK_COPY = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
   const TIMEOUT_COPY = '확인이 오래 걸려 기다리기를 멈췄어요. 연결됐는지 위 목록에서 확인해 주세요.';
   const WORKSPACES_FAILED_COPY = '프로젝트 목록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  // What to do next when there is nothing to connect yet. The web cannot create
+  // or prepare a project; the app can, so the page says so and offers the two
+  // things that do help from here.
+  const NO_PROJECT_COPY = '연결할 프로젝트가 아직 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기서 AI를 연결할 수 있어요.';
+  const NO_PROJECT_HINT = '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.';
+  const NOT_READY_HINT = '앱에서 이 프로젝트를 한 번 열면 준비돼요. 그다음 아래 다시 확인을 눌러 주세요.';
 
   const state = {
     user: null,
@@ -105,10 +111,18 @@
     busy: false,
     // Bumped by every reload, so a late answer cannot paint over a newer one.
     seq: 0,
+    // /account/ links here as /ai/?workspace=<id>. Read before the address bar
+    // is cleaned below; it only picks which project is selected first.
+    requestedWorkspace: readRequestedWorkspace(),
     returnedCode: readReturnedCode()
   };
 
   const $ = (id) => document.getElementById(id);
+
+  function readRequestedWorkspace() {
+    const id = String(new URLSearchParams(window.location.search).get('workspace') || '').trim();
+    return SAFE_ID.test(id) ? id : '';
+  }
 
   // OpenRouter returns with ?code=. It is read and taken out of the address bar
   // before anything else runs, so it never sits in history or a shared link.
@@ -146,6 +160,12 @@
     });
     (children || []).forEach((child) => { if (child) node.append(child); });
     return node;
+  }
+
+  // replaceChildren() turns a null child into the text "null", so every panel
+  // whose parts are optional is filled through here.
+  function fill(node, children) {
+    node.replaceChildren(...children.filter(Boolean));
   }
 
   function setStatus(id, message, isError) {
@@ -323,24 +343,51 @@
 
   // ---- Signed-in state -------------------------------------------------------
 
-  function renderAccount() {
-    const button = $('account-button');
-    button.textContent = signedIn() ? '로그아웃' : '로그인';
+  // Who is signed in, beside the page title. The header's account menu says the
+  // same and holds 로그아웃.
+  function renderWho() {
+    const node = $('ai-who');
+    const person = auth.account();
+    if (!person || !signedIn()) { node.hidden = true; node.replaceChildren(); return; }
+    const detail = person.email || person.phone || person.name;
+    fill(node, [el('strong', { text: person.phrase }), detail ? el('span', { text: detail }) : null]);
+    node.hidden = false;
   }
 
   function hideProjectSteps() {
     ['workspace-step', 'connections-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
+    showNext(null);
   }
 
   function showSignedOut() {
-    renderAccount();
+    renderWho();
     hideProjectSteps();
     $('signin-step').hidden = false;
   }
 
-  function signOutHere(message, isError = true) {
+  // The next step under the project picker, or nothing.
+  function showNext(parts) {
+    const node = $('workspace-next');
+    if (!parts) { node.hidden = true; node.replaceChildren(); return; }
+    fill(node, parts);
+    node.hidden = false;
+  }
+
+  function signInAgain() {
+    signOutHere('', false, true);
+    auth.open();
+  }
+
+  function recheckWorkspaces() {
+    if (!state.user || state.busy) return;
+    loadWorkspaces(++state.seq);
+  }
+
+  // The page's own reset. `server` is true only when the person asked to sign
+  // out; a token the server already refused has nothing left to revoke.
+  function signOutHere(message, isError = true, server = false) {
     closeFlow();
-    auth.signOut();
+    auth.signOut({ server, silent: true });
     state.seq += 1;
     state.user = null;
     state.workspaces = [];
@@ -353,7 +400,6 @@
 
   async function boot() {
     const seq = ++state.seq;
-    renderAccount();
     if (!signedIn()) {
       showSignedOut();
       if (state.returnedCode) setStatus('signin-status', '로그인하면 하던 AI 연결을 이어서 마칠게요.', false);
@@ -361,9 +407,11 @@
     }
     $('signin-step').hidden = true;
     setStatus('signin-status', '', false);
-    let user = null;
+    // /auth.js has already asked the server who this is on this page load; ask
+    // again only if that answer did not arrive.
+    let user = auth.user();
     try {
-      user = await auth.whoami();
+      if (!user) user = await auth.whoami();
     } catch (error) {
       if (seq !== state.seq) return;
       if (error.status === 401 || error.status === 423) { signOutHere(STATUS_COPY[error.status]); return; }
@@ -374,6 +422,7 @@
     if (seq !== state.seq) return;
     if (!user || !SAFE_ID.test(String(user.id || ''))) { signOutHere(STATUS_COPY[401]); return; }
     state.user = user;
+    renderWho();
     await loadWorkspaces(seq);
   }
 
@@ -397,11 +446,13 @@
     const pending = readPendingFlow();
     const wanted = [
       state.returnedCode && pending ? pending.workspace_id : '',
+      state.requestedWorkspace,
       readStore(WORKSPACE_KEY),
       (workspaces.find((workspace) => workspace.ready) || {}).id,
       (workspaces[0] || {}).id
     ].find((id) => id && workspaces.some((workspace) => workspace.id === id));
     state.workspaceId = wanted || '';
+    state.requestedWorkspace = '';
     renderWorkspaces();
     await loadWorkspaceData();
     if (state.returnedCode || pending) await completeReturnedFlow(pending);
@@ -428,14 +479,28 @@
     $('providers-step').hidden = true;
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
+    showNext(null);
     const workspace = currentWorkspace();
     if (!workspace) {
-      setStatus('workspace-status', '연결할 프로젝트가 아직 없어요. 프로젝트를 만들면 여기서 AI를 연결할 수 있어요.', false);
+      setStatus('workspace-status', NO_PROJECT_COPY, false);
+      showNext([
+        el('p', { text: NO_PROJECT_HINT }),
+        el('div', { className: 'ai-next-actions' }, [
+          el('button', { className: 'ai-button', type: 'button', text: '다른 방법으로 로그인', onClick: signInAgain }),
+          el('a', { className: 'ai-button secondary', href: '/support/', text: '도움말 보기' })
+        ])
+      ]);
       return;
     }
     writeStore(WORKSPACE_KEY, workspace.id);
     if (!workspace.ready) {
-      setStatus('workspace-status', CODE_COPY.AI_ENGINE_PROFILE_NOT_READY, true);
+      setStatus('workspace-status', CODE_COPY.AI_ENGINE_PROFILE_NOT_READY, false);
+      showNext([
+        el('p', { text: NOT_READY_HINT }),
+        el('div', { className: 'ai-next-actions' }, [
+          el('button', { className: 'ai-button secondary', type: 'button', text: '다시 확인', onClick: recheckWorkspaces })
+        ])
+      ]);
       return;
     }
     setStatus('workspace-status', '연결 정보를 불러오고 있어요.', false);
@@ -797,7 +862,7 @@
     const code = cleanText(started.user_code, 64);
     const copy = code ? el('button', { className: 'ai-button secondary', type: 'button', text: '코드 복사' }) : null;
     if (copy) copy.addEventListener('click', () => auth.copyText(code, copy));
-    $('connect-body').replaceChildren(
+    fill($('connect-body'), [
       el('p', { className: 'ai-note', text: code
         ? `${flow.provider.name} 로그인 페이지를 열어 아래 코드를 입력하면 연결돼요.`
         : `${flow.provider.name} 로그인 페이지에서 로그인하고 연결을 허용해 주세요.` }),
@@ -808,7 +873,7 @@
       el('div', { className: 'connect-actions' }, [openLoginPageButton(flow)]),
       requirementNote(flow),
       el('p', { className: 'ai-note', text: '로그인을 마치고 이 페이지로 돌아오면 바로 확인해요. 연결을 확인할 때 실제 테스트 답변을 한 번 받아 봐서 최대 3분까지 걸릴 수 있어요.' })
-    );
+    ]);
     setStatus('connect-status', '로그인을 기다리고 있어요.', false);
     flow.interval = Math.max(2, Number(started.poll_interval_seconds) || 5) * 1000;
     flow.expiresAt = Date.now() + Math.max(60, Number(started.expires_in_seconds) || 900) * 1000;
@@ -875,12 +940,12 @@
       if (!code) { setStatus('connect-status', CODE_COPY.AI_ENGINE_OAUTH_CODE_REQUIRED, true); return; }
       completeAccount(flow, code, '', [submit, input]);
     });
-    $('connect-body').replaceChildren(
+    fill($('connect-body'), [
       el('p', { className: 'ai-note', text: `${flow.provider.name} 로그인 페이지에서 로그인한 뒤, 화면에 나온 코드를 복사해 아래에 붙여넣어 주세요.` }),
       el('div', { className: 'connect-actions' }, [openLoginPageButton(flow)]),
       requirementNote(flow),
       form
-    );
+    ]);
     setStatus('connect-status', '', false);
   }
 
@@ -972,14 +1037,11 @@
   });
   $('connect-cancel').addEventListener('click', closeFlow);
   $('open-signin').addEventListener('click', () => auth.open());
-  $('account-button').addEventListener('click', () => {
-    if (signedIn()) signOutHere('로그아웃했어요.', false);
-    else auth.open();
-  });
 
-  renderAccount();
   auth.init({
     onSignedIn: () => boot(),
+    // 로그아웃 from the header menu: /auth.js has already ended the session.
+    onSignedOut: () => signOutHere('로그아웃했어요.', false),
     onNotice: (message, isError) => setStatus('signin-status', message, isError)
   }).then(() => boot());
 })();

@@ -19,6 +19,7 @@
   <meta name="theme-color" content="#f7f8fa" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="motion.css" />
+  <script src="/auth.js" defer></script>
 </head>
 <body class="landing">
 <header class="site-header">
@@ -29,7 +30,7 @@
     <a href="/privacy/">개인정보</a>
     <a href="/terms/">이용약관</a>
   </nav>
-  <a class="header-cta" href="/membership/">멤버십 구성</a>
+  <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
 </header>
 <main class="home">
 
@@ -254,7 +255,7 @@
     <div class="pricing-grid" id="plans" data-reveal-group>
       <article class="plan" data-plan="birdie" data-funding-selected="connected" data-reveal data-storage="5GB">
         <div class="plan-top">
-          <div class="plan-name">Birdie <em>추천</em><span class="plan-save" data-role="save" hidden></span></div>
+          <div class="plan-name">Birdie<span class="plan-save" data-role="save" hidden></span></div>
           <div class="seg" role="group" aria-label="Birdie AI 사용료">
             <button type="button" data-funding="included" aria-pressed="false">Sidekick AI</button>
             <button type="button" data-funding="connected" aria-pressed="true">내 AI 계정 연결 <em>더 저렴</em></button>
@@ -277,7 +278,7 @@
 
       <article class="plan" data-plan="eagle" data-funding-selected="connected" data-reveal data-storage="25GB">
         <div class="plan-top">
-          <div class="plan-name">Eagle<span class="plan-save" data-role="save" hidden></span></div>
+          <div class="plan-name">Eagle <em>추천</em><span class="plan-save" data-role="save" hidden></span></div>
           <div class="seg" role="group" aria-label="Eagle AI 사용료">
             <button type="button" data-funding="included" aria-pressed="false">Sidekick AI</button>
             <button type="button" data-funding="connected" aria-pressed="true">내 AI 계정 연결 <em>더 저렴</em></button>

@@ -41,6 +41,9 @@
   --dark-muted: #aab2bc;
   --shadow: 0 18px 50px rgba(26, 29, 33, 0.08);
   --shadow-sm: 0 4px 16px rgba(26, 29, 33, 0.06);
+  /* The sticky header's height, for anything that scrolls a heading into view
+     and must not land it under the bar. Redefined for the two-row phone bar. */
+  --header-h: 64px;
 }
 
 * { box-sizing: border-box; }
@@ -62,9 +65,10 @@ h1, h2, h3, h4 { text-wrap: balance; }
 
 /* Site shell — identical markup on every page, and one bar for all of them:
    full width, sticky, brand on the left, the menu beside it, and one thing on
-   the right (the membership call-to-action, or the account pill on the
-   membership page). The landing, the policies and the membership page used to
-   each draw their own, which read as three different sites. */
+   the right: the account slot. Signed out it reads 로그인 and opens the sign-in
+   sheet in place; signed in it reads 내 계정 and opens a small menu (/auth.js).
+   The landing, the policies and the membership page used to each draw their
+   own, and the right-hand slot used to be a different control on every page. */
 .site-header {
   position: sticky;
   top: 0;
@@ -85,9 +89,9 @@ h1, h2, h3, h4 { text-wrap: balance; }
 .brand { color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: -0.03em; white-space: nowrap; }
 .brand img { display: block; width: auto; height: 22px; }
 /* Account state is the last thing on a wide header and the first thing worth
-   seeing next to the brand on a narrow one, so it is ordered rather than
-   wrapped in a container the other pages do not have. */
-.account-pill { order: 3; margin-left: auto; }
+   seeing next to the brand on a narrow one: the same slot, right-aligned, on
+   every page. */
+.account-slot { order: 3; position: relative; flex: 0 0 auto; margin-left: auto; }
 .nav { display: flex; gap: 22px; flex-wrap: wrap; justify-content: flex-start; align-items: center; margin-left: 24px; margin-right: auto; }
 .nav a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; padding: 8px 0; }
 .nav a:hover { color: var(--ink); }
@@ -107,14 +111,93 @@ h1, h2, h3, h4 { text-wrap: balance; }
 }
 .header-cta:hover { background: #2b3036; color: #fff; }
 .account-pill {
-  padding: 6px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* 44px at every width: this is the one control every page shares. */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
   border-radius: 999px;
-  background: var(--warm);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
+  cursor: pointer;
 }
+.account-pill:hover { background: #2b3036; }
+.account-pill.is-signed-in { border-color: var(--line); background: var(--card); color: var(--ink); }
+.account-pill.is-signed-in:hover { border-color: #c9cfd6; background: var(--card); }
+/* A small chevron drawn from two borders: no icon file, no inline style. */
+.account-pill.is-signed-in::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg);
+}
+.account-pill[aria-expanded="true"]::after { margin-top: 3px; transform: rotate(-135deg); }
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: min(280px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.account-menu-who { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--hairline); }
+.account-menu-who strong { color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.4; }
+.account-menu-who span { color: var(--muted); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.account-menu-item:hover, .account-menu-item[aria-current="page"] { background: var(--sunken); color: var(--ink); }
+button.account-menu-item { color: var(--accent); }
+.auth-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 50;
+  width: max-content;
+  max-width: min(440px, calc(100vw - 32px));
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+  transform: translateX(-50%);
+}
+.auth-toast.is-error { background: var(--accent); }
+.account-menu[hidden], .auth-toast[hidden], .signin-sheet[hidden], .signin-sheet [hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .footer {
   border-top: 1px solid var(--line);
   margin-top: 48px;
@@ -185,11 +268,13 @@ ul, ol { padding-left: 22px; }
 li + li { margin-top: 8px; }
 @media (max-width: 700px) {
   /* Brand and account state share the first row; the menu takes the second one
-     rather than fighting them for the same 390px. */
-  .site-header { align-items: center; flex-wrap: wrap; row-gap: 10px; gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+     rather than fighting them for the same 390px. Two 44px rows and nothing
+     more: the bar is sticky, so every extra pixel is taken from every page. */
+  :root { --header-h: 104px; }
+  .site-header { align-items: center; flex-wrap: wrap; gap: 4px 12px; padding-top: 6px; padding-bottom: 6px; }
   .brand, .nav a, .footer a { min-height: 44px; display: inline-flex; align-items: center; }
-  .account-pill { order: 2; }
-  .nav { order: 3; width: 100%; gap: 10px 14px; justify-content: flex-start; margin-left: 0; }
+  .account-slot { order: 2; }
+  .nav { order: 3; width: 100%; gap: 0 14px; justify-content: flex-start; margin-left: 0; }
   .header-cta { order: 2; }
   .policy, .home { padding-top: 34px; }
   .hero { padding-top: 34px; }
@@ -200,6 +285,66 @@ li + li { margin-top: 8px; }
    forcing 44px on a mouse would just inflate the header. */
 @media (pointer: coarse) {
   .brand, .nav a, .footer a { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
+/* The sign-in sheet, one look on every page. /auth.js builds it on pages that
+   do not ship it; /membership/ and /ai/ carry the same markup in their HTML.
+   Scoped under .signin-sheet so its generic class names (.form-row, .legal)
+   cannot reach a page's own layout. The door buttons are reached through
+   their container: /v3/ owns a `door` class of its own. */
+.signin-sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(26, 29, 33, .34); opacity: 0; transition: opacity .22s ease;
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.signin-sheet.is-open { opacity: 1; }
+.signin-sheet button, .signin-sheet input { font: inherit; }
+.signin-inner { position: relative; width: 100%; max-width: 400px; min-height: 480px; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; padding: 30px 26px 22px;
+  border-radius: 22px; background: var(--bg); box-shadow: var(--shadow);
+  transform: translateY(14px) scale(.985); transition: transform .26s cubic-bezier(.22, .61, .36, 1); }
+.signin-sheet.is-open .signin-inner { transform: none; }
+.sheet-close { position: absolute; top: 16px; left: 16px; width: 44px; height: 44px; display: inline-flex;
+  align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%;
+  background: var(--card); cursor: pointer; }
+.sheet-close svg { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
+.signin-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.signin-mark { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--ink); }
+.signin-mark svg { width: 26px; height: 26px; fill: none; stroke: var(--card); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.signin-body h2 { margin: 22px 0 30px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+.signin-sheet .doors { width: 100%; display: flex; flex-direction: column; gap: 9px; }
+.signin-sheet .doors > button, .signin-sheet .otp-block > button { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--hairline);
+  color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: background .14s ease; }
+.signin-sheet .doors > button:hover, .signin-sheet .otp-block > button:hover { background: var(--line-soft); }
+.signin-sheet .otp-block { width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
+.signin-sheet .method-tabs { display: flex; gap: 6px; margin: 10px 0; }
+.signin-sheet .method-tabs button { flex: 1; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+.signin-sheet .method-tabs button.is-selected { border-color: var(--ink); color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.signin-body form { width: 100%; margin-top: 10px; }
+.signin-sheet .form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+.signin-sheet .form-row input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid var(--line); border-radius: 11px;
+  background: var(--card); color: var(--ink); }
+.signin-sheet .form-row button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: var(--ink-soft);
+  color: var(--card); font-size: 12px; font-weight: 750; cursor: pointer; }
+.signin-sheet .form-status, .signin-sheet .social-status { min-height: 18px; margin: 8px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
+.signin-sheet .form-status.is-error, .signin-sheet .social-status.is-error { color: var(--accent); }
+.signin-sheet .app-hint { margin: 14px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
+.signin-sheet .legal { margin: 26px 0 0; max-width: 340px; color: var(--soft); font-size: 12px; line-height: 1.6; text-align: center; }
+@media (max-width: 900px) {
+  .signin-sheet { padding: 0; }
+  .signin-inner { max-width: none; min-height: 100%; border-radius: 0; justify-content: flex-start; padding-top: 84px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .signin-sheet, .signin-inner, .signin-sheet .doors > button { transition: none; }
+  .signin-inner { transform: none; }
+}
+
+/* The 404 page GitHub Pages serves for any unknown address. */
+.notfound { max-width: 860px; margin: 0 auto; padding: 72px 22px 80px; }
+.notfound h1 { font-size: clamp(32px, 6vw, 48px); }
+.notfound .actions .button { min-height: 44px; }
+@media (max-width: 700px) {
+  .notfound { padding: 40px 16px 56px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
