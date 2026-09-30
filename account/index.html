@@ -1,13 +1,15 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMGMBQR225"></script>
   <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <link rel="stylesheet" href="/analytics.css" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- 이 페이지가 부르는 곳은 사이드킥 API와 개인정보 보호 설정의 Google Analytics뿐이다.
+  <!-- 이 페이지가 부르는 곳은 사이드킥 API와 명시적 동의 뒤의 PostHog뿐이다.
        Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않는다. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://*.google-analytics.com https://analytics.google.com; img-src 'self'; style-src 'self'; script-src 'self' https://www.googletagmanager.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' https://us-assets.i.posthog.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="사이드킥 계정, 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인하세요." />

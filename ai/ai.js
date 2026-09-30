@@ -683,6 +683,8 @@
     closeFlow();
     const flow = { provider, method, flowId: '', authorizationUrl: '', timer: null, inFlight: false, stopped: false };
     state.flow = flow;
+    try { window.SidekickWebAnalytics?.track('ai_provider_connect_started',
+      { provider: provider.id, connection_type: method.kind === 'account' ? 'oauth' : method.kind === 'free' ? 'none' : method.kind === 'cloud' ? 'cloud' : 'api_key' }); } catch (_) {}
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
     setStatus('connect-status', '', false);
@@ -817,6 +819,8 @@
   // ---- Account logins ---------------------------------------------------------------
 
   async function startAccount(flow) {
+    try { window.SidekickWebAnalytics?.track('ai_provider_oauth_started',
+      { provider: flow.provider.id, connection_type: flow.method.flow === 'device_code' ? 'device_code' : 'oauth' }); } catch (_) {}
     const body = $('connect-body');
     body.replaceChildren(el('p', { className: 'ai-note', text: `${flow.provider.name} 로그인을 준비하고 있어요.` }));
     let started;
