@@ -1,0 +1,208 @@
+{
+  "export_rules_sha256": "47806f95dd354a0e11124448f2b31c867a2622efbd3f57bf479c5b42300563c7",
+  "files": {
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "404.html": {
+      "bytes": 2502,
+      "sha256": "3b0a33f8de4b942f6daad7348efc042eb0c28457e211c8ebeaf5e25fdfb8ded5"
+    },
+    "CNAME": {
+      "bytes": 18,
+      "sha256": "f462a1a3a4e1374b29d19f66b5566c5a8ca3ddbbb67a14c1741884ff300a229c"
+    },
+    "account/account.css": {
+      "bytes": 4330,
+      "sha256": "782f9f486b5febcfe64da58661779562b75033f92c2dc11f786acfbc880a8231"
+    },
+    "account/account.js": {
+      "bytes": 15530,
+      "sha256": "1282a9407d1b24ec2f1eba46a04a7b8274a7422c9de19b91763c60e2abf6853f"
+    },
+    "account/index.html": {
+      "bytes": 6114,
+      "sha256": "56b78df772ce023a06bd536f356030643e6b15e45606cf1aeecbab266e999147"
+    },
+    "ai/ai.css": {
+      "bytes": 6908,
+      "sha256": "8bf7c895842a8a03735879755c73dd4476010417aef837ed086b83f26f2fec2b"
+    },
+    "ai/ai.js": {
+      "bytes": 52898,
+      "sha256": "9022fde48716aaf26ccd2f3b75ad4fc9e8caf95b8df8bb21c5369c64a9106e6e"
+    },
+    "ai/index.html": {
+      "bytes": 8940,
+      "sha256": "89adcd23fb77a0ceff2da34ffb1711171cafc61f28b583440c8053bedeb4f7a6"
+    },
+    "analytics.js": {
+      "bytes": 381,
+      "sha256": "1a9513a7aa3fbf7ab2a3a36089d93279ec26929ebba5cb06896503f74fe89495"
+    },
+    "app-mode.js": {
+      "bytes": 3698,
+      "sha256": "9d5ff3cb9d16fe97767cd5ba2aaecc216e3cab7eb309eb65e0fdd159cdce5641"
+    },
+    "assets/favicon.png": {
+      "bytes": 18785,
+      "sha256": "d2c74ffff9403277e5a18889f7176080ea1d141be1ad4f40d8f95e27a4bc9ba1"
+    },
+    "assets/landing-v2/film/ending-m.mp4": {
+      "bytes": 1023031,
+      "sha256": "4a177796c8800741e4b2a038b8dca9d928f6de724b1b34f80ad9f717128dfa8e"
+    },
+    "assets/landing-v2/film/ending-poster-m.jpg": {
+      "bytes": 53897,
+      "sha256": "ae9761dcdcab04a6f8e3037da156876010fd8abce438e637158fcd34bb9e0423"
+    },
+    "assets/landing-v2/film/ending-poster.jpg": {
+      "bytes": 48353,
+      "sha256": "74084de9fa23d719d64a998b95fc69ad240faa701a49aa8439d0bde6b56ad10c"
+    },
+    "assets/landing-v2/film/ending.mp4": {
+      "bytes": 1367708,
+      "sha256": "bc16532e5b86a26d62d3d179e40e9de868d0cbfb995e3d7283fbd2cd5f47bee6"
+    },
+    "assets/landing-v2/film/film-m.mp4": {
+      "bytes": 4530632,
+      "sha256": "dba24d2cde329d1e738292e7222e94626091de4007ab24e1ff731df2959d8991"
+    },
+    "assets/landing-v2/film/film-poster-m.jpg": {
+      "bytes": 49617,
+      "sha256": "b3d01e851fb847e0eb751b753cf882a1a52ac5f7a3f9355aa76f318620cd3ffb"
+    },
+    "assets/landing-v2/film/film-poster.jpg": {
+      "bytes": 54153,
+      "sha256": "ec2531f17fc6c7bdf3cf074e8ef511ee8a0b0af68a02e3ad55a861aeded204c5"
+    },
+    "assets/landing-v2/film/film.mp4": {
+      "bytes": 6173851,
+      "sha256": "64f2880499720996076963366b16f28a9fcc3e6ae643373b282bf4a7b5cf663c"
+    },
+    "assets/landing-v2/film/hero-m.mp4": {
+      "bytes": 1858010,
+      "sha256": "9f2e0ed78cee4782bbd78789c0ef8038989edb363511d6b1c685d374bc201acd"
+    },
+    "assets/landing-v2/film/hero-poster-m.jpg": {
+      "bytes": 42536,
+      "sha256": "dd19781390fc6454164ef21ada38acb89ba1e29b5ae1494e9eec155bb15987a3"
+    },
+    "assets/landing-v2/film/hero-poster.jpg": {
+      "bytes": 57643,
+      "sha256": "c1a2c12622200d9558d16f059b94cc97727049eaccff06cb0168ef7c844fa0ea"
+    },
+    "assets/landing-v2/film/hero.mp4": {
+      "bytes": 2775345,
+      "sha256": "cf2943fff6b793be0a51327c4c18f9fee91dc216ba3ff1e935d0420f01e60f94"
+    },
+    "assets/sidekick-wordmark.png": {
+      "bytes": 24396,
+      "sha256": "0ee2b24ee5ad969030baf458539cd488a2260c4fad7e3467fb1d94f619f7c19d"
+    },
+    "auth.js": {
+      "bytes": 52031,
+      "sha256": "32c8c5e358d3b1e0bfd0578516903ce4fb6898ad4d0004ba143a15dad0eb0d3d"
+    },
+    "delete-account/index.html": {
+      "bytes": 6479,
+      "sha256": "33b771f37c4fe4505e45210d1410c6c337ff7332249a0d2474f32edb90e76c6f"
+    },
+    "index.html": {
+      "bytes": 33515,
+      "sha256": "78b6b100540abb283b4a72cc08ae7297993b85dbae4f16953953b748e4d94009"
+    },
+    "landing.js": {
+      "bytes": 34456,
+      "sha256": "646c419ccd8f59fa5790b2ef18b088d063ed88f4b02d0421ce3c270d5545a2ea"
+    },
+    "membership/index.html": {
+      "bytes": 14910,
+      "sha256": "a8b3389afdc24422c51eacdfe6765bc19808871fd0160050103c87ec3d5faad2"
+    },
+    "membership/membership.css": {
+      "bytes": 15167,
+      "sha256": "e9a6e56a2d551c82c74acc8a5f9038f61adc77df98d5c0f195e8e6e102408e2c"
+    },
+    "membership/membership.js": {
+      "bytes": 28951,
+      "sha256": "cfda5df237bb641c3d9a767a4d07948aa91e4a10cd7610e647d136f1de26c173"
+    },
+    "motion.css": {
+      "bytes": 11677,
+      "sha256": "65899c7ac19dcd04335d4adb30acd7a102f7d56055cbe82906a3b99b2c592818"
+    },
+    "privacy/index.html": {
+      "bytes": 23179,
+      "sha256": "f2a2c0f9db8ca1aae570e4931111ce76f59f4ecd6236af6a6b271242e09326d7"
+    },
+    "robots.txt": {
+      "bytes": 71,
+      "sha256": "21e93c9a147521f0e35a294c01ee8249b8143ee56593bfec11298252f3642916"
+    },
+    "roles.json": {
+      "bytes": 18455,
+      "sha256": "3a68b20e5a1a2a22926496ed0ab3dea7bc326058d774f46c3b52ded96684bd44"
+    },
+    "sitemap.xml": {
+      "bytes": 1082,
+      "sha256": "760d4c1233bf554bb2392d44b3d3b0fc6f0ad8dcdd3204a2150aba178a69885d"
+    },
+    "styles.css": {
+      "bytes": 49384,
+      "sha256": "dea9f0f8b10093e8ead5b4d10081820872942b7579819dee2802b194aa08182f"
+    },
+    "support/index.html": {
+      "bytes": 6869,
+      "sha256": "f37d761a966dcd54d9dc8af4cb99020e5bb522d98a2d424b8d91a1ebcaeca4d2"
+    },
+    "terms/index.html": {
+      "bytes": 9711,
+      "sha256": "0b7ba7d2c0ba0919e7c39398e7dbe9ee7c22676d8b4aace729ce0b73eeaaa2e0"
+    },
+    "use.js": {
+      "bytes": 6479,
+      "sha256": "60aedbf01899c29c80711c807363578b18ea886639ffac16c3cbddf0df4d761b"
+    },
+    "use/blog/index.html": {
+      "bytes": 11748,
+      "sha256": "8d4b41a05c17b0553843383db571b0513824e798af2c161ad0676b3b1b2c268b"
+    },
+    "use/briefing/index.html": {
+      "bytes": 11273,
+      "sha256": "610bbca88f1cf4c391eeded427a9646c12b48b23e9129007d4f4f62030fe68b5"
+    },
+    "use/index.html": {
+      "bytes": 6388,
+      "sha256": "87e9c0ce66e8ada83d01cbea217b343bdfcbb1c82704c1fed047a1dd64ac123e"
+    },
+    "use/instagram/index.html": {
+      "bytes": 11649,
+      "sha256": "89112738c816f4c5b0f9dd610f85054a36d5f86d199ce0144cd485cf996645ec"
+    },
+    "use/price-watch/index.html": {
+      "bytes": 11200,
+      "sha256": "41e79f52618a4f223f13ea6863533ce74c3685538af1a4d47faf59c858aa8ba0"
+    },
+    "use/real-estate/index.html": {
+      "bytes": 11932,
+      "sha256": "5036ae2a1a2828e4053ffa0c8552c1f89e0754b76456f5bc668809b78e8a5cb2"
+    },
+    "use/store-cs/index.html": {
+      "bytes": 11939,
+      "sha256": "ca795a3cfcc6f7b355fd229098b3bd3c367630f3c612f1ac35d90c4987ca820c"
+    },
+    "use/tax/index.html": {
+      "bytes": 11594,
+      "sha256": "2273036e4f634dc175fbcd60f024124063b6cdab3aa7ba3116a0b9e28ebdcd2c"
+    },
+    "use/youtube/index.html": {
+      "bytes": 11659,
+      "sha256": "5cfc474af169d44bd0d7fb0edcf3226e4ddf8615efe5867e0dcd5f55df8599cc"
+    }
+  },
+  "schema_version": 1,
+  "source_repository": "injooinjoo/sidekick",
+  "source_sha": "21f0f521da09785b247df84a8c997dcac8dabed2"
+}
