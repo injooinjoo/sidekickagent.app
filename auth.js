@@ -390,6 +390,7 @@
   function signOut(options = {}) {
     const bearer = session.token;
     clearLocalSession();
+    try { window.SidekickWebAnalytics?.logout(options.server !== false && !options.silent)?.catch(() => {}); } catch (_) {}
     closeMenu(false);
     renderHeader();
     if (bearer && options.server !== false) {
@@ -498,6 +499,16 @@
     session.user = result && result.user && typeof result.user === 'object' ? result.user : null;
     session.source = cleanText(result && result.source, 40);
     session.checked = Boolean(session.user);
+    // Bind the optional preference exchange to the bearer that verified this
+    // account, including a later PUT after its GET. It cannot follow a tab's
+    // newly signed-in account while an earlier GET is still pending.
+    const verifiedToken = session.token;
+    try {
+      session.analyticsReady = window.SidekickWebAnalytics?.accountKnown(session.user,
+        (path, options = {}) => api(path, { ...options,
+          headers: { ...(options.headers || {}), Authorization: `Bearer ${verifiedToken}` } }))
+        ?.catch(() => {});
+    } catch (_) {}
     const id = session.user ? String(session.user.id || '') : '';
     const profile = session.profile;
     // A hint written for another account is not this person's.
@@ -742,6 +753,7 @@
   function open() {
     const sheet = ensureSheet();
     if (!sheet) return;
+    if (sheet.hidden) window.SidekickWebAnalytics?.track('login_started', { surface: 'web_auth' });
     closeMenu(false);
     sheetOpener = document.activeElement;
     sheet.hidden = false;
@@ -795,6 +807,13 @@
   async function finishSignIn() {
     close();
     session.checked = Boolean(session.user && session.user.id);
+    if (session.checked) {
+      const verifiedToken = session.token;
+      Promise.resolve(session.analyticsReady).then(() => {
+        if (session.checked && session.token === verifiedToken)
+          window.SidekickWebAnalytics?.track('login_completed', { surface: 'web_auth' });
+      }).catch(() => {});
+    }
     renderHeader();
     if (typeof hooks.onSignedIn === 'function') await hooks.onSignedIn(session.user);
     else showToast('로그인했어요.', false);

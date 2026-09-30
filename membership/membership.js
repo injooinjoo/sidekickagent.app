@@ -393,6 +393,7 @@
     render();
     try {
       // The backend derives the customerKey from the signed-in account. The
+      window.SidekickWebAnalytics?.track('subscription_started', { plan: state.plan, payment_provider: 'toss', billing_period: 'monthly' });
       // browser never chooses it, and it carries no amount or order: this
       // hand-off registers a card and cannot move money however it is edited.
       const intent = await api('/membership/toss/authorization', {
@@ -566,6 +567,17 @@
   if (requestedPlan && Object.prototype.hasOwnProperty.call(PLANS, requestedPlan)) state.plan = requestedPlan;
   const requestedFunding = query.get('funding');
   if (requestedFunding === 'included' || requestedFunding === 'connected') state.funding = requestedFunding;
+
+  // Keep the captured selection above. Remove only recognized public choices
+  // before the optional recorder starts; auth/billing keys and fragments stay
+  // untouched and keep the analytics gate closed.
+  const publicSelection = [...query.entries()];
+  if (!location.hash && publicSelection.length && publicSelection.every(([name, value]) =>
+    name === 'plan' ? Object.prototype.hasOwnProperty.call(PLANS, value)
+      : name === 'funding' ? ['included', 'connected'].includes(value)
+      : name === 'from' && value === 'app')) {
+    history.replaceState(history.state, '', location.pathname);
+  }
 
   render();
   // The Supabase redirect has to be adopted before anything asks the backend who
