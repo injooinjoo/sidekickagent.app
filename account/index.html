@@ -51,12 +51,11 @@
     <div id="account-view" hidden>
       <section class="account-card" aria-labelledby="profile-heading">
         <h2 id="profile-heading">계정</h2>
-        <dl class="account-rows">
-          <div><dt>로그인 방법</dt><dd id="profile-method"></dd></div>
-          <div id="profile-contact-row" hidden><dt id="profile-contact-label">이메일</dt><dd id="profile-contact"></dd></div>
-          <div><dt>계정 ID</dt><dd id="profile-id"></dd></div>
-        </dl>
+        <dl class="account-rows" id="profile-rows" hidden></dl>
+        <p class="account-status" id="profile-status" aria-live="polite">계정 정보를 불러오고 있어요.</p>
+        <div class="account-actions" id="profile-retry" hidden></div>
         <p class="account-note">앱과 다른 방법으로 로그인하면 다른 계정이 열릴 수 있어요. 앱에서 쓰는 방법으로 로그인했는지 확인해 주세요.</p>
+        <p class="account-note" id="profile-kept">공용 컴퓨터라면 다 쓴 뒤 로그아웃해 주세요.</p>
         <div class="account-actions">
           <button class="account-button secondary" type="button" id="signout-button">로그아웃</button>
         </div>

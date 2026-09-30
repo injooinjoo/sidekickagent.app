@@ -6,8 +6,11 @@
   // 로그아웃. Signed out, it is a sign-in gate on the shared sheet; Google and
   // Apple come back here (auth.js RETURN_PATHS).
   //
-  // It reads three routes and writes none: GET /auth/session (through
-  // auth.js), GET /membership/status and GET /workspaces/ai-engine-targets.
+  // It reads two routes and writes none. GET /account answers who is signed in
+  // -- how, the address or the masked phone number, the display name, since
+  // when, which ways in are linked -- and the membership summary, in one
+  // answer. GET /workspaces/ai-engine-targets lists the projects. No account id
+  // is shown: a phone account's id carries the whole number.
   // It sells nothing -- there is no purchase or checkout path here -- and the
   // only way off it to a store or a web subscription is the `manage_url` the
   // server derived for a paid membership the person already holds.
@@ -22,6 +25,7 @@
   // these are the only hosts it may point at.
   const MANAGE_HOSTS = ['apps.apple.com', 'play.google.com', 'sidekickagent.app'];
   const NETWORK_COPY = auth.NETWORK_COPY;
+  const ACCOUNT_FAILED_COPY = '계정 정보를 불러오지 못했어요.';
   const MEMBERSHIP_FAILED_COPY = '멤버십 상태를 불러오지 못했어요.';
   const PROJECTS_FAILED_COPY = '프로젝트 목록을 불러오지 못했어요.';
   const EXPIRED_COPY = '로그인이 만료됐어요. 다시 로그인해 주세요.';
@@ -65,6 +69,12 @@
     return new Date(value * 1000).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
+  // `created_at` is an ISO timestamp; anything else shows nothing.
+  function dayOf(iso) {
+    const value = Date.parse(cleanText(iso, 64));
+    return Number.isFinite(value) ? dateOf(value / 1000) : '';
+  }
+
   function retryButton(text, handler) {
     return el('button', { className: 'account-button secondary', type: 'button', text, onClick: handler });
   }
@@ -79,23 +89,60 @@
     setStatus('gate-status', message || '', isError);
   }
 
-  // A 401 on any read: the session ended while this page was open.
-  function sessionEnded() {
+  // A 401/403 on any read: the session ended while this page was open. 423:
+  // the account is being deleted.
+  function sessionEnded(message) {
     auth.signOut({ server: false, silent: true });
-    showGate(EXPIRED_COPY, true);
+    showGate(message || EXPIRED_COPY, true);
+  }
+
+  function refused(error) {
+    if (error.status === 401 || error.status === 403) { sessionEnded(EXPIRED_COPY); return true; }
+    if (error.status === 423) { sessionEnded(auth.DELETION_PENDING_COPY); return true; }
+    return false;
   }
 
   // ---- Signed in ----------------------------------------------------------------
 
-  function renderProfile(person, user) {
-    const id = String(user && user.id ? user.id : person.id || '');
-    $('profile-method').textContent = person.methodLabel || '확인하지 못했어요';
-    const contact = person.email || person.phone;
-    $('profile-contact-row').hidden = !contact;
-    $('profile-contact-label').textContent = person.email ? '이메일' : '휴대폰 번호';
-    $('profile-contact').textContent = contact;
-    $('profile-id').textContent = person.shortId || id;
-    $('profile-id').title = id;
+  // Only the fields the page shows, each checked. A phone number only as the
+  // server masked it.
+  function sanitizeAccount(value) {
+    if (!value || typeof value !== 'object' || !SAFE_ID.test(String(value.id || ''))) return null;
+    const email = cleanText(value.email, 254);
+    const phone = cleanText(value.phone_masked, 32);
+    const identities = Array.isArray(value.identities) ? value.identities : [];
+    return {
+      method: cleanText(value.method, 40),
+      email: email.includes('@') ? email : '',
+      phoneMasked: /^[0-9*+ -]{4,32}$/.test(phone) && phone.includes('*') ? phone : '',
+      displayName: cleanText(value.display_name, 80),
+      joined: dayOf(value.created_at),
+      linked: [...new Set(identities.map((method) => auth.methodLabel(cleanText(method, 40))).filter(Boolean))],
+      membership: value.membership && typeof value.membership === 'object' ? value.membership : null
+    };
+  }
+
+  function renderProfile(account) {
+    const rows = [['로그인 방법', auth.methodLabel(account.method) || '확인하지 못했어요']];
+    if (account.email) rows.push(['이메일', account.email]);
+    if (account.phoneMasked) rows.push(['휴대폰 번호', account.phoneMasked]);
+    if (account.displayName) rows.push(['표시 이름', account.displayName]);
+    if (account.joined) rows.push(['가입일', account.joined]);
+    if (account.linked.length) rows.push(['연결된 로그인 방법', account.linked.join(' · ')]);
+    fill($('profile-rows'), rows.map(([label, value]) => el('div', {}, [el('dt', { text: label }), el('dd', { text: value })])));
+    $('profile-rows').hidden = false;
+    setStatus('profile-status', '', false);
+    $('profile-retry').hidden = true;
+    renderKept();
+  }
+
+  // How long this browser keeps the sign-in, said where 로그아웃 is.
+  function renderKept() {
+    const person = auth.account();
+    const until = person ? dateOf(person.expiresAt) : '';
+    $('profile-kept').textContent = until
+      ? `이 브라우저에서는 ${until}까지 로그인이 유지돼요. 공용 컴퓨터라면 다 쓴 뒤 로그아웃해 주세요.`
+      : '공용 컴퓨터라면 다 쓴 뒤 로그아웃해 주세요.';
   }
 
   function manageLink(membership) {
@@ -152,28 +199,39 @@
     setStatus('membership-status', '', false);
   }
 
-  async function loadMembership(seq) {
+  // One GET /account fills the account card and the membership card.
+  async function loadAccount(seq) {
+    $('profile-rows').hidden = true;
+    $('profile-retry').hidden = true;
     $('membership-rows').hidden = true;
     $('membership-note').hidden = true;
     $('membership-actions').hidden = true;
+    setStatus('profile-status', '계정 정보를 불러오고 있어요.', false);
     setStatus('membership-status', '멤버십 상태를 불러오고 있어요.', false);
-    let membership = null;
+    let answer = null;
     try {
-      membership = await api('/membership/status', { method: 'GET' });
+      answer = await api('/account', { method: 'GET' });
     } catch (error) {
       if (seq !== state.seq) return;
-      if (error.status === 401) { sessionEnded(); return; }
+      if (refused(error)) return;
+      setStatus('profile-status', error.network ? NETWORK_COPY : ACCOUNT_FAILED_COPY, true);
+      fill($('profile-retry'), [retryButton('다시 불러오기', () => loadAccount(state.seq))]);
+      $('profile-retry').hidden = false;
       setStatus('membership-status', error.network ? NETWORK_COPY : MEMBERSHIP_FAILED_COPY, true);
-      fill($('membership-actions'), [retryButton('다시 불러오기', () => loadMembership(state.seq))]);
-      $('membership-actions').hidden = false;
       return;
     }
     if (seq !== state.seq) return;
-    if (!membership || typeof membership !== 'object') {
+    const account = sanitizeAccount(answer);
+    if (!account) {
+      setStatus('profile-status', ACCOUNT_FAILED_COPY, true);
       setStatus('membership-status', MEMBERSHIP_FAILED_COPY, true);
       return;
     }
-    renderMembership(membership);
+    // The header menu says what this card says.
+    auth.learnAccount(answer);
+    renderProfile(account);
+    if (account.membership) renderMembership(account.membership);
+    else setStatus('membership-status', MEMBERSHIP_FAILED_COPY, true);
   }
 
   function sanitizeWorkspaces(value) {
@@ -221,7 +279,7 @@
       workspaces = sanitizeWorkspaces(await api('/workspaces/ai-engine-targets', { method: 'GET' }));
     } catch (error) {
       if (seq !== state.seq) return;
-      if (error.status === 401) { sessionEnded(); return; }
+      if (refused(error)) return;
       setStatus('projects-status', error.network ? NETWORK_COPY : PROJECTS_FAILED_COPY, true);
       fill($('projects-next'), [retryButton('다시 불러오기', () => loadProjects(state.seq))]);
       $('projects-next').hidden = false;
@@ -254,27 +312,13 @@
       showGate(notice ? notice.message : '', notice ? notice.isError : false);
       return;
     }
+    // /auth.js has already checked the stored session with the server on this
+    // page load; GET /account answers again, with everything this page shows.
+    state.notice = null;
     $('account-gate').hidden = true;
-    $('account-loading').hidden = false;
-    setStatus('account-loading', '계정을 확인하고 있어요.', false);
-    // /auth.js has asked the server who this is on this page load; ask again
-    // only if that answer did not arrive.
-    let user = auth.user();
-    try {
-      if (!user) user = await auth.whoami();
-    } catch (error) {
-      if (seq !== state.seq) return;
-      if (error.status === 401 || error.status === 403) { sessionEnded(); return; }
-      setStatus('account-loading', error.network ? NETWORK_COPY : '계정을 확인하지 못했어요.', true);
-      $('account-loading').append(' ', retryButton('다시 시도', () => boot()));
-      return;
-    }
-    if (seq !== state.seq) return;
-    if (!user || !SAFE_ID.test(String(user.id || ''))) { sessionEnded(); return; }
     $('account-loading').hidden = true;
     $('account-view').hidden = false;
-    renderProfile(auth.account() || {}, user);
-    await Promise.all([loadMembership(seq), loadProjects(seq)]);
+    await Promise.all([loadAccount(seq), loadProjects(seq)]);
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());
@@ -285,8 +329,8 @@
     onSignedOut: () => showGate('로그아웃했어요.', false),
     onNotice: (message, isError) => {
       state.notice = { message, isError };
-      if (auth.token()) setStatus('account-loading', message, isError);
-      else showGate(message, isError);
+      if (!auth.token()) showGate(message, isError);
+      else setStatus($('account-view').hidden ? 'account-loading' : 'profile-status', message, isError);
     }
   }).then(() => boot());
 })();

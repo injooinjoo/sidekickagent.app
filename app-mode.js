@@ -1,0 +1,82 @@
+(function () {
+  'use strict';
+
+  // In-app mode for the four policy pages the iOS app opens (privacy, terms,
+  // support, delete-account). The app opens them with ?in_app=1; this tab then
+  // remembers the mode (sessionStorage), so a policy link followed from here
+  // stays in it too.
+  //
+  // In this mode the page is the policy and nothing that leads further into the
+  // site: no header menu, no account slot or its menu (which reaches /ai/), no
+  // wordmark link home, and no link to /, /membership/, /ai/, /account/ or /use/
+  // anywhere. What stays: the policy text, links among the four policy pages,
+  // mailto links, and references outside sidekickagent.app that the policy
+  // itself cites. App Review reads a policy page opened from the app as part of
+  // the app, and a web checkout or web AI-account login two taps away from it
+  // is steering (owner decision 2026-09-29/30).
+  //
+  // Loaded first in <head> as a plain file: no inline script, so the page's
+  // CSP is unchanged. The class goes on <html> at once, before the body is
+  // drawn, and /styles.css hides the header chrome from that first paint. Once
+  // the page is parsed the chrome is taken out of the document, before
+  // /auth.js (deferred) binds the account slot: with no slot, auth.js builds
+  // neither its menu nor its sheet. Without in_app nothing here runs and the
+  // page keeps its header and footer.
+  var MODE_KEY = 'sidekick_in_app';
+  var POLICY_PATHS = ['/privacy/', '/terms/', '/support/', '/delete-account/'];
+  var SITE_HOSTS = ['sidekickagent.app', 'www.sidekickagent.app'];
+  var CHROME = ['.nav', '.account-slot', '.account-menu'];
+
+  function remembered() {
+    try { return window.sessionStorage.getItem(MODE_KEY) === '1'; } catch (_) { return false; }
+  }
+
+  function remember() {
+    try { window.sessionStorage.setItem(MODE_KEY, '1'); } catch (_) { /* the link parameter below still carries it */ }
+  }
+
+  var asked = false;
+  try { asked = new URLSearchParams(window.location.search).get('in_app') === '1'; } catch (_) { asked = false; }
+  if (asked) remember();
+  if (!asked && !remembered()) return;
+  document.documentElement.classList.add('in-app');
+
+  function ownSite(url) {
+    return url.host === window.location.host || SITE_HOSTS.indexOf(url.hostname) !== -1;
+  }
+
+  // A link that must not lead anywhere keeps its words but stops being a link.
+  function unlink(link) {
+    link.removeAttribute('href');
+    link.removeAttribute('target');
+  }
+
+  function strip() {
+    CHROME.forEach(function (selector) {
+      Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function (node) { node.remove(); });
+    });
+    Array.prototype.slice.call(document.querySelectorAll('a[href]')).forEach(function (link) {
+      var href = link.getAttribute('href') || '';
+      if (href.charAt(0) === '#') return;
+      var url;
+      try { url = new URL(href, window.location.href); } catch (_) { unlink(link); return; }
+      if (url.protocol === 'mailto:') return;
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') { unlink(link); return; }
+      if (!ownSite(url)) return;
+      if (POLICY_PATHS.indexOf(url.pathname) !== -1) {
+        url.searchParams.set('in_app', '1');
+        link.setAttribute('href', url.pathname + url.search + url.hash);
+        return;
+      }
+      if (link.closest('.footer')) { link.remove(); return; }
+      if (link.classList.contains('brand')) {
+        var mark = link.querySelector('img');
+        if (mark) mark.setAttribute('alt', '사이드킥');
+      }
+      unlink(link);
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', strip);
+  else strip();
+})();

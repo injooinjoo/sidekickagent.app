@@ -9,7 +9,8 @@
   // returns here), the key and cloud forms, and the project's connections with
   // their model choice and disconnect. No secret stays on this page: a key goes
   // out once in a request body, and nothing this page keeps in sessionStorage is
-  // a token or a code.
+  // a token or a code. After a ChatGPT sign-in it also offers to make that same
+  // ChatGPT account the project's AI (auth.js holds the one-time claim).
   const auth = window.SidekickAuth;
   const { api } = auth;
   // OpenRouter sends the person back here with ?code=. The backend is told this
@@ -98,6 +99,13 @@
   const NO_PROJECT_COPY = '연결할 프로젝트가 아직 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기서 AI를 연결할 수 있어요.';
   const NO_PROJECT_HINT = '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.';
   const NOT_READY_HINT = '앱에서 이 프로젝트를 한 번 열면 준비돼요. 그다음 아래 다시 확인을 눌러 주세요.';
+  // What ends a ChatGPT sign-in's claim for good (POST /ai-engine/login-handoff/claim):
+  // spent, emptied, expired or changed. Anything else leaves the offer up to try again.
+  const HANDOFF_SPENT_COPY = {
+    AI_ENGINE_HANDOFF_ALREADY_CLAIMED: '이 ChatGPT 계정은 이미 연결했어요.',
+    AI_ENGINE_HANDOFF_EMPTY: '로그인한 ChatGPT 계정 정보가 남아 있지 않아요. 아래에서 ChatGPT를 직접 연결해 주세요.'
+  };
+  const HANDOFF_EXPIRED_COPY = '로그인한 ChatGPT 계정으로 연결할 수 있는 시간이 지났어요. 아래에서 ChatGPT를 직접 연결해 주세요.';
 
   const state = {
     user: null,
@@ -355,7 +363,7 @@
   }
 
   function hideProjectSteps() {
-    ['workspace-step', 'connections-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
+    ['workspace-step', 'handoff-step', 'connections-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
     showNext(null);
   }
 
@@ -475,6 +483,7 @@
   async function loadWorkspaceData() {
     const seq = ++state.seq;
     closeFlow();
+    $('handoff-step').hidden = true;
     $('connections-step').hidden = true;
     $('providers-step').hidden = true;
     setStatus('connections-status', '', false);
@@ -520,6 +529,7 @@
     setStatus('workspace-status', '', false);
     renderConnections();
     renderProviders();
+    renderHandoffOffer();
   }
 
   async function reloadConnections() {
@@ -1028,6 +1038,64 @@
     await completeAccount(flow, code, CALLBACK_URL, []);
   }
 
+  // ---- The ChatGPT account the person just signed in with --------------------------
+
+  // Offered for the selected project once it is ready, and only to the account
+  // that signed in (auth.js checks both the tab and the account). The claim
+  // checks the account with one real answer before it is saved, like every
+  // other connection on this page.
+  function renderHandoffOffer() {
+    const workspace = currentWorkspace();
+    const offer = state.user && workspace && workspace.ready ? auth.chatGptHandoff() : null;
+    if (!offer) { $('handoff-step').hidden = true; return; }
+    $('handoff-note').textContent = `방금 로그인한 ChatGPT 계정을 ‘${workspace.name}’ 프로젝트의 AI로 바로 연결할 수 있어요. ChatGPT에 다시 로그인하지 않아도 돼요.`;
+    $('handoff-proof').textContent = PROOF_NOTE;
+    setStatus('handoff-status', '', false);
+    $('handoff-step').hidden = false;
+  }
+
+  function dropHandoff(message, isError) {
+    auth.forgetChatGptHandoff();
+    $('handoff-step').hidden = true;
+    setStatus('handoff-status', '', false);
+    if (message) setStatus('providers-status', message, isError);
+  }
+
+  async function claimHandoff() {
+    const offer = auth.chatGptHandoff();
+    const workspace = currentWorkspace();
+    if (!offer || !state.user || !workspace || !workspace.ready || state.busy) return;
+    const controls = [$('handoff-connect'), $('handoff-dismiss')];
+    const workspaceId = workspace.id;
+    setBusy(true, controls);
+    setStatus('handoff-status', PROOF_PROGRESS, false);
+    let result = null;
+    try {
+      result = await longCall('/ai-engine/login-handoff/claim', {
+        method: 'POST',
+        body: JSON.stringify({ ...scope(), state: offer.state, code: offer.code })
+      });
+    } catch (error) {
+      setBusy(false, controls);
+      if (error.status === 401) { showFailure(error, 'handoff-status'); return; }
+      if (HANDOFF_SPENT_COPY[error.code]) { dropHandoff(HANDOFF_SPENT_COPY[error.code], error.code !== 'AI_ENGINE_HANDOFF_ALREADY_CLAIMED'); }
+      else if (error.status === 400 || error.status === 410 || (error.status === 409 && !CODE_COPY[error.code])) { dropHandoff(HANDOFF_EXPIRED_COPY, true); }
+      else setStatus('handoff-status', errorCopy(error), true);
+      if (state.user && workspaceId === state.workspaceId) await reloadConnections();
+      return;
+    }
+    setBusy(false, controls);
+    dropHandoff('', false);
+    const connection = result && result.connection;
+    setStatus('connections-status', connection && connection.status === 'needs_reconnect'
+      ? 'ChatGPT 연결을 저장했지만 다시 연결이 필요해요. 아래에서 한 번 더 연결해 주세요.'
+      : 'ChatGPT 연결됐어요. 이 프로젝트의 새 업무부터 이 AI로 일해요.', false);
+    if (!state.user || workspaceId !== state.workspaceId) return;
+    await reloadConnections();
+    renderProviders();
+    smoothScroll($('connections-step'));
+  }
+
   // ---- Wiring ----------------------------------------------------------------------
 
   $('workspace-select').addEventListener('change', (event) => {
@@ -1037,11 +1105,19 @@
   });
   $('connect-cancel').addEventListener('click', closeFlow);
   $('open-signin').addEventListener('click', () => auth.open());
+  $('handoff-connect').addEventListener('click', claimHandoff);
+  $('handoff-dismiss').addEventListener('click', () => dropHandoff('', false));
 
   auth.init({
     onSignedIn: () => boot(),
-    // 로그아웃 from the header menu: /auth.js has already ended the session.
-    onSignedOut: () => signOutHere('로그아웃했어요.', false),
+    // 로그아웃 from the header menu, in another tab, or an expiry: /auth.js has
+    // already ended the session. What this page kept for this tab (the chosen
+    // project, a login waiting on a redirect) belonged to that account.
+    onSignedOut: () => {
+      writeStore(WORKSPACE_KEY, '');
+      writeStore(FLOW_KEY, '');
+      signOutHere('로그아웃했어요.', false);
+    },
     onNotice: (message, isError) => setStatus('signin-status', message, isError)
   }).then(() => boot());
 })();

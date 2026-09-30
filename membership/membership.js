@@ -1,9 +1,9 @@
 (() => {
   'use strict';
 
-  // Sign-in lives in /auth.js, shared with /ai/: the same doors the app offers
-  // (Google, Apple, ChatGPT, email and phone code), the same bearer under the
-  // same sessionStorage key, and the one `api()` every call here goes through.
+  // Sign-in lives in /auth.js, shared with every page: the same doors the app
+  // offers (Google, Apple, ChatGPT, email and phone code), the same 30-day
+  // session this browser keeps, and the one `api()` every call here goes through.
   // No auth SDK is loaded — this page takes card details next door and every
   // extra third-party script on it is a liability.
   const auth = window.SidekickAuth;
@@ -364,8 +364,10 @@
   $('open-signin').addEventListener('click', () => openSignin(null));
 
   // 로그인 직후 확인 화면을 한 장 더 끼우지 않는다: 고른 플랜 그대로
-  // 토스 결제창이 바로 열린다.
-  async function afterSignIn() {
+  // 토스 결제창이 바로 열린다. 다른 탭에서 로그인한 것이면 이 탭은 화면만
+  // 따라가고, 여기서 누르다 만 구매를 대신 시작하지 않는다.
+  async function afterSignIn(user, context) {
+    if (context && context.otherTab) pendingPurchase = null;
     state.token = auth.token();
     state.user = auth.user();
     closeSignin();

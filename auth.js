@@ -7,16 +7,22 @@
   // account page, AI 연결 and 로그아웃. /membership/, /ai/ and /account/ also
   // use the sheet and the one `api()` for their own calls.
   //
-  // The doors are the ones the app offers, the backend is the same, and the
-  // bearer is kept under one sessionStorage key, so signing in on one page
-  // carries to the others in the same tab. The token lives only there -- never
-  // in a URL, never in localStorage -- and goes out only as an Authorization
-  // header.
+  // The doors are the ones the app offers, and the backend is the same.
   //
-  // Google and Apple are Supabase logins in the app, and the backend accepts a
-  // Supabase JWT as a bearer for any authenticated route. No SDK is loaded: just
-  // a redirect to Supabase's authorize endpoint and a token read back out of the
-  // URL fragment, which is cleared at once.
+  // A sign-in lasts 30 days in this browser (owner decision 2026-09-30, "30일
+  // 유지"): across pages, tabs and restarts, until it expires or the person
+  // signs out. The one credential kept is the Sidekick session token the
+  // backend minted, with its expiry, under one localStorage key (beside it
+  // only a display hint: which door, which address). Never a Supabase token or
+  // refresh token, never in a URL; it goes out only as an Authorization header. Every page load asks the server whether it still
+  // holds, and 로그아웃 in one tab signs every open tab out (the storage event).
+  //
+  // Google and Apple are Supabase logins in the app. No SDK is loaded: a
+  // redirect to Supabase's authorize endpoint, and an access token read back
+  // out of the URL fragment, which is cleared at once. That token lasts about
+  // an hour, so it is not kept: it is presented once, from memory, to POST
+  // /auth/session/exchange, which answers with a 30-day Sidekick session on the
+  // same account -- what an email, phone or ChatGPT sign-in already hands over.
   const API_ORIGIN = 'https://api.sidekickagent.app';
   const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
   const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
@@ -28,18 +34,40 @@
   const RETURN_URL = 'https://sidekickagent.app/membership/';
   const RETURN_PATHS = ['/ai/', '/account/'];
   const DEFAULT_RETURN_PATH = '/account/';
+  // Per tab (sessionStorage): where a Google/Apple sign-in started, and a
+  // message to say on the page it comes back to.
   const RETURN_KEY = 'sidekick_web_return_path';
   const NOTICE_KEY = 'sidekick_web_auth_notice';
-  const TOKEN_KEY = 'sidekick_web_access_token';
+  // The session (localStorage): {token, expires_at}, one JSON value, so another
+  // tab never reads a token without its expiry.
+  const SESSION_KEY = 'sidekick_web_session';
+  // Where the bearer lived before the 30-day session (sessionStorage, per tab).
+  // Read once at start, moved into SESSION_KEY or traded, and removed.
+  const LEGACY_TOKEN_KEY = 'sidekick_web_access_token';
   // What the person signed in with and the address the sign-in answer named,
   // for display only: "Google로 로그인했어요 · a@b.com". Never a token or a
-  // code, and cleared with the token.
+  // code, kept beside the session (localStorage) and cleared with it.
   const PROFILE_KEY = 'sidekick_web_account_hint';
+  // A ChatGPT sign-in's one-time claim on its own account as a project's AI
+  // (sessionStorage, per tab): see keepChatGptHandoff().
+  const HANDOFF_KEY = 'sidekick_web_chatgpt_handoff';
+  // The server keeps the account for a day (CHATGPT_LOGIN_HANDOFF_SECONDS);
+  // the page stops offering it a little before that.
+  const HANDOFF_MAX_AGE_MS = 23 * 60 * 60 * 1000;
+  // Every token the backend mints names this issuer (login.py
+  // _issue_sidekick_session_token). Only such a token is ever kept: a Supabase
+  // token names Supabase and so can never reach storage.
+  const SIDEKICK_ISSUER = 'sidekick-auth';
+  // The backend's session lifetime. Nothing is kept longer, whatever an answer says.
+  const MAX_SESSION_SECONDS = 30 * 24 * 60 * 60;
+  // setTimeout holds a delay of at most 2^31-1 ms (about 24.8 days).
+  const MAX_TIMER_MS = 2147483000;
   // 32 random bytes are 43 base64url characters: inside the server's
   // ^[A-Za-z0-9_-]{32,128}$ for a ChatGPT sign-in's app_state.
   const APP_STATE_BYTES = 32;
   const NETWORK_COPY = '서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.';
   const SOCIAL_FAILED_COPY = '로그인이 완료되지 않았어요. 다시 시도해 주세요.';
+  const EXCHANGE_FAILED_COPY = '로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.';
   const EXPIRED_COPY = '로그인이 만료돼 로그아웃했어요. 다시 로그인해 주세요.';
   const DELETION_PENDING_COPY = '계정 삭제가 진행 중이라 로그인할 수 없어요. 30일 안에는 앱에서 되돌릴 수 있어요.';
   const CHECK_FAILED_COPY = '계정을 확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
@@ -50,7 +78,8 @@
     phone: { label: '휴대폰', inputType: 'tel', autocomplete: 'tel', placeholder: '010-1234-5678' }
   };
   // How each way in is named to the person. `supabase` is Google or Apple when
-  // the page no longer knows which door was pressed.
+  // the page no longer knows which door was pressed; `unknown` is the server's
+  // word for the same (GET /account, POST /auth/session/exchange).
   const METHOD_PHRASES = {
     google: 'Google로 로그인했어요',
     apple: 'Apple로 로그인했어요',
@@ -58,11 +87,13 @@
     email: '이메일로 로그인했어요',
     phone: '휴대폰 번호로 로그인했어요',
     kakao: '카카오로 로그인했어요',
-    supabase: 'Google 또는 Apple로 로그인했어요'
+    naver: '네이버로 로그인했어요',
+    supabase: 'Google 또는 Apple로 로그인했어요',
+    unknown: 'Google 또는 Apple로 로그인했어요'
   };
   const METHOD_LABELS = {
     google: 'Google', apple: 'Apple', chatgpt: 'ChatGPT', email: '이메일', phone: '휴대폰 번호',
-    kakao: '카카오', supabase: 'Google 또는 Apple'
+    kakao: '카카오', naver: '네이버', supabase: 'Google 또는 Apple', unknown: 'Google 또는 Apple'
   };
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
 
@@ -109,13 +140,130 @@
     '</div>'
   ].join('');
 
+  const $ = (id) => document.getElementById(id);
+
+  // ---- Storage -----------------------------------------------------------------
+  //
+  // `local` is the 30-day session and its display hint; `tab` is what belongs to
+  // one tab's journey. Either may be refused (a private window, a blocked
+  // site): the page still works for this visit, it just does not remember.
+
+  function storageArea(kind) {
+    try { return kind === 'local' ? window.localStorage : window.sessionStorage; } catch (_) { return null; }
+  }
+
+  function readArea(kind, key) {
+    const area = storageArea(kind);
+    try { return (area && area.getItem(key)) || ''; } catch (_) { return ''; }
+  }
+
+  function writeArea(kind, key, value) {
+    const area = storageArea(kind);
+    try {
+      if (!area) return;
+      if (value) area.setItem(key, value);
+      else area.removeItem(key);
+    } catch (_) { /* storage refused: this visit still works */ }
+  }
+
+  function readLocal(key) { return readArea('local', key); }
+  function writeLocal(key, value) { writeArea('local', key, value); }
+  function readTab(key) { return readArea('tab', key); }
+  function writeTab(key, value) { writeArea('tab', key, value); }
+
+  function nowSeconds() {
+    return Math.floor(Date.now() / 1000);
+  }
+
+  // What a JWT says about itself, unverified. Only `iss` and `exp` are read,
+  // and only to decide whether a token may be kept and until when; who the
+  // person is stays the server's answer.
+  function tokenClaims(token) {
+    const part = String(token || '').split('.')[1] || '';
+    if (!/^[A-Za-z0-9_-]+$/.test(part)) return null;
+    try {
+      const claims = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((part.length + 3) % 4)));
+      return claims && typeof claims === 'object' ? claims : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function isSidekickToken(token) {
+    const claims = tokenClaims(token);
+    return Boolean(claims && claims.iss === SIDEKICK_ISSUER);
+  }
+
+  // When a sign-in stops being kept: the server's `expires_at`, else the
+  // token's own `exp`, else now plus the lifetime the server named -- and never
+  // later than 30 days from now. 0 when nothing says.
+  function expiryOf(token, answer) {
+    const now = nowSeconds();
+    const said = answer && typeof answer === 'object' ? answer : {};
+    const claims = tokenClaims(token) || {};
+    const at = [Number(said.expires_at), Number(claims.exp), now + Number(said.expires_in_seconds)]
+      .find((value) => Number.isFinite(value) && value > now);
+    return at ? Math.min(Math.floor(at), now + MAX_SESSION_SECONDS) : 0;
+  }
+
+  function readStoredSession() {
+    let raw = null;
+    try { raw = JSON.parse(readLocal(SESSION_KEY) || 'null'); } catch (_) { raw = null; }
+    if (!raw || typeof raw !== 'object') return null;
+    const token = typeof raw.token === 'string' ? raw.token.trim() : '';
+    const expiresAt = Number(raw.expires_at);
+    if (!isSidekickToken(token) || !Number.isFinite(expiresAt) || expiresAt <= 0) return null;
+    return { token, expiresAt };
+  }
+
+  // The only write of a token to storage. A token the backend did not mint (a
+  // Supabase token above all) or one without a future expiry is refused: the
+  // sign-in then lasts for this page only.
+  function storeSession(token, expiresAt) {
+    if (!isSidekickToken(token) || !(expiresAt > nowSeconds())) return false;
+    writeLocal(SESSION_KEY, JSON.stringify({ token, expires_at: expiresAt }));
+    return true;
+  }
+
+  // Run once, before anything reads the session. A stored session past its
+  // expiry is forgotten here and said on init(). A per-tab bearer from before
+  // the 30-day session is taken out of sessionStorage first, whatever it is: a
+  // Sidekick token moves into the session, anything else (a Google or Apple
+  // sign-in's Supabase token) is traded on init() and never stored.
+  function loadSession() {
+    const legacy = readTab(LEGACY_TOKEN_KEY).trim();
+    const legacyProfile = readTab(PROFILE_KEY);
+    writeTab(LEGACY_TOKEN_KEY, '');
+    writeTab(PROFILE_KEY, '');
+    const loaded = { token: '', expiresAt: 0, expired: false, exchange: '' };
+    const stored = readStoredSession();
+    if (!stored && readLocal(SESSION_KEY)) writeLocal(SESSION_KEY, '');
+    if (stored && stored.expiresAt <= nowSeconds()) {
+      writeLocal(SESSION_KEY, '');
+      writeLocal(PROFILE_KEY, '');
+      loaded.expired = true;
+    } else if (stored) {
+      return { ...loaded, token: stored.token, expiresAt: stored.expiresAt };
+    }
+    if (!legacy) return loaded;
+    if (!isSidekickToken(legacy)) return { ...loaded, exchange: legacy };
+    const expiresAt = expiryOf(legacy, null);
+    if (!storeSession(legacy, expiresAt)) return { ...loaded, expired: true };
+    if (legacyProfile) writeLocal(PROFILE_KEY, legacyProfile);
+    return { ...loaded, token: legacy, expiresAt, expired: false };
+  }
+
+  const loaded = loadSession();
+
   const session = {
-    token: readStore(TOKEN_KEY),
+    token: loaded.token,
+    // Epoch seconds; 0 for a sign-in this page could not keep.
+    expiresAt: loaded.expiresAt,
     user: null,
     // The server's name for how this bearer was issued (GET /auth/session):
-    // `supabase`, or `sidekick-email|phone|chatgpt|kakao`.
+    // `sidekick-email|phone|chatgpt|kakao|google|apple`, or `supabase`.
     source: '',
-    // True once GET /auth/session answered for this token.
+    // True once the server answered for this token.
     checked: false,
     profile: readProfile(),
     method: 'email',
@@ -128,35 +276,30 @@
   const hooks = { onSignedIn: null, onSignedOut: null, onNotice: null };
   let sheetOpener = null;
   let toastTimer = null;
-
-  const $ = (id) => document.getElementById(id);
-
-  function readStore(key) {
-    try { return sessionStorage.getItem(key) || ''; } catch (_) { return ''; }
-  }
-
-  function writeStore(key, value) {
-    try {
-      if (value) sessionStorage.setItem(key, value);
-      else sessionStorage.removeItem(key);
-    } catch (_) { /* a private window may refuse storage; the page still works for this visit */ }
-  }
+  let expiryTimer = null;
 
   function cleanText(value, max) {
     const text = typeof value === 'string' ? value.trim() : '';
     return text && text.length <= max && !/[\u0000-\u001f\u007f]/.test(text) ? text : '';
   }
 
+  // A phone number is shown only as the server masked it: digits, dashes and
+  // at least one `*`.
+  function maskedPhone(value) {
+    const text = cleanText(value, 32);
+    return /^[0-9*+ -]{4,32}$/.test(text) && text.includes('*') ? text : '';
+  }
+
   // A display hint only. Anything that does not look like one is dropped.
   function readProfile() {
     let raw = null;
-    try { raw = JSON.parse(readStore(PROFILE_KEY) || 'null'); } catch (_) { raw = null; }
+    try { raw = JSON.parse(readLocal(PROFILE_KEY) || 'null'); } catch (_) { raw = null; }
     if (!raw || typeof raw !== 'object' || !METHOD_PHRASES[raw.method]) return null;
     const userId = cleanText(raw.user_id, 160);
     return {
       method: raw.method,
       email: cleanText(raw.email, 254),
-      phone: cleanText(raw.phone, 32),
+      phone: maskedPhone(raw.phone),
       name: cleanText(raw.name, 80),
       user_id: SAFE_ID.test(userId) ? userId : ''
     };
@@ -164,7 +307,7 @@
 
   function saveProfile(profile) {
     session.profile = profile;
-    writeStore(PROFILE_KEY, profile ? JSON.stringify(profile) : '');
+    writeLocal(PROFILE_KEY, profile ? JSON.stringify(profile) : '');
   }
 
   // What a sign-in answer said about the person. Only fields meant for display:
@@ -175,36 +318,75 @@
     saveProfile({
       method,
       email: cleanText(person.email, 254),
-      phone: cleanText(person.phoneMasked, 32),
+      phone: maskedPhone(person.phoneMasked),
       name: cleanText(person.name, 80),
       user_id: SAFE_ID.test(userId) ? userId : ''
     });
   }
 
-  function setToken(token, user) {
-    session.token = String(token || '').trim();
+  // GET /account's answer, so the header menu says what the account page says:
+  // which door the person used (the server knows it even when the token was
+  // traded) and the address to show.
+  function learnAccount(answer) {
+    if (!session.token || !answer || typeof answer !== 'object') return;
+    const id = String(answer.id || '');
+    const hinted = session.profile ? session.profile.method : '';
+    const method = METHOD_PHRASES[answer.method] ? answer.method : hinted;
+    if (!METHOD_PHRASES[method]) return;
+    saveProfile({
+      method,
+      email: cleanText(answer.email, 254),
+      phone: maskedPhone(answer.phone_masked),
+      name: cleanText(answer.display_name, 80),
+      user_id: SAFE_ID.test(id) ? id : ''
+    });
+  }
+
+  // A sign-in's answer becomes this browser's session.
+  function setToken(token, user, expiresAt) {
+    const value = String(token || '').trim();
+    if (!value) return false;
+    session.token = value;
+    session.expiresAt = expiresAt > 0 ? expiresAt : 0;
     session.user = user && typeof user === 'object' ? user : null;
     session.source = '';
     session.checked = false;
-    writeStore(TOKEN_KEY, session.token);
+    storeSession(value, session.expiresAt);
+    scheduleExpiry();
+    return true;
   }
 
+  // Forgets the session in this tab, and in storage when storage still holds
+  // this tab's own session. Another tab may have signed in again in the
+  // meantime; its newer session is not this tab's to delete.
   function clearLocalSession() {
     stopChatGpt();
+    const mine = session.token;
     session.token = '';
+    session.expiresAt = 0;
     session.user = null;
     session.source = '';
     session.checked = false;
-    writeStore(TOKEN_KEY, '');
-    saveProfile(null);
+    session.profile = null;
+    scheduleExpiry();
+    const stored = readStoredSession();
+    if (!stored || stored.token === mine) {
+      writeLocal(SESSION_KEY, '');
+      writeLocal(PROFILE_KEY, '');
+    }
+    writeTab(LEGACY_TOKEN_KEY, '');
+    writeTab(PROFILE_KEY, '');
+    writeTab(HANDOFF_KEY, '');
+    writeTab(RETURN_KEY, '');
   }
 
   // Signing out ends the session on the server too (POST /auth/logout revokes
-  // this token's own session), then forgets it here. The local part happens
-  // first and does not wait: a dropped connection must not leave the person
-  // signed in on a shared computer. `server: false` is for a token the server
-  // already refused -- there is nothing left to revoke. `silent: true` is for a
-  // page that resets itself and needs no hook back.
+  // this token's own session, and a traded Google/Apple session's source), then
+  // forgets it here. The local part happens first and does not wait: a dropped
+  // connection must not leave the person signed in on a shared computer.
+  // `server: false` is for a token the server already refused, or one another
+  // tab already ended -- there is nothing left to revoke. `silent: true` is for
+  // a page that resets itself and needs no hook back.
   function signOut(options = {}) {
     const bearer = session.token;
     clearLocalSession();
@@ -223,9 +405,65 @@
     }
   }
 
+  // ---- Expiry and other tabs ---------------------------------------------------
+
+  function sessionExpired() {
+    return Boolean(session.token && session.expiresAt && session.expiresAt <= nowSeconds());
+  }
+
+  // The session ran out while a page was open: the page drops to its signed-out
+  // view at once, and says why. Nothing to revoke on the server.
+  function expireSession() {
+    if (!session.token) return;
+    signOut({ server: false });
+    notify(EXPIRED_COPY, true);
+  }
+
+  function scheduleExpiry() {
+    if (expiryTimer) clearTimeout(expiryTimer);
+    expiryTimer = null;
+    if (!session.token || !session.expiresAt) return;
+    const wait = Math.max(0, session.expiresAt * 1000 - Date.now());
+    expiryTimer = setTimeout(() => {
+      if (sessionExpired()) expireSession();
+      else scheduleExpiry();
+    }, Math.min(wait, MAX_TIMER_MS));
+  }
+
+  // Another tab signed in, signed out or switched accounts. Storage is read
+  // again rather than the event trusted: what counts is what is stored now.
+  async function followOtherTab() {
+    const stored = readStoredSession();
+    const token = stored && stored.expiresAt > nowSeconds() ? stored.token : '';
+    if (token === session.token) return;
+    if (!token) {
+      if (session.token) signOut({ server: false });
+      return;
+    }
+    if (session.token) signOut({ server: false, silent: true });
+    session.token = token;
+    session.expiresAt = stored.expiresAt;
+    session.profile = readProfile();
+    scheduleExpiry();
+    renderHeader();
+    await validateSession();
+    renderHeader();
+    if (session.token === token && typeof hooks.onSignedIn === 'function') {
+      await hooks.onSignedIn(session.user, { otherTab: true });
+    }
+  }
+
+  window.addEventListener('storage', (event) => {
+    if (event.storageArea !== storageArea('local')) return;
+    if (event.key !== null && event.key !== SESSION_KEY) return;
+    followOtherTab();
+  });
+
   async function api(path, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    if (session.token) headers.Authorization = `Bearer ${session.token}`;
+    // A call that names its own bearer (the Google/Apple exchange, 로그아웃)
+    // keeps it.
+    if (session.token && !headers.Authorization) headers.Authorization = `Bearer ${session.token}`;
     let response;
     try {
       response = await fetch(`${API_ORIGIN}${path}`, { ...options, headers });
@@ -268,13 +506,15 @@
     return session.user;
   }
 
-  // Run once per page: a stored bearer is only believed after the server says
-  // it still is one. 401/403 is a token that ended (expired, revoked, signed out
-  // elsewhere): sign out here, quietly, so no page shows "내 계정" over a dead
-  // session. 423 is an account being deleted. A dropped connection or a server
-  // error proves nothing about the token, so it is kept and the page says so.
+  // Run once per page: a stored bearer is only believed while it is inside its
+  // expiry and after the server says it still is one. 401/403 is a token that
+  // ended (expired, revoked, signed out elsewhere): sign out here, quietly, so
+  // no page shows "내 계정" over a dead session. 423 is an account being
+  // deleted. A dropped connection or a server error proves nothing about the
+  // token, so it is kept and the page says so.
   async function validateSession() {
     if (!session.token || session.checked) return;
+    if (sessionExpired()) { expireSession(); return; }
     try {
       await whoami();
     } catch (error) {
@@ -348,36 +588,39 @@
 
   // ---- Who is signed in, for display ---------------------------------------
 
+  // Which door the person used. The hint comes from the sign-in answer or from
+  // GET /account, which know it even when a Google or Apple sign-in was traded
+  // for a session whose token says `email`; the server's source name is the
+  // fallback.
   function signInMethod() {
-    const source = session.source;
     const hinted = session.profile ? session.profile.method : '';
+    if (METHOD_PHRASES[hinted] && hinted !== 'supabase' && hinted !== 'unknown') return hinted;
+    const source = session.source;
     if (source.indexOf('sidekick-') === 0 && METHOD_PHRASES[source.slice(9)]) return source.slice(9);
-    if (source === 'supabase') return hinted === 'google' || hinted === 'apple' ? hinted : 'supabase';
-    return METHOD_PHRASES[hinted] ? hinted : '';
+    return METHOD_PHRASES[hinted] ? hinted : source === 'supabase' ? 'supabase' : '';
   }
 
-  function shortId(id) {
-    const text = String(id || '');
-    return text.length > 16 ? `${text.slice(0, 9)}…${text.slice(-4)}` : text;
+  function methodLabel(method) {
+    return METHOD_LABELS[method] || '';
   }
 
   // Everything a page may show about the person, built only from the server's
-  // answer and the display hint. Null when signed out.
+  // answer and the display hint. Null when signed out. No account id: a phone
+  // account's id carries the whole number.
   function account() {
     if (!session.token) return null;
     const method = signInMethod();
     const profile = session.profile || {};
-    const id = session.user ? String(session.user.id || '') : '';
     return {
-      id,
-      shortId: shortId(id),
       checked: session.checked,
       method,
-      methodLabel: METHOD_LABELS[method] || '',
+      methodLabel: methodLabel(method),
       phrase: METHOD_PHRASES[method] || '로그인했어요',
       email: profile.email || '',
       phone: profile.phone || '',
-      name: profile.name || ''
+      name: profile.name || '',
+      // Epoch seconds this browser keeps the sign-in until; 0 when it is not kept.
+      expiresAt: session.expiresAt
     };
   }
 
@@ -562,7 +805,7 @@
   function startSupabaseLogin(provider) {
     if (!SUPABASE_PROVIDERS[provider]) return;
     const here = window.location.pathname;
-    writeStore(RETURN_KEY, RETURN_PATHS.includes(here) ? here : here === '/membership/' ? '' : DEFAULT_RETURN_PATH);
+    writeTab(RETURN_KEY, RETURN_PATHS.includes(here) ? here : here === '/membership/' ? '' : DEFAULT_RETURN_PATH);
     // Which door, so the account page can say "Google로 로그인했어요".
     rememberAccount(provider, null);
     showSocialStatus(`${SUPABASE_PROVIDERS[provider]}으로 이동하고 있어요.`, false);
@@ -572,45 +815,66 @@
     window.location.assign(url.toString());
   }
 
-  // A person who started on another page goes back there now. The token is
-  // already in sessionStorage, which the same tab carries across pages.
+  // A person who started on another page goes back there now. The session is
+  // already stored, and that page checks it itself.
   function returnToStartingPage() {
-    const back = readStore(RETURN_KEY);
-    writeStore(RETURN_KEY, '');
+    const back = readTab(RETURN_KEY);
+    writeTab(RETURN_KEY, '');
     if (!back || !RETURN_PATHS.includes(back) || back === window.location.pathname) return false;
     window.location.replace(back);
     return true;
   }
 
-  // Supabase's implicit flow returns the session in the fragment. Reading it
-  // here and clearing it immediately keeps the token out of history and out of
-  // anything that later logs a URL.
+  // Supabase's implicit flow returns its session in the fragment: an access
+  // token and a refresh token. The fragment leaves the address bar before
+  // anything else runs, so neither sits in history or in anything that later
+  // logs a URL. The refresh token is never read; the access token is traded at
+  // once for a Sidekick session and dropped.
   async function adoptSupabaseRedirect() {
     const hash = window.location.hash || '';
     if (!hash.includes('access_token=')) {
       if (hash.includes('error=')) {
         history.replaceState(null, '', window.location.pathname + window.location.search);
-        writeStore(NOTICE_KEY, SOCIAL_FAILED_COPY);
+        writeTab(NOTICE_KEY, SOCIAL_FAILED_COPY);
         if (returnToStartingPage()) return new Promise(() => {});
       }
       return false;
     }
     const params = new URLSearchParams(hash.slice(1));
-    const token = String(params.get('access_token') || '').trim();
+    const supabaseToken = String(params.get('access_token') || '').trim();
     history.replaceState(null, '', window.location.pathname + window.location.search);
-    if (!token) return false;
-    setToken(token, null);
-    // The page the person started on checks the session itself.
+    if (!supabaseToken) return false;
+    const traded = await exchangeSupabaseToken(supabaseToken);
+    if (traded !== true) writeTab(NOTICE_KEY, traded);
+    showSocialStatus('', false);
     if (returnToStartingPage()) return new Promise(() => {});
+    return traded === true;
+  }
+
+  // POST /auth/session/exchange: the Supabase access token, from memory, is the
+  // bearer of this one call, and a 30-day Sidekick session on the same account
+  // comes back -- the only thing kept. Answers true, or the sentence to say.
+  async function exchangeSupabaseToken(supabaseToken) {
+    let answer = null;
     try {
-      await whoami();
-      showSocialStatus('', false);
-      return true;
-    } catch (_) {
-      signOut({ server: false, silent: true });
-      writeStore(NOTICE_KEY, '로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.');
-      return false;
+      answer = await api('/auth/session/exchange', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${supabaseToken}` }
+      });
+    } catch (error) {
+      if (error && error.status === 423) return DELETION_PENDING_COPY;
+      return error && error.network ? NETWORK_COPY : EXCHANGE_FAILED_COPY;
     }
+    const token = String((answer && answer.access_token) || '').trim();
+    const user = answer && answer.user && typeof answer.user === 'object' ? answer.user : null;
+    if (!isSidekickToken(token) || !user || !SAFE_ID.test(String(user.id || ''))) return EXCHANGE_FAILED_COPY;
+    const hinted = session.profile ? session.profile.method : '';
+    const method = SUPABASE_PROVIDERS[answer.method] ? answer.method : SUPABASE_PROVIDERS[hinted] ? hinted : 'supabase';
+    setToken(token, user, expiryOf(token, answer));
+    rememberAccount(method, user);
+    // The server resolved the account and its deletion lock to mint this.
+    session.checked = true;
+    return true;
   }
 
   // ---- ChatGPT: a device code the person approves in another tab ------------
@@ -764,8 +1028,9 @@
     if (signedIn) {
       stopChatGpt();
       showSocialStatus('', false);
-      setToken(signedIn.access_token, signedIn.user || null);
+      setToken(signedIn.access_token, signedIn.user || null, expiryOf(signedIn.access_token, signedIn));
       rememberAccount('chatgpt', signedIn.user);
+      keepChatGptHandoff(signedIn.ai_engine, signedIn.user);
       await finishSignIn();
       return;
     }
@@ -778,12 +1043,47 @@
   }
 
   // A background tab's timers are throttled; the moment the person comes back
-  // from the approval tab is exactly when the answer is ready.
+  // from the approval tab is exactly when the answer is ready. Coming back is
+  // also when a session that ran out while the machine slept is noticed.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible' || !session.chatgpt) return;
+    if (document.visibilityState !== 'visible') return;
+    if (sessionExpired()) { expireSession(); return; }
+    if (!session.chatgpt) return;
     if (session.chatgpt.timer) clearTimeout(session.chatgpt.timer);
     pollChatGptLogin();
   });
+
+  // A ChatGPT sign-in also proves a ChatGPT account the person may want their
+  // projects to run on. The server holds that account for a day and answers the
+  // sign-in with a one-time claim on it (ai_engine.handoff_state/handoff_code);
+  // /ai/ offers it for a project (POST /ai-engine/login-handoff/claim) so the
+  // person does not sign in to ChatGPT a second time. The claim stays in this
+  // tab only, never in a URL, and is dropped once used or declined, after a day,
+  // or on 로그아웃. It is bound to the account that signed in.
+  function keepChatGptHandoff(engine, user) {
+    const ready = Boolean(engine && typeof engine === 'object' && engine.status === 'ready_to_connect');
+    const state = ready ? cleanText(engine.handoff_state, 200) : '';
+    const code = ready ? cleanText(engine.handoff_code, 200) : '';
+    const userId = user && typeof user === 'object' ? String(user.id || '') : '';
+    if (!state || !code || !SAFE_ID.test(userId)) { writeTab(HANDOFF_KEY, ''); return; }
+    writeTab(HANDOFF_KEY, JSON.stringify({ state, code, user_id: userId, saved_at: Date.now() }));
+  }
+
+  function chatGptHandoff() {
+    let raw = null;
+    try { raw = JSON.parse(readTab(HANDOFF_KEY) || 'null'); } catch (_) { raw = null; }
+    if (!raw || typeof raw !== 'object') return null;
+    const id = session.user ? String(session.user.id || '') : '';
+    const fresh = Number(raw.saved_at) > Date.now() - HANDOFF_MAX_AGE_MS;
+    const state = cleanText(raw.state, 200);
+    const code = cleanText(raw.code, 200);
+    if (!session.token || !fresh || !id || raw.user_id !== id || !state || !code) return null;
+    return { state, code };
+  }
+
+  function forgetChatGptHandoff() {
+    writeTab(HANDOFF_KEY, '');
+  }
 
   // ---- Email / phone code ---------------------------------------------------
 
@@ -818,7 +1118,7 @@
       setAuthStatus(error && error.network ? NETWORK_COPY : '인증번호가 맞지 않거나 만료됐어요.', true);
       return;
     }
-    setToken(result.access_token, result.user || null);
+    setToken(result.access_token, result.user || null, expiryOf(result.access_token, result));
     rememberAccount(session.method, result.user);
     setAuthStatus('', false);
     await finishSignIn();
@@ -855,9 +1155,12 @@
 
   // Each page calls this once; a page with no script of its own gets it on
   // DOMContentLoaded below. It resolves to whether a bearer is held, after any
-  // Supabase fragment has been read and the server has confirmed the bearer,
-  // and never resolves while the page is handing the person back to the page
-  // they started on.
+  // Supabase fragment has been read and traded, a pre-30-day Google/Apple
+  // bearer traded the same way, and the server has confirmed the bearer; it
+  // never resolves while the page is handing the person back to the page they
+  // started on. Page hooks: onSignedIn(user, {otherTab}) after a sign-in here
+  // or in another tab, onSignedOut() after 로그아웃 here or in another tab or an
+  // expiry, onNotice(message, isError) for what the page should say.
   function init(options = {}) {
     if (initialized) return initialized;
     hooks.onSignedIn = options.onSignedIn || null;
@@ -869,12 +1172,21 @@
     // builds it the first time someone asks to sign in.
     if ($('signin-sheet')) ensureSheet();
     initialized = adoptSupabaseRedirect().then(async (adopted) => {
-      const notice = readStore(NOTICE_KEY);
+      const legacy = loaded.exchange;
+      loaded.exchange = '';
+      if (legacy && !session.token) {
+        const traded = await exchangeSupabaseToken(legacy);
+        if (traded !== true) notify(traded === EXCHANGE_FAILED_COPY ? EXPIRED_COPY : traded, true);
+      }
+      if (loaded.expired && !session.token) notify(EXPIRED_COPY, true);
+      loaded.expired = false;
+      const notice = readTab(NOTICE_KEY);
       if (notice) {
-        writeStore(NOTICE_KEY, '');
+        writeTab(NOTICE_KEY, '');
         notify(notice, true);
       }
       await validateSession();
+      scheduleExpiry();
       renderHeader();
       return Boolean(adopted || session.token);
     });
@@ -886,6 +1198,8 @@
   window.SidekickAuth = Object.freeze({
     API_ORIGIN,
     NETWORK_COPY,
+    EXPIRED_COPY,
+    DELETION_PENDING_COPY,
     init,
     api,
     whoami,
@@ -895,6 +1209,10 @@
     copyText,
     httpsUrl,
     account,
+    learnAccount,
+    methodLabel,
+    chatGptHandoff,
+    forgetChatGptHandoff,
     token: () => session.token,
     user: () => session.user
   });
