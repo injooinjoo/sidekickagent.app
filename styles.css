@@ -437,8 +437,10 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .launch .go { width: 24px; height: 24px; border-radius: 50%; background: var(--sunken); color: var(--ink-soft); display: inline-flex; align-items: center; justify-content: center; }
 .launch .go svg { width: 12px; height: 12px; }
 .landing .hero h1 { font-size: clamp(38px, 6.4vw, 64px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 700; margin: 22px 0 0; }
-.h1-mark { display: inline-flex; align-items: center; justify-content: center; width: 0.9em; height: 0.9em; margin: 0 0.12em 0 0; vertical-align: -0.08em; border-radius: 50%; background: var(--brand); color: var(--ink); }
-.h1-mark svg { width: 0.5em; height: 0.5em; }
+/* The five-bar mark (owner, 2026-10-01) in exactly the box the old red disc
+   held -- 0.62em above the baseline, 0.28em below -- so the headline does not
+   move. It is the mark itself, not a disc behind it. */
+.h1-mark { display: inline-block; width: 0.9em; height: 0.9em; margin: 0 0.12em 0 0; vertical-align: -0.28em; }
 .landing .hero .lead { font-size: clamp(17px, 2.1vw, 20px); line-height: 1.6; color: var(--muted); margin: 18px auto 0; max-width: 600px; text-wrap: pretty; }
 /* The four strengths as chips, right under the promise: read them without
    scrolling. Icons are ink-muted, not brand, so the mark stays the one orange
@@ -693,8 +695,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .landing .start { padding: clamp(72px, 10vw, 120px) 24px clamp(48px, 6vw, 72px); text-align: center; border-bottom: 0; }
 .start .section-p { max-width: 420px; margin-left: auto; margin-right: auto; }
 .start .actions { justify-content: center; margin-top: 24px; }
-.start-art { max-width: 976px; margin: clamp(40px, 6vw, 72px) auto 0; padding: 0 24px; }
-.start-art svg { display: block; width: 100%; height: auto; }
 
 /* Footer (landing): the same six links as every other page, grouped. */
 .landing .footer {
