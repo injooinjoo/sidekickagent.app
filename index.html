@@ -7,7 +7,10 @@
   <link rel="stylesheet" href="/analytics.css" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <meta name="description" content="부업을 혼자서도 굴릴 수 있게 해주는 AI 직원 앱, 사이드킥. 블로그·스토어·유튜브·임장 같은 반복 업무를 말로 맡기고, 확인이 필요할 때만 물어봅니다. 5개 AI 모델 선택, 서버 자동 구축, 사용자별 분리 서버." />
   <title>사이드킥: AI 에이전트</title>
   <link rel="canonical" href="https://sidekickagent.app/" />
@@ -17,7 +20,13 @@
   <meta property="og:title" content="사이드킥: 내 부업을 굴려주는 AI 직원" />
   <meta property="og:description" content="블로그, 스토어, 유튜브, 임장… 반복되는 일은 AI 직원에게 말로 맡기세요. 확인이 필요할 때만 돌아옵니다." />
   <meta property="og:url" content="https://sidekickagent.app/" />
-  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
   <meta name="theme-color" content="#f7f8fa" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="motion.css" />
@@ -44,7 +53,7 @@
         <span>멤버십 미리 구성하기</span>
         <span class="go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </a>
-      <h1 id="hero-h"><span class="h1-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>부업, 혼자 하지 마세요</h1>
+      <h1 id="hero-h"><img class="h1-mark" src="/assets/sidekick-mark.svg" width="64" height="64" alt="">부업, 혼자 하지 마세요</h1>
       <p class="lead">블로그, 스토어, 유튜브, 임장… 반복되는 일은 AI 직원에게 말로 맡기세요.</p>
       <ul class="hero-chips" aria-label="사이드킥의 강점">
         <li><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 1v2M10 1v2M6 13v2M10 13v2M1 6h2M1 10h2M13 6h2M13 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>5개 AI 모델 선택</li>
@@ -409,11 +418,6 @@
     <div class="actions" data-reveal>
       <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <a class="button secondary" href="/support/">도움말</a>
-    </div>
-    <div class="start-art" aria-hidden="true">
-      <svg viewBox="0 0 976 64" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 32h940M916 6l26 26-26 26" fill="none" stroke="#ff330d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
     </div>
   </section>
 

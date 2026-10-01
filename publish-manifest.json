@@ -1,13 +1,13 @@
 {
-  "export_rules_sha256": "685f2a76f4a94a31d7df0da61bde211f9bc34e2d35a1ce373958240752a91dc4",
+  "export_rules_sha256": "fcc49fd3e1ab5ed7d8b1ef6d60dc995e4b06de8df717f71e29788748065588c6",
   "files": {
     ".nojekyll": {
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "404.html": {
-      "bytes": 2560,
-      "sha256": "a63b7e4a88e851f5fcefe8f2564e777d51784c870057cd26bbd116563481a1bc"
+      "bytes": 3773,
+      "sha256": "f93c4cf9d01bce31e12abbc1c57a5ca5274c9aa0b1f3a7e538888a469275a74b"
     },
     "CNAME": {
       "bytes": 18,
@@ -22,8 +22,8 @@
       "sha256": "1282a9407d1b24ec2f1eba46a04a7b8274a7422c9de19b91763c60e2abf6853f"
     },
     "account/index.html": {
-      "bytes": 6157,
-      "sha256": "6a0beab3e7c0b66dfa4756b794785c05d715710f5c099bf873d66bd7e618b428"
+      "bytes": 7391,
+      "sha256": "0221baa4ab873eba73b47945e685cb47c45587254f58a7f2d6b02e84e0de3860"
     },
     "ai/ai.css": {
       "bytes": 6908,
@@ -34,8 +34,8 @@
       "sha256": "a183e2ec18ab8a1fa2f281f1873b1ba8da89aa47e5eb32aee03de95289aba2ac"
     },
     "ai/index.html": {
-      "bytes": 8983,
-      "sha256": "0d85ce46294e8dfce527ebb2120971832f2d57fcca7ef843187cdfcde0ed410b"
+      "bytes": 9731,
+      "sha256": "20719b17e3a27fdee68cae52f87ed057a0b3f3ae0c9ccbba7e4885a6ecc6112a"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -61,9 +61,25 @@
       "bytes": 3698,
       "sha256": "9d5ff3cb9d16fe97767cd5ba2aaecc216e3cab7eb309eb65e0fdd159cdce5641"
     },
+    "assets/apple-touch-icon.png": {
+      "bytes": 8293,
+      "sha256": "4fa044b03c4c04eda304e8c8120a2c1740caa86399faaf75bfb8c6f4dcc9e345"
+    },
+    "assets/favicon-16.png": {
+      "bytes": 659,
+      "sha256": "96cd1798b2353d3beb2f333cb3df19bf05fc52fe6269d75f83d25946b9962326"
+    },
+    "assets/favicon-32.png": {
+      "bytes": 1773,
+      "sha256": "f5f42362c852b20c84b24bda61a2db00056001db6915adf364311a3b4b06bbe4"
+    },
     "assets/favicon.png": {
-      "bytes": 18785,
-      "sha256": "d2c74ffff9403277e5a18889f7176080ea1d141be1ad4f40d8f95e27a4bc9ba1"
+      "bytes": 8507,
+      "sha256": "1ad267e4c2746082477259c998161b364feac8c5926b8e8ca892cc030d3ff2a8"
+    },
+    "assets/favicon.svg": {
+      "bytes": 631,
+      "sha256": "c906638f128ca11aed10e7a0863f285df9ba9075909a3bc5e294af8503fe1bae"
     },
     "assets/landing-v2/film/ending-m.mp4": {
       "bytes": 1023031,
@@ -113,29 +129,41 @@
       "bytes": 2775345,
       "sha256": "cf2943fff6b793be0a51327c4c18f9fee91dc216ba3ff1e935d0420f01e60f94"
     },
+    "assets/og-image.png": {
+      "bytes": 51213,
+      "sha256": "a2d48edb6b42d4a7d4af2c22780ea20a6150511e9bbdcb7e9bd8bf94597a333c"
+    },
+    "assets/sidekick-mark.svg": {
+      "bytes": 481,
+      "sha256": "5aded62574c4181f3d5d8cd9d1ee7c5ea4925137fd6ab1594581f3a1635dcfe8"
+    },
     "assets/sidekick-wordmark.png": {
-      "bytes": 24396,
-      "sha256": "0ee2b24ee5ad969030baf458539cd488a2260c4fad7e3467fb1d94f619f7c19d"
+      "bytes": 23074,
+      "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
       "bytes": 53132,
       "sha256": "27cb7676e732de88434c1505182bd05b58b8801630cc42f4d8d8dd7c3577ed44"
     },
     "delete-account/index.html": {
-      "bytes": 6541,
-      "sha256": "293df228eed3b8de8e51ccc7c6a251b8e67597af90602e6c02b04e029ac162ad"
+      "bytes": 7289,
+      "sha256": "6995bbfc587417eae3f82bbadd817d04a8dc7f9bb0480bcaf99bdb51d5effb22"
+    },
+    "favicon.ico": {
+      "bytes": 15086,
+      "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "index.html": {
-      "bytes": 33577,
-      "sha256": "276ce0cb0b8c1a6824b34e1dc4adae6b7afe04dd052b5ecec662779dea179f44"
+      "bytes": 33909,
+      "sha256": "c77541c94bb179de87ce4e71d80fd93a3c0c846b8ce120de4165df8bf5a17934"
     },
     "landing.js": {
       "bytes": 34456,
       "sha256": "646c419ccd8f59fa5790b2ef18b088d063ed88f4b02d0421ce3c270d5545a2ea"
     },
     "membership/index.html": {
-      "bytes": 14950,
-      "sha256": "b0fcfe64f8d4d6827960c71fc7f73636e6cbafe5f042b45de9ce41a8e8429299"
+      "bytes": 15698,
+      "sha256": "541b04779d98a7623fad9d60b326b5210ee82a6da2d87c877e12ce567021cd35"
     },
     "membership/membership.css": {
       "bytes": 15167,
@@ -150,8 +178,8 @@
       "sha256": "65899c7ac19dcd04335d4adb30acd7a102f7d56055cbe82906a3b99b2c592818"
     },
     "privacy/index.html": {
-      "bytes": 23958,
-      "sha256": "ce1f41970b3e932918b5a51cf8ce17e201c45b508d3126831c66b449577fe710"
+      "bytes": 24706,
+      "sha256": "2cb6effd762e3587618a43fff8f7cefa295baec1bd5ce5f0fd81bd7cbfa56e8b"
     },
     "robots.txt": {
       "bytes": 71,
@@ -166,59 +194,59 @@
       "sha256": "760d4c1233bf554bb2392d44b3d3b0fc6f0ad8dcdd3204a2150aba178a69885d"
     },
     "styles.css": {
-      "bytes": 49384,
-      "sha256": "dea9f0f8b10093e8ead5b4d10081820872942b7579819dee2802b194aa08182f"
+      "bytes": 49290,
+      "sha256": "ef80d4ee6e7bef16f67dbe1d338a9e352043d4ed53b6865dce98ab70203ffc96"
     },
     "support/index.html": {
-      "bytes": 6931,
-      "sha256": "b5a4f064298a8827a2fb2f5487efc9916051928974b036f78d1b854c9daff6cc"
+      "bytes": 7679,
+      "sha256": "6df2baf88d1a19a0f0e1d2e5d82d7c11985f6d1acb11ce2222a3d0c4261ac4d5"
     },
     "terms/index.html": {
-      "bytes": 9773,
-      "sha256": "5a1b492548821bfa0887e2a685647c38dd71a8c2b4be6a7356424fde880c782d"
+      "bytes": 10521,
+      "sha256": "a54b2eb83285a4c215bc518d8078c0f954bda243c8df0337c9b869a0ff412997"
     },
     "use.js": {
       "bytes": 6479,
       "sha256": "60aedbf01899c29c80711c807363578b18ea886639ffac16c3cbddf0df4d761b"
     },
     "use/blog/index.html": {
-      "bytes": 11810,
-      "sha256": "5ae0815ff59a8ca52cbd4a5762bc0811423f5a80b2110c0fec5481bc098292c1"
+      "bytes": 12558,
+      "sha256": "33144487e280b771b254a199351c8790d4acc9f6c98b1fbda7e6091c6bc77d09"
     },
     "use/briefing/index.html": {
-      "bytes": 11335,
-      "sha256": "91f607a63d4a4b05ede04e1fc6ea6c92223451b2968953741794295a76d83952"
+      "bytes": 12083,
+      "sha256": "30763fc53cefb7e5262230b36db45fad00735d6bb20158ec74c5fa64e8e92b1a"
     },
     "use/index.html": {
-      "bytes": 6450,
-      "sha256": "902f3f5de40a20106715fb2e4fd04cda82c7e9a06d24ef31e0279cd04ee024a6"
+      "bytes": 7198,
+      "sha256": "2e1bc12a903aedff0cfeb7398c80881eed3954dff08751884c9e86d2a10023bd"
     },
     "use/instagram/index.html": {
-      "bytes": 11711,
-      "sha256": "0cedd0a1c64dd162e92e27eb48bd6045f43d92ae7132c588064c4b8e0c9ad683"
+      "bytes": 12459,
+      "sha256": "48e1736192ac04724a3736181862eda177f83cfb0123d9178fd58d2053386e88"
     },
     "use/price-watch/index.html": {
-      "bytes": 11262,
-      "sha256": "7c4627ffeba9984b870e425e7aaebb28873d8a36ec8d29bb7d65f62c4535ee99"
+      "bytes": 12010,
+      "sha256": "ac12bb472e340e1b2c2035529a9c0cebb86d3810539ae3cdfedca9b17c6787d1"
     },
     "use/real-estate/index.html": {
-      "bytes": 11994,
-      "sha256": "55828ddc273863408d1fa3ff6e9b7345f5ae077f1aa8952cd6cc68e17e2b4bc6"
+      "bytes": 12742,
+      "sha256": "a772220f88ac7005981e20151da0d0de6d5e4f27350d08587add78b87408345b"
     },
     "use/store-cs/index.html": {
-      "bytes": 12001,
-      "sha256": "a248a14028e5633ea3b1dbf98fd7138479c414f560ed66c7dbdfbf9e932849fd"
+      "bytes": 12749,
+      "sha256": "3825058b22441cfcf9205acca0ae19c15cd94adf1140bf8e4c8aca6f2b2a9080"
     },
     "use/tax/index.html": {
-      "bytes": 11656,
-      "sha256": "8ce369cb36133d0d319b1de22c5f97bde617ab28e9528dbf7a73dff43740369e"
+      "bytes": 12404,
+      "sha256": "efb7023b7724f07cf16aeeb4c4d2c6a563384cf02530fd7bf30080847006e33a"
     },
     "use/youtube/index.html": {
-      "bytes": 11721,
-      "sha256": "336316547caaeb63136b5a0b66d043be500580f120d8d820b20a7b207843a822"
+      "bytes": 12469,
+      "sha256": "7be2195278d200ec22555e09c428ccd7f6c7dcc0511cc91bfab61537b724df8c"
     }
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "eac51a3a7003520c23891df65654f0a361129cab"
+  "source_sha": "4f5fa45c6752027e37c27837a2d3189275a65dcc"
 }
