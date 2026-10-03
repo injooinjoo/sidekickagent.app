@@ -288,7 +288,7 @@
     if (seq !== state.seq) return;
     if (!workspaces) { setStatus('projects-status', PROJECTS_FAILED_COPY, true); return; }
     if (!workspaces.length) {
-      setStatus('projects-status', '아직 프로젝트가 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기에 보여요.', false);
+      setStatus('projects-status', '아직 프로젝트가 없어요. 앱에서 같은 계정으로 로그인하고 하고 싶은 일을 고르면 첫 프로젝트가 여기에 보여요.', false);
       fill($('projects-next'), [
         el('p', { text: '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 방법으로 다시 로그인해 보세요.' }),
         el('div', { className: 'account-actions' }, [

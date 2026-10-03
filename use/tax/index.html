@@ -11,14 +11,15 @@
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-  <meta name="description" content="세금·경비 정리 — 영수증을 모아 월별 경비표로. 사이드킥 AI 직원 태오(경비 정리 담당)이 처음 설정부터 결과까지 어떻게 일하는지 1분 안에 보여드려요." />
-  <title>세금·경비 정리 · 사이드킥</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="description" content="경비 정리하기 — 영수증을 모아 월별 경비표로. 고르면 사이드킥 AI 팀이 꾸려져 첫 결과까지 가져와요." />
+  <title>경비 정리하기 · 사이드킥</title>
   <link rel="canonical" href="https://sidekickagent.app/use/tax/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
-  <meta property="og:title" content="세금·경비 정리 · 사이드킥 AI 직원" />
-  <meta property="og:description" content="영수증을 모아 월별 경비표로. 첫 설정 5분 · 이후 자동." />
+  <meta property="og:title" content="경비 정리하기 · 사이드킥" />
+  <meta property="og:description" content="영수증을 모아 월별 경비표로. 고르면 AI 팀이 첫 결과까지 가져와요." />
   <meta property="og:url" content="https://sidekickagent.app/use/tax/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -38,65 +39,66 @@
   <nav class="nav" aria-label="주요 메뉴">
     <a href="/membership/">멤버십</a>
     <a href="/support/">도움말</a>
-    <a href="/privacy/">개인정보</a>
-    <a href="/terms/">이용약관</a>
   </nav>
   <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
 </header>
 <main class="home">
 
-  <!-- 1. Header -->
+  <!-- 1. The goal, who takes it on, and the one thing to do. -->
   <section class="use-hero" id="top" aria-labelledby="use-h">
     <div class="wrap">
-      <a class="back-link" href="/use/"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H4M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>모든 직무</a>
+      <a class="back-link" href="/use/"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H4M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>모든 일</a>
       <div class="use-head">
-        <span class="avatar big">태</span>
+        <span class="goal-ico big"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.8h9v12.4l-1.8-1.1-1.8 1.1-1.9-1.1-1.8 1.1-1.7-1.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 5.4h4.4M5.8 8h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
         <div>
-          <h1 id="use-h">세금·경비 정리</h1>
-          <p class="use-promise"><b>영수증을 모아 월별 경비표로.</b> 태오 · 경비 정리 담당</p>
+          <h1 id="use-h"><span class="vt-goal-tax">경비 정리하기</span></h1>
+          <p class="use-promise">영수증을 모아 월별 경비표로</p>
         </div>
       </div>
-      <div class="use-meta">
-        <span class="badge done">첫 설정 5분 · 이후 자동</span>
-        <span class="badge model">기본 모델 GPT</span>
-        <span class="badge idle">내 전용 서버 보안</span>
+      <div class="use-team">
+        <span class="avatar">경</span>
+        <span class="team-who"><b>경비 정리 담당 · 영수증과 경비표 정리</b><small>필요하면 알바 1명을 불러 나눠 맡아요</small></span>
       </div>
-      <div class="actions">
-        <a class="button" href="/membership/?plan=birdie&amp;funding=included">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="button secondary" href="#story">설정부터 결과까지</a>
+      <div class="actions" id="hero-actions">
+        <a class="button" href="/account/" data-start="tax">경비 정리하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="text-link" href="#story">어떻게 진행되는지 보기</a>
+      </div>
+      <div class="start-ready" data-start-ready role="status" hidden>
+        <b>준비됐어요</b>
+        <p>앱에서 같은 계정으로 로그인한 뒤 팀에게 말로 맡기면 돼요. iPhone·Android 앱은 출시 준비 중이에요.</p>
+        <a class="text-link" href="/account/">내 계정 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
     </div>
   </section>
 
-  <!-- 2. Scroll story: the phone stays, the steps scroll -->
+  <!-- 2. What happens after picking it: the phone stays, the steps scroll. -->
   <section class="use-story" id="story" aria-labelledby="story-h">
     <div class="wrap">
-      <h2 class="section-h" id="story-h">처음 설정부터 결과까지</h2>
-      <p class="section-p"><b>다섯 단계면 돼요.</b> 왼쪽 화면이 단계마다 바뀌어요.</p>
+      <h2 class="section-h" id="story-h">고르면, 이렇게 시작해요</h2>
+      <p class="section-p"><b>설정부터 하지 않아요.</b> 필요한 건 일하면서 물어봐요.</p>
       <div class="story-grid">
         <div class="story-phone-col" aria-hidden="true">
           <div class="role-phone" id="story-phone">
-            <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
+            <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
             <div class="phone-body" id="story-screen"></div>
           </div>
         </div>
         <ol class="story-steps" id="story-steps">
-          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>직원 만들기</h3><p><b>직원 태오에게 경비 정리 담당 역할을 줘요.</b> 이름과 역할만 고르면 돼요.</p></div></li>
-          <li class="story-step" data-step="2"><span class="step-no">2</span><div><h3>서비스 연결</h3><p><b>연결할 서비스는 자료함, 구글 드라이브예요.</b> 로그인 정보는 내 전용 서버에만 저장돼요.</p></div></li>
-          <li class="story-step" data-step="3"><span class="step-no">3</span><div><h3>모델 선택</h3><p><b>기본 모델은 GPT이고 다섯 모델 중 언제든 바꿔요.</b> 내 AI 계정을 연결하면 멤버십이 더 저렴해져요.</p></div></li>
-          <li class="story-step" data-step="4"><span class="step-no">4</span><div><h3>첫 지시</h3><p><b>말로 맡겨요. “이번 달 영수증 정리해서 경비표 만들어줘.”</b> 직원이 계획을 세우고 바로 시작해요.</p></div></li>
-          <li class="story-step" data-step="5"><span class="step-no">5</span><div><h3>확인 요청 → 결과</h3><p><b>되돌리기 어려운 일만 확인을 물어요.</b> 승인하면 결과 카드가 도착해요.</p></div></li>
+          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>팀이 꾸려져요</h3><p><b>경비 정리 담당이 처음부터 끝까지 맡아요.</b> 필요하면 알바를 불러 일을 나눠 맡겨요.</p></div></li>
+          <li class="story-step" data-step="2"><span class="step-no">2</span><div><h3>필요한 것만 물어봐요</h3><p><b>“영수증을 자료함에 올려 주세요. 항목별로 나누고 매출과 맞춰 볼게요.”</b> 나머지는 사이드킥이 알아서 정해요.</p></div></li>
+          <li class="story-step" data-step="3"><span class="step-no">3</span><div><h3>첫 작업을 바로 시작해요</h3><p><b>이번 달 경비표부터 시작해요.</b> 어디까지 했는지 앱에서 바로 보여요.</p></div></li>
+          <li class="story-step" data-step="4"><span class="step-no">4</span><div><h3>확인할 때만 부르고, 결과를 가져와요</h3><p><b>세무 판단은 대신하지 않아요.</b> 결과는 바로 쓸 수 있는 모습으로 도착해요.</p></div></li>
         </ol>
       </div>
     </div>
   </section>
 
-  <!-- 3. Weekly routine -->
+  <!-- 3. Once set up, it carries on. -->
   <section class="use-week" id="week" aria-labelledby="week-h">
     <div class="wrap">
-      <h2 class="section-h" id="week-h">이 직원이 매주 하는 일</h2>
-      <p class="section-p"><b>월·일요일에 돌아가요.</b> 결과는 카드로만 도착해요.</p>
-      <div class="week-grid" id="week-grid" role="img" aria-label="주간 일과: 2회 실행">
+      <h2 class="section-h" id="week-h">한 번 맡기면 계속 이어서 해요</h2>
+      <p class="section-p"><b>월·일요일마다 이어서 해요.</b> 결과가 도착하면 앱에서 알려드려요.</p>
+      <div class="week-grid" id="week-grid" role="img" aria-label="한 주에 2번 이어서 하는 일정">
           <div class="week-row head"><span></span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div>
           <div class="week-row"><span class="week-lbl">아침</span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span></div>
           <div class="week-row"><span class="week-lbl">낮</span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span></div>
@@ -105,43 +107,53 @@
     </div>
   </section>
 
-  <!-- 4. Samples -->
+  <!-- 4. What arrives. -->
   <section class="use-samples" id="samples" aria-labelledby="samples-h">
     <div class="wrap">
       <h2 class="section-h" id="samples-h">이런 결과가 도착해요</h2>
-      <p class="section-p">앱 화면과 같은 카드예요. 확인 요청은 승인 전까지 기다려요.</p>
+      <p class="section-p">확인이 필요한 일은 버튼 한 번으로 정해요. 확인하기 전에는 진행하지 않아요.</p>
       <div class="sample-grid">
-          <div class="sample"><div class="appr"><div class="top"><h5>누락 항목 2건</h5><span class="badge wait">확인 필요</span></div><p>카드 내역엔 있는데 영수증이 없는 2건이 있어요. 경비표에 &#x27;확인 필요&#x27;로 넣을까요?</p><ul class="files"><li><i></i>8월 경비표</li><li><i></i>누락 2건</li></ul><div class="btn-row"><span class="ink">확인 필요로</span><span class="line">보류</span></div></div></div>
-          <div class="sample"><div class="res"><div class="kicker">결과 도착</div><h5>8월 경비표 준비 완료</h5><dl><dt>경비</dt><dd>42건 · 7개 항목</dd><dt>확인 필요</dt><dd>2건</dd></dl></div></div>
+          <div class="sample"><div class="appr"><div class="top"><h5>빠진 영수증 2건</h5><span class="badge wait">확인 필요</span></div><p>카드 내역엔 있는데 영수증이 없는 2건이 있어요. 경비표에 &#x27;확인 필요&#x27;로 넣을까요?</p><ul class="files"><li><i></i>8월 경비표</li><li><i></i>빠진 영수증 2건</li></ul><div class="btn-row"><span class="ink">확인 필요로</span><span class="line">빼기</span></div></div></div>
+          <div class="sample"><div class="res"><div class="kicker">보고 도착</div><h5>8월 경비표 준비 완료</h5><dl><dt>경비</dt><dd>42건 · 7개 항목</dd><dt>확인 필요</dt><dd>2건</dd></dl></div></div>
       </div>
     </div>
   </section>
 
-  <!-- 5. FAQ + closing call -->
+  <!-- 5. Questions, then the same one action again. -->
   <section class="use-faq faq" id="faq" aria-labelledby="faq-h">
     <div class="wrap">
       <h2 class="section-h" id="faq-h">자주 묻는 질문</h2>
       <div>
         <details open><summary>세무 신고도 하나요?</summary><p>아니요. 신고 준비 체크리스트와 경비표까지 만들고 판단은 직접 해요.</p></details>
-        <details><summary>영수증은 어디에 두나요?</summary><p>자료함에 올리면 사용자마다 분리된 서버에서만 읽어요.</p></details>
+        <details><summary>영수증은 어디에 두나요?</summary><p>자료함에 올리면 돼요. 내 작업 공간 밖으로 나가지 않아요.</p></details>
         <details><summary>매출 자료는 어떻게 넣나요?</summary><p>스토어 정산표나 엑셀을 자료함에 넣으면 돼요.</p></details>
       </div>
     </div>
   </section>
 
   <section class="start" id="start" aria-labelledby="start-h">
-    <h2 class="section-h" id="start-h">태오에게 맡겨 보세요</h2>
+    <h2 class="section-h" id="start-h">경비 정리하기, 지금 시작해요</h2>
     <p class="section-p">영수증을 모아 월별 경비표로</p>
     <div class="actions">
-      <a class="button" href="/membership/?plan=birdie&amp;funding=included">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      <a class="button secondary" href="/use/">다른 직무 보기</a>
+      <a class="button" href="/account/" data-start="tax">경비 정리하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="button secondary" href="/use/">다른 일 보기</a>
+    </div>
+    <div class="start-ready" data-start-ready role="status" hidden>
+      <b>준비됐어요</b>
+      <p>앱에서 같은 계정으로 로그인한 뒤 팀에게 말로 맡기면 돼요. iPhone·Android 앱은 출시 준비 중이에요.</p>
+      <a class="text-link" href="/account/">내 계정 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
   </section>
+
+  <!-- On a phone the start button stays in reach once the first one has scrolled away. -->
+  <div class="cta-bar" id="cta-bar" hidden>
+    <a class="button" href="/account/" data-start="tax">경비 정리하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
 
   <footer class="footer">
     <div class="foot-brand">
       <img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥" decoding="async" />
-      <p>내 부업을 굴려주는 AI 직원.</p>
+      <p>시작하고 싶은 일을 고르면 움직이는 AI 팀.</p>
       <small>© 2026 Sidekick</small>
     </div>
     <div class="foot-cols">
@@ -167,7 +179,7 @@
     </address>
   </footer>
 </main>
-<script type="application/json" id="use-scenario">{"slug": "tax", "name": "태오", "role": "경비 정리 담당", "status": "일하는 중", "model": "GPT", "connections": ["자료함", "구글 드라이브"], "messages": [{"type": "me", "text": "이번 달 영수증 정리해서 경비표 만들어줘."}, {"type": "ai", "text": "자료함의 영수증 42장을 읽어 항목별로 나누고, 매출과 맞춰 볼게요. 세무 판단은 하지 않아요."}, {"type": "progress", "label": "진행 중 · 42장", "model": "GPT로 정리 중", "steps": ["영수증 읽기", "항목 분류", "매출 대조"]}, {"type": "note", "text": "영수증 원본은 내 서버 자료함 밖으로 나가지 않아요."}, {"type": "approval", "title": "누락 항목 2건", "text": "카드 내역엔 있는데 영수증이 없는 2건이 있어요. 경비표에 '확인 필요'로 넣을까요?", "files": ["8월 경비표", "누락 2건"], "approve": "확인 필요로", "hold": "보류"}, {"type": "result", "kicker": "결과 도착", "title": "8월 경비표 준비 완료", "rows": [["경비", "42건 · 7개 항목"], ["확인 필요", "2건"]]}]}</script>
+<script type="application/json" id="use-scenario">{"slug": "tax", "goal": "경비 정리하기", "short": "경비 정리", "featured": false, "lead": {"name": "경비 정리 담당", "role": "영수증과 경비표 정리"}, "team": [], "helpers": ["영수증 읽기"], "status": "일하는 중", "connections": [], "messages": [{"type": "team"}, {"type": "ai", "text": "영수증을 자료함에 올려 주세요. 항목별로 나누고 매출과 맞춰 볼게요."}, {"type": "me", "text": "이번 달 영수증 42장 올렸어요."}, {"type": "progress", "label": "첫 작업 · 알바 1명과 함께", "steps": ["영수증 읽기", "항목 나누기", "매출과 맞춰 보기"]}, {"type": "approval", "title": "빠진 영수증 2건", "text": "카드 내역엔 있는데 영수증이 없는 2건이 있어요. 경비표에 '확인 필요'로 넣을까요?", "files": ["8월 경비표", "빠진 영수증 2건"], "approve": "확인 필요로", "hold": "빼기"}, {"type": "result", "kicker": "보고 도착", "title": "8월 경비표 준비 완료", "rows": [["경비", "42건 · 7개 항목"], ["확인 필요", "2건"]]}, {"type": "note", "text": "세무 판단과 신고는 대신하지 않아요."}]}</script>
 <script src="/landing.js" defer></script>
 <script src="/use.js" defer></script>
 </body>

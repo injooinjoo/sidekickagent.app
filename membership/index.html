@@ -13,6 +13,7 @@
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="description" content="Sidekick 멤버십을 플랜과 AI 계정 순서로 구성하고 최종 가격을 확인하세요." />
   <title>멤버십 구성 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/membership/" />
@@ -40,29 +41,26 @@
     <nav class="nav" aria-label="주요 메뉴">
       <a href="/membership/" aria-current="page">멤버십</a>
       <a href="/support/">도움말</a>
-      <a href="/privacy/">개인정보</a>
-      <a href="/terms/">이용약관</a>
     </nav>
     <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
   </header>
 
   <main class="page-shell">
     <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">SIDEKICK MEMBERSHIP</p>
-      <h1 id="page-title">멤버십을 순서대로 구성해요</h1>
-      <p>업무량과 AI 계정을 차례로 고르면 최종 금액이 바로 정리돼요. 자료 보관과 실행·보안·모니터링은 어떤 구성에서도 Sidekick 클라우드가 맡아요.</p>
+      <h1 id="page-title">맡길 일의 양에 맞게 고르세요</h1>
+      <p>플랜은 동시에 맡길 수 있는 일의 수로 나뉘어요. 어떤 플랜이든 자료 보관과 보안은 사이드킥이 맡아요.</p>
       <!-- 이 페이지는 유료 플랜만 판다. 무료로 들어오는 길은 계정당 한 번뿐인
            체험이고, 그것은 여기서 살 수 있는 상품이 아니라 앱에서 켜지는
            기간 한정 상태다. 그래서 구성 단계가 아니라 머리말에 적는다. -->
-      <p class="promo-line"><strong>7일 무료 체험</strong>은 앱에 가입하면 결제수단 없이 바로 시작돼요. 체험 동안에는 기능 제한 없이 Birdie 등급 자원 안에서 Sidekick AI 포함으로 한 번에 업무 하나를 AI 직원 1명과 함께 진행하고, 자료함은 5GB예요.</p>
+      <p class="promo-line"><strong>7일 무료 체험</strong> — 앱에 가입하면 결제수단 없이 계정당 한 번 쓸 수 있어요. 첫 업무를 시작할 때 켜지고, 체험 중에는 Birdie와 같은 한도로 모든 기능을 써요. 자료함은 5GB예요.</p>
       <!-- 한 번 고르면 세 카드에 모두 적용된다. 같은 질문을 카드마다
            세 번 묻지 않는다. -->
       <div class="mode-row">
-        <button class="mode-toggle is-on" type="button" id="funding-toggle" role="switch" aria-checked="true">
-          <span>내 AI 계정 사용</span><span class="knob" aria-hidden="true"><i></i></span>
+        <button class="mode-toggle" type="button" id="funding-toggle" role="switch" aria-checked="false">
+          <span>내 AI 계정 연결하고 더 저렴하게</span><span class="knob" aria-hidden="true"><i></i></span>
         </button>
       </div>
-      <p class="mode-note" id="mode-note">내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.</p>
+      <p class="mode-note" id="mode-note">AI 사용료가 포함돼 있어요. 따로 준비할 것 없이 바로 시작해요.</p>
     </section>
 
     <div class="plan-grid" id="plan-grid">
@@ -143,7 +141,7 @@
       <button class="ghost-button" type="button" id="open-signin">로그인</button>
     </div>
 
-    <p class="summary-footnote">표시 금액은 원(KRW) 기준 월 정기결제 금액이에요. 서비스 제공기간은 결제 시점부터 1개월이며 해지 전까지 매월 자동 갱신돼요. 카드 정보는 사이드킥이 아니라 토스페이먼츠 카드 등록창에 입력해요. AI 제공업체 비용은 별도일 수 있어요. 이 페이지는 웹 구독의 결제 창구이고, 한 계정의 유료 멤버십은 한 곳에서만 유효해요.</p>
+    <p class="summary-footnote">표시 금액은 원(KRW) 기준 월 정기결제 금액이에요. 서비스 제공기간은 결제 시점부터 1개월이며 해지 전까지 매월 자동 갱신돼요. 카드 정보는 사이드킥이 아니라 토스페이먼츠 카드 등록창에 입력해요. 내 AI 계정을 연결하면 그 계정의 사용료는 별도예요. 이 페이지는 웹 구독의 결제 창구이고, 한 계정의 유료 멤버십은 한 곳에서만 유효해요.</p>
     <p class="summary-footnote">해지는 이 페이지에서 바로 할 수 있어요. 해지하면 그 즉시 이용이 중단되고 다음 결제부터 청구되지 않아요. 결제한 기간이 남아 있으면 추가 결제 없이 다시 시작할 수 있어요. 자세한 조건은 <a href="/support/#web-membership-refund">웹 정기결제 해지·환불 정책</a>에서 확인해 주세요.</p>
 
     <section class="platform-note">

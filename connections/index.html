@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' https://us-assets.i.posthog.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="사이드킥 계정의 지원 서비스 연결을 확인하고 연결하거나 해제하세요." />
+  <title>서비스 연결 · 사이드킥</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="canonical" href="https://sidekickagent.app/connections/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="서비스 연결 · 사이드킥" />
+  <meta property="og:description" content="사이드킥 계정의 지원 서비스 연결을 확인하고 연결하거나 해제하세요." />
+  <meta property="og:url" content="https://sidekickagent.app/connections/" />
+  <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/analytics.css" />
+  <link rel="stylesheet" href="/connections/connections.css" />
+  <script src="/app-mode.js"></script>
+  <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <script src="/auth.js" defer></script>
+  <script src="/connections/connections.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+    <nav class="nav" aria-label="주요 메뉴"><a href="/support/">도움말</a></nav>
+    <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
+  </header>
+  <main class="services-shell">
+    <section class="services-intro" aria-labelledby="page-title">
+      <h1 id="page-title">쓰는 서비스를 연결해요</h1>
+      <p>AI 직원이 참고할 서비스와 연결 상태를 확인해요. 연결한 계정은 내 다른 프로젝트에서도 사용할 수 있어요.</p>
+      <p id="services-who" hidden></p>
+    </section>
+    <section class="services-panel" id="signin-gate">
+      <h2 class="services-browser-signin">내 연결을 확인하려면 로그인해 주세요</h2>
+      <h2 class="services-app-connecting">앱 계정으로 여는 중이에요</h2>
+      <p class="services-app-connecting">잠시만 기다려 주세요. 앱에서 로그인한 계정으로 이어서 열어요.</p>
+      <h2 class="services-app-signin">앱에서 다시 열어 주세요</h2>
+      <p class="services-browser-signin">앱에서 쓰는 사이드킥 계정으로 로그인해요.</p>
+      <p class="services-app-signin">사이드킥 앱으로 돌아가 로그인한 뒤 서비스 연결을 다시 열어 주세요.</p>
+      <button class="service-button services-browser-signin" id="open-signin" type="button">로그인</button>
+      <button class="service-button services-app-signin" id="retry-handoff" type="button">다시 시도</button>
+      <p class="services-status" id="signin-status" role="status"></p>
+    </section>
+    <section class="services-panel" id="project-panel" hidden>
+      <h2>프로젝트</h2>
+      <label for="workspace-select">연결을 사용할 프로젝트</label>
+      <select id="workspace-select"></select>
+      <div class="service-actions"><button class="service-button secondary" id="refresh-services" type="button">다시 확인</button></div>
+      <p class="services-status" id="page-status" role="status"></p>
+    </section>
+    <section class="services-panel" id="action-panel" aria-labelledby="action-heading" hidden>
+      <div class="service-head"><h2 id="action-heading"></h2><button class="service-button secondary" id="cancel-action" type="button">취소</button></div>
+      <div id="action-body"></div>
+      <p class="services-status" id="action-status" role="status"></p>
+    </section>
+    <section id="catalog-panel" aria-labelledby="catalog-heading" hidden>
+      <h2 id="catalog-heading">서비스 연결</h2>
+      <label class="sr-only" for="service-search">서비스 찾기</label>
+      <input id="service-search" type="search" placeholder="서비스 이름으로 찾기" autocomplete="off" />
+      <p id="catalog-empty" hidden>지금 연결할 수 있는 서비스가 없어요.</p>
+      <div id="service-groups"></div>
+    </section>
+    <footer class="footer"><a href="/">홈</a><a href="/support/">도움말</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/delete-account/">계정 및 데이터 삭제</a><small>© 2026 Sidekick</small><address class="biz"><span>비욘드</span><span>대표 김인주</span><span>사업자등록번호 552-20-02389</span><span>서울특별시 서초구 효령로23길 54-6</span><span>010-5060-6843</span></address></footer>
+  </main>
+</body>
+</html>

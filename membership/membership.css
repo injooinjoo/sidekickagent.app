@@ -11,7 +11,7 @@ button, input { font: inherit; }
 .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .1em; }
 h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); line-height: 1.18; letter-spacing: -.045em; }
 .intro > p { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
-.intro > p.promo-line { padding: 10px 14px; border: 1px solid #dce2d2; border-radius: 12px; background: var(--accent-soft); font-size: 14px; }
+.intro > p.promo-line { padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink-soft); font-size: 14px; }
 .promo-line strong { color: var(--accent); }
 .purchase-layout { display: grid; grid-template-columns: minmax(0, 1fr) 392px; gap: 44px; align-items: start; }
 .configurator { display: flex; flex-direction: column; gap: 38px; }

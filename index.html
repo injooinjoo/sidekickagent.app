@@ -11,14 +11,15 @@
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-  <meta name="description" content="부업을 혼자서도 굴릴 수 있게 해주는 AI 직원 앱, 사이드킥. 블로그·스토어·유튜브·임장 같은 반복 업무를 말로 맡기고, 확인이 필요할 때만 물어봅니다. 5개 AI 모델 선택, 서버 자동 구축, 사용자별 분리 서버." />
-  <title>사이드킥: AI 에이전트</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="description" content="유튜브, 블로그처럼 시작하고 싶은 일을 고르면 사이드킥 AI 팀이 꾸려져 첫 결과까지 가져와요. 올리기·보내기 전에는 꼭 확인을 받아요." />
+  <title>사이드킥 — 고르면 움직이는 AI 팀</title>
   <link rel="canonical" href="https://sidekickagent.app/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
-  <meta property="og:title" content="사이드킥: 내 부업을 굴려주는 AI 직원" />
-  <meta property="og:description" content="블로그, 스토어, 유튜브, 임장… 반복되는 일은 AI 직원에게 말로 맡기세요. 확인이 필요할 때만 돌아옵니다." />
+  <meta property="og:title" content="사이드킥: 시작하고 싶은 일을 고르면, AI 팀이 움직여요" />
+  <meta property="og:description" content="유튜브, 블로그처럼 해보고 싶던 일을 고르세요. 사이드킥이 팀을 꾸려 첫 결과까지 가져와요." />
   <meta property="og:url" content="https://sidekickagent.app/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -38,393 +39,185 @@
   <nav class="nav" aria-label="주요 메뉴">
     <a href="/membership/">멤버십</a>
     <a href="/support/">도움말</a>
-    <a href="/privacy/">개인정보</a>
-    <a href="/terms/">이용약관</a>
   </nav>
   <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
 </header>
 <main class="home">
 
-  <!-- 1. Hero -->
+  <!-- 1. Hero: the promise, and the one thing to do first: pick what to start.
+       The goal picker and the demo phone are generated from roles.json by
+       tools/site/build_use_pages.py; edit roles.json, not the marked regions. -->
   <section class="hero" id="hero" aria-labelledby="hero-h">
-    <div class="hero-inner">
-      <a class="launch" href="/membership/">
-        <span class="tag">얼리 액세스</span>
-        <span>멤버십 미리 구성하기</span>
-        <span class="go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      </a>
-      <h1 id="hero-h"><img class="h1-mark" src="/assets/sidekick-mark.svg" width="64" height="64" alt="">부업, 혼자 하지 마세요</h1>
-      <p class="lead">블로그, 스토어, 유튜브, 임장… 반복되는 일은 AI 직원에게 말로 맡기세요.</p>
-      <ul class="hero-chips" aria-label="사이드킥의 강점">
-        <li><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 1v2M10 1v2M6 13v2M10 13v2M1 6h2M1 10h2M13 6h2M13 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>5개 AI 모델 선택</li>
-        <li><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="9" width="12" height="4.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="4.75" r="0.9" fill="currentColor"/><circle cx="5" cy="11.25" r="0.9" fill="currentColor"/></svg>서버 자동 구축</li>
-        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 13 3.5v4c0 3.2-2.2 5.6-5 6.5-2.8-.9-5-3.3-5-6.5v-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.8 8 1.6 1.6 2.9-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>내 전용 서버 보안</li>
-        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8a4 4 0 0 0-4 4v2.5L2.8 11h10.4L12 8.3V5.8a4 4 0 0 0-4-4ZM6.5 13a1.5 1.5 0 0 0 3 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>확인할 때만 알림</li>
-      </ul>
-      <div class="actions">
-        <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="button secondary" href="#demo" id="demo-cta">1분 시연 보기</a>
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <h1 id="hero-h"><img class="h1-mark" src="/assets/sidekick-mark.svg" width="64" height="64" alt="">시작하고 싶은 일을 고르면, AI 팀이 움직여요</h1>
+        <p class="lead">유튜브, 블로그처럼 해보고 싶던 일을 고르세요. 사이드킥이 팀을 꾸려 첫 결과까지 가져와요.</p>
+        <div class="goal-picker" id="goals" role="group" aria-labelledby="goals-label">
+          <p class="goal-label" id="goals-label">무엇을 시작할까요?</p>
+          <!-- goals:start -->
+          <div class="goal-tiles">
+            <a class="goal-tile" href="/use/youtube/" data-goal="youtube" data-source="landing_hero"><span class="goal-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.5" width="12.4" height="9" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 6.1v3.8L10 8Z" fill="currentColor"/></svg></span><span class="goal-text"><b class="vt-goal-youtube">유튜브 시작하기</b><small>주제부터 대본까지, 첫 영상을 준비해요</small></span><span class="goal-go"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+            <a class="goal-tile" href="/use/blog/" data-goal="blog" data-source="landing_hero"><span class="goal-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13h2.6l7.2-7.2a1.8 1.8 0 0 0-2.6-2.6L3 10.4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.4 4.6l2 2" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="goal-text"><b class="vt-goal-blog">블로그 시작하기</b><small>글감 조사부터 올리기 직전 원고까지 준비해요</small></span><span class="goal-go"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+          </div>
+          <ul class="goal-chips" aria-label="다른 일">
+            <li><a class="goal-chip" href="/use/instagram/" data-goal="instagram" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.6" cy="4.4" r="0.9" fill="currentColor"/></svg><span class="vt-goal-instagram">인스타 콘텐츠 만들기</span></a></li>
+            <li><a class="goal-chip" href="/use/store-cs/" data-goal="store-cs" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7.5H8.5L5.5 13.5V11h-3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.7h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-store-cs">스토어 문의 정리하기</span></a></li>
+            <li><a class="goal-chip" href="/use/briefing/" data-goal="briefing" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2.5v1.6M3.4 4.4l1.1 1.1M12.6 4.4l-1.1 1.1M1.8 9h1.6M12.6 9h1.6M2.5 13.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-briefing">아침 브리핑 받기</span></a></li>
+            <li><a class="goal-chip" href="/use/price-watch/" data-goal="price-watch" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 8.2l2.6 2.4L14 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.6 4.6H14V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="vt-goal-price-watch">가격 변동 지켜보기</span></a></li>
+            <li><a class="goal-chip" href="/use/real-estate/" data-goal="real-estate" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.4 8 2.8l5.5 4.6V13.5h-11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 13.5V10h3v3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="vt-goal-real-estate">임장 자료 정리하기</span></a></li>
+            <li><a class="goal-chip" href="/use/tax/" data-goal="tax" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.8h9v12.4l-1.8-1.1-1.8 1.1-1.9-1.1-1.8 1.1-1.7-1.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 5.4h4.4M5.8 8h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-tax">경비 정리하기</span></a></li>
+          </ul>
+          <!-- goals:end -->
+          <a class="text-link goal-all" href="/use/">모든 일 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
       </div>
-    </div>
-
-    <div class="hero-media" id="demo" role="img" aria-label="사이드킥 앱 화면 세 장: 홈 탭의 사장님 브리핑, 블로그 담당 현진과의 대화, 받은 일 탭의 발행 전 확인 요청">
-      <div class="stage" aria-hidden="true">
-        <div class="phone side">
-          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="scr-head"><span class="scr-title">내 부업</span><span class="scr-avatar" aria-hidden="true"><i></i></span></div>
-          <div class="briefing">
-            <div class="lbl">사장님 브리핑</div>
-            <h4>오늘 확인할 일 1건이 있어요.</h4>
-            <div class="tiles"><div class="tile"><b>1건</b><span>확인</span></div><div class="tile"><b>2건</b><span>진행</span></div><div class="tile"><b>3명</b><span>직원</span></div></div>
-            <p class="foot">필요한 결정만 위로 올릴게요.</p>
-          </div>
-          <div class="scr-section">확인 요청</div>
-          <div class="req">
-            <div class="who"><span>현진 · +2명 함께</span><span class="badge wait">승인 대기</span></div>
-            <h5>캠핑용품 리뷰 3편 발행</h5>
-            <p>예약 발행 전에 확인이 필요해요.</p>
-          </div>
-          <div class="scr-section">직원 현황</div>
-          <div class="roster">
-            <div><span class="dot attn"></span><b>현진</b><span>확인 필요</span></div>
-            <div><span class="dot work"></span><b>예린</b><span>가격 감시 중</span></div>
-            <div><span class="dot"></span><b>하린</b><span>대기 중</span></div>
-          </div>
+      <div class="hero-demo" id="demo" role="img" aria-label="예시 화면: 고른 일을 맡은 AI 직원이 필요한 것만 묻고, 첫 작업을 진행하고, 확인을 받은 뒤 결과를 보내는 모습">
+        <!-- demo:start -->
+        <p class="demo-cap"><span class="badge idle">예시</span><span><span id="demo-goal">유튜브 시작하기</span>를 고르면</span></p>
+        <div class="role-phone demo-phone" aria-hidden="true">
+          <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
+          <div class="thread-head" id="demo-head"><span class="avatar">채</span><div><b>채널 매니저</b><small>유튜브 운영 총괄</small></div><span class="badge work">일하는 중</span></div>
+          <div class="role-screen" id="demo-screen"><div class="team-card"><div class="kicker">유튜브 팀이 꾸려졌어요</div><div class="team-row"><span class="avatar">채</span><span class="team-who"><b>채널 매니저</b><small>유튜브 운영 총괄</small></span><span class="badge work">맡았어요</span></div><div class="team-row"><span class="avatar light">+5</span><span class="team-who"><b>팀원 5명</b><small>리서처 · 작가 · 크리에이티브 · 프로듀서 · 그로스</small></span><span class="badge idle">함께해요</span></div></div><div class="msg ai"><span class="from">채널 매니저</span>어떤 채널을 만들고 싶으세요? 그것만 알려 주시면 나머지는 팀이 준비할게요.</div><div class="msg me">캠핑 초보를 위한 장비 리뷰요.</div><div class="prog"><div class="lbl"><span>첫 영상 준비</span></div><div><span>요즘 반응 좋은 주제 조사<small>리서처</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div><div><span>첫 영상 후보 3개<small>작가</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div><div><span>썸네일 문구<small>크리에이티브</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div></div><div class="appr"><div class="top"><h5>첫 영상 고르기</h5><span class="badge done">확인함</span></div><p>후보 3개 중 1번 &#x27;캠핑 초보 장비 5가지&#x27;로 갈까요? 고르면 대본을 이어서 써요.</p><ul class="files"><li><i></i>첫 영상 후보 3개</li><li><i></i>썸네일 문구 3가지</li></ul><div class="btn-row"><span class="ink pressed">1번으로</span><span class="line">다른 후보</span></div></div><div class="res"><div class="kicker">보고 도착</div><h5>첫 영상 대본과 썸네일 문구 준비 완료</h5><dl><dt>대본</dt><dd>6분 분량 · 장면 9개</dd><dt>썸네일 문구</dt><dd>3가지 안</dd></dl></div><p class="note">올리기 전에는 꼭 확인을 받아요.</p></div>
         </div>
-
-        <div class="phone">
-          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="phone-body">
-          <div class="thread-head"><span class="avatar">현</span><div><b>현진</b><small>블로그 담당</small></div><span class="badge work">작업 중</span></div>
-          <div class="msg me">이번 주 캠핑용품 리뷰 글 3개 써서 예약 발행해줘.</div>
-          <div class="msg ai"><span class="from">현진</span>키워드 조사 → 초안 3개 → 썸네일 → 발행 예약 순서로 갈게요. 발행 전에 확인 요청 드릴게요.</div>
-          <div class="prog">
-            <div class="lbl"><span>진행 중 · 3단계</span><span class="badge model">Claude로 작성 중</span></div>
-            <div><span>키워드 조사</span><span class="badge done">완료됨</span></div>
-            <div><span>초안 3개 작성</span><span class="badge work">작성 중</span></div>
-            <div><span>발행 예약</span><span class="badge wait">확인 필요</span></div>
-          </div>
-          <div class="res">
-            <div class="kicker">결과 도착</div>
-            <h5>리뷰 3편, 예약 발행 준비 완료</h5>
-            <dl>
-              <dt>요구 사항</dt><dd>캠핑용품 리뷰 3편 · 예약 발행</dd>
-              <dt>준비된 자료</dt><dd>초안 3편 · 썸네일 3장 · 발행 일정</dd>
-            </dl>
-          </div>
-          </div>
-        </div>
-
-        <div class="phone side">
-          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="scr-head"><span class="scr-title">받은 일</span><span class="scr-avatar" aria-hidden="true"><i></i></span></div>
-          <div class="appr-stack">
-          <div class="appr">
-            <div class="top"><h5>리뷰 3편 예약 발행</h5><span class="badge wait">확인 필요</span></div>
-            <p>초안 3편을 목·금·토 9시에 예약 발행할까요?</p>
-            <ul class="files"><li><i></i>캠핑 의자 리뷰_초안</li><li><i></i>썸네일 3장</li></ul>
-            <div class="btn-row"><span class="ink">발행 승인</span><span class="line">수정 요청</span></div>
-          </div>
-          </div>
-          <p class="note">확인 전에는 발행하지 않아요.</p>
-          <div class="scr-section">최근 완료</div>
-          <div class="roster">
-            <div><span class="dot"></span><b>스토어 문의 답변 5건</b><span>어제</span></div>
-            <div><span class="dot"></span><b>가격 변동 알림</b><span>월요일</span></div>
-          </div>
-        </div>
+        <!-- demo:end -->
       </div>
     </div>
   </section>
 
-  <!-- 2. Statement -->
-  <section class="statement" id="how" aria-labelledby="how-h">
-    <div class="statement-card" data-reveal>
-      <div class="statement-copy">
-        <h2 class="section-h" id="how-h">직원에게 말하듯 맡기세요</h2>
-        <p class="section-p">팀원에게 일을 넘기듯 앱에서 말로 맡기세요. <b>확인이 필요할 때만 돌아옵니다.</b></p>
-      </div>
-      <div class="statement-pop" aria-hidden="true">
-        <div class="pop-thread">
-          <div class="pop-msg me">스토어에 온 문의, 답변 초안까지 만들어줘.</div>
-          <div class="pop-msg ai"><span class="from">하린 · 스토어 CS 담당</span>배송 3건, 교환 1건이에요. 답변 초안 만들고 보내기 전에 확인 요청 드릴게요.</div>
-          <div class="pop-status"><span class="badge work">작업 중</span>내 전용 서버에서 처리 중 · GPT</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. Features -->
-  <section class="features" id="features" aria-labelledby="features-h">
+  <!-- 2. How it works, in the order the person lives it. No setup step. -->
+  <section class="how" id="how" aria-labelledby="how-h">
     <div class="wrap-wide">
       <div class="sec-head" data-reveal>
-        <h2 class="section-h" id="features-h">사이드킥이 다른 이유</h2>
-        <p class="section-p">부업에 필요한 네 가지를 앱 하나에 담았어요.</p>
+        <h2 class="section-h" id="how-h">고르면, 나머지는 팀이 해요</h2>
+        <p class="section-p"><b>설정부터 하지 않아요.</b> 필요한 건 일하면서 그때 물어봐요.</p>
       </div>
-      <div class="feature-grid" data-reveal-group>
-        <article class="feature" data-feature="models" data-reveal>
-          <h3>모델은 내가 고른다</h3>
-          <p><b>DeepSeek·<wbr>GPT·<wbr>Claude·<wbr>Grok·<wbr>Gemini 중 원하는 모델로 일해요.</b> 내 AI 계정을 연결하면 멤버십이 더 저렴해져요.</p>
-          <figure>
-            <div class="ui models" aria-label="AI 모델 선택">
-              <div class="model-chips">
-                <span class="mchip">DeepSeek</span><span class="mchip">GPT</span><span class="mchip on">Claude</span><span class="mchip">Grok</span><span class="mchip">Gemini</span>
-              </div>
-              <div class="model-now">이번 작업: <b data-role="model-now">Claude</b>로 진행</div>
-              <div class="model-save"><span class="badge done">내 계정 연결</span><span>월 <b data-role="model-saving" data-plan-ref="birdie"></b></span></div>
-            </div>
-          </figure>
-        </article>
-
-        <article class="feature" data-feature="server" data-reveal>
-          <h3>서버는 알아서</h3>
-          <p><b>맥미니도, 클라우드 세팅도 필요 없어요.</b> 가입하면 내 전용 실행 환경이 자동으로 준비돼요.</p>
-          <figure>
-            <div class="ui server" aria-label="실행 환경 자동 생성">
-              <div class="srv-old"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 8h5M4 10h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>맥미니 24시간</b><small>직접 세팅 · 직접 관리</small></div><span class="srv-x" aria-hidden="true">✕</span></div>
-              <div class="srv-card">
-                <div class="srv-head"><b>내 실행 환경</b><span class="badge done">준비 완료 · 12초</span></div>
-                <div class="srv-row"><span>환경 생성</span><i class="bar"><b style="width:100%"></b></i></div>
-                <div class="srv-row"><span>보안 설정</span><i class="bar"><b style="width:100%"></b></i></div>
-                <div class="srv-row"><span>직원 배치</span><i class="bar"><b style="width:100%"></b></i></div>
-              </div>
-            </div>
-          </figure>
-        </article>
-
-        <article class="feature" data-feature="isolation" data-reveal>
-          <h3>내 서버, 내 것만</h3>
-          <p><b>사용자마다 분리된 서버에서만 일해요.</b> 계정·파일·로그인이 밖으로 나가지 않아요.</p>
-          <figure>
-            <div class="ui iso" aria-label="사용자별 분리 서버">
-              <svg class="iso-art" viewBox="0 0 320 150" aria-hidden="true">
-                <circle class="iso-ring" cx="160" cy="75" r="62" fill="none" stroke="#1a1d21" stroke-width="1.6" stroke-dasharray="5 6"/>
-                <g class="iso-phone"><rect x="145" y="52" width="30" height="46" rx="6" fill="#fff" stroke="#1a1d21" stroke-width="1.8"/><path d="M156 92h8" stroke="#1a1d21" stroke-width="1.6" stroke-linecap="round"/></g>
-                <g class="iso-item" transform="translate(112 62)"><circle r="13" fill="#fff" stroke="#e1e5ea"/><rect x="-6" y="-4" width="12" height="8" rx="1.5" fill="none" stroke="#6b737d" stroke-width="1.2"/><path d="m-5.5-3 5.5 4 5.5-4" fill="none" stroke="#6b737d" stroke-width="1.2"/></g>
-                <g class="iso-item" transform="translate(208 62)"><circle r="13" fill="#fff" stroke="#e1e5ea"/><rect x="-6" y="-5" width="12" height="10" rx="1.5" fill="none" stroke="#6b737d" stroke-width="1.2"/><path d="M-6-2h12M-3-7v3M3-7v3" stroke="#6b737d" stroke-width="1.2" stroke-linecap="round"/></g>
-                <g class="iso-item" transform="translate(160 118)"><circle r="13" fill="#fff" stroke="#e1e5ea"/><path d="M-5-6h6l4 4v8h-10z" fill="none" stroke="#6b737d" stroke-width="1.2" stroke-linejoin="round"/></g>
-                <circle class="iso-intruder" cx="40" cy="40" r="5" fill="#9aa2ac"/>
-                <circle class="iso-intruder" cx="286" cy="118" r="5" fill="#9aa2ac"/>
-              </svg>
-              <div class="iso-lbl"><span class="badge done">사용자별 분리 · 암호화</span></div>
-            </div>
-          </figure>
-        </article>
-
-        <article class="feature" data-feature="routine" data-reveal>
-          <h3>한 번 정하면 일과</h3>
-          <p><b>아침 브리핑, 가격 감시처럼 정해진 시간에 스스로 돌아가요.</b> 결과만 카드로 도착해요.</p>
-          <figure>
-            <div class="ui routine" aria-label="일과 목록">
-              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>아침 브리핑</b><small>매일 08:00</small></div><span class="badge done">결과 도착</span></div>
-              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg></span><div><b>가격 감시</b><small>바뀔 때만</small></div><span class="badge work">지켜보는 중</span></div>
-              <div class="ui-row"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 12.5V8m5 4.5V4m5 8.5V6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><b>주간 정리</b><small>매주 월 09:00</small></div><span class="badge idle">예정</span></div>
-              <div class="rt-result"><span class="kicker">결과 도착 · 08:00</span><b>오늘 먼저 볼 일 3가지</b></div>
-            </div>
-          </figure>
-        </article>
-      </div>
+      <ol class="how-steps" data-reveal-group>
+        <li class="how-step" data-reveal>
+          <span class="step-no">1</span>
+          <h3>팀이 꾸려져요</h3>
+          <p>고른 일에 맞는 AI 팀이 꾸려져요. 매니저가 팀을 이끌고, 리서처·작가 같은 팀원이 일을 나눠 맡아요.</p>
+          <div class="how-ui" aria-hidden="true">
+            <div class="team-card"><div class="kicker">유튜브 팀이 꾸려졌어요</div><div class="team-row"><span class="avatar">채</span><span class="team-who"><b>채널 매니저</b><small>유튜브 운영 총괄</small></span><span class="badge work">맡았어요</span></div><div class="team-row"><span class="avatar light">+5</span><span class="team-who"><b>팀원 5명</b><small>리서처 · 작가 · 크리에이티브 · 프로듀서 · 그로스</small></span><span class="badge idle">함께해요</span></div></div>
+          </div>
+        </li>
+        <li class="how-step" data-reveal>
+          <span class="step-no">2</span>
+          <h3>필요한 것만 묻고 바로 시작해요</h3>
+          <p>어떤 채널을 만들지처럼 꼭 필요한 것만 묻고 첫 작업에 들어가요. 누가 무엇을 하는지 바로 보여요.</p>
+          <div class="how-ui" aria-hidden="true">
+            <div class="prog"><div class="lbl"><span>첫 영상 준비</span></div><div><span>요즘 반응 좋은 주제 조사<small>리서처</small></span><span class="badge done">완료</span></div><div><span>첫 영상 후보 3개<small>작가</small></span><span class="badge work">진행 중</span></div><div><span>썸네일 문구<small>크리에이티브</small></span><span class="badge idle">대기</span></div></div>
+          </div>
+        </li>
+        <li class="how-step" data-reveal>
+          <span class="step-no">3</span>
+          <h3>확인할 때만 부르고, 결과를 가져와요</h3>
+          <p>올리기·보내기 전에는 꼭 확인을 받아요. 버튼 한 번이면 되고, 결과는 바로 쓸 수 있는 모습으로 와요.</p>
+          <div class="how-ui" aria-hidden="true">
+            <div class="appr"><div class="top"><h5>첫 영상 고르기</h5><span class="badge wait">확인 필요</span></div><p>1번 '캠핑 초보 장비 5가지'로 갈까요?</p><div class="btn-row"><span class="ink">1번으로</span><span class="line">다른 후보</span></div></div><div class="res"><div class="kicker">보고 도착</div><h5>첫 영상 대본과 썸네일 문구 준비 완료</h5></div>
+          </div>
+        </li>
+      </ol>
     </div>
   </section>
 
-  <!-- 4. Roles -->
-  <section class="roles" id="roles" aria-labelledby="roles-h">
-    <div class="wrap" data-reveal-group>
-      <div data-reveal>
-        <h2 class="section-h" id="roles-h">내 부업에 맞는 직원을 고르세요</h2>
-        <p class="section-p">직무를 누르면 첫 지시부터 결과까지 재생돼요.</p>
-        <div class="role-pills" role="group" aria-label="부업 시나리오 선택" id="role-pills"></div>
-        <p class="role-desc" id="role-desc" aria-live="polite"></p>
-        <a class="text-link role-more" id="role-more" href="/use/blog/">더 알아보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      </div>
-      <div class="role-card" id="role-card" data-reveal>
-        <div class="role-phone" aria-hidden="true">
-          <div class="sbar"><span>9:41</span><i></i><b><span style="height:4px"></span><span style="height:6px"></span><span style="height:8px"></span><span style="height:10px"></span></b></div>
-          <div class="thread-head" id="role-head"></div>
-          <div class="role-screen" id="role-screen"></div>
-        </div>
-      </div>
+  <!-- 3. Why it is safe to hand over. Plain words, no infrastructure. -->
+  <section class="trust" id="trust" aria-labelledby="trust-h">
+    <div class="wrap">
+      <h2 class="section-h" id="trust-h" data-reveal>맡겨도 괜찮아요</h2>
+      <ul class="trust-list" data-reveal-group>
+        <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>되돌리기 어려운 일은 먼저 물어봐요</b><p>올리기, 보내기, 결제, 삭제는 확인을 받은 뒤에만 해요.</p></div></li>
+        <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><div><b>내 자료는 내 공간에만</b><p>사용자마다 따로 나뉜 공간에서 일하고, 다른 사람의 자료와 섞이지 않아요.</p></div></li>
+        <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M6.5 9.5 9.5 6.5M7 4.5l1-1a3 3 0 0 1 4.2 4.2l-1 1M9 11.5l-1 1a3 3 0 0 1-4.2-4.2l1-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><div><b>연결은 필요할 때만</b><p>서비스 연결은 일하다 필요할 때 물어보고, 언제든 끊을 수 있어요.</p></div></li>
+      </ul>
     </div>
   </section>
 
-  <!-- 5. Pricing -->
+  <!-- 4. Pricing at a glance. No price is written here: landing.js fills the
+       figures from /membership/toss/config, and an empty catalog shows none.
+       The membership page owns the configurator and any purchase. -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-h">
-    <div class="pricing-head" data-reveal>
-      <div>
-        <h2 class="section-h" id="pricing-h">멤버십</h2>
-        <p class="section-p">업무량과 AI 사용료 방식만 고르세요.</p>
+    <div class="wrap">
+      <div class="pricing-head" data-reveal>
+        <h2 class="section-h" id="pricing-h">7일 무료로 시작해요</h2>
+        <p class="section-p">앱에서 첫 업무를 시작하면 <b>7일 무료 체험</b>이 결제수단 없이 바로 켜져요. 그다음 동시에 맡길 일의 수에 맞춰 고르세요.</p>
       </div>
-      <a class="text-link" href="/membership/">자세히 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    </div>
-
-    <!-- No prices in this HTML. The Korean-won catalog is server-owned
-         deployment configuration served by /membership/toss/config, and
-         landing.js fills each card in from it. apps/site/test_landing_contract.py
-         fails if a number reappears here. The buy links carry the plan and
-         AI-account choice to the membership configurator, which is the only page
-         that starts an authorisation. -->
-    <div class="pricing-grid" id="plans" data-reveal-group>
-      <article class="plan" data-plan="birdie" data-funding-selected="connected" data-reveal data-storage="5GB">
-        <div class="plan-top">
-          <div class="plan-name">Birdie<span class="plan-save" data-role="save" hidden></span></div>
-          <div class="seg" role="group" aria-label="Birdie AI 사용료">
-            <button type="button" data-funding="included" aria-pressed="false">Sidekick AI</button>
-            <button type="button" data-funding="connected" aria-pressed="true">내 AI 계정 연결 <em>더 저렴</em></button>
-          </div>
-        </div>
-        <p class="plan-desc">하루 한두 건, 짧은 업무를 맡겨요.</p>
-        <p class="price"><b data-role="price">—</b><span>/ 월</span></p>
-        <p class="price-sub" data-role="price-sub"><span class="flat">매월 같은 금액</span></p>
-        <a class="button buy" data-role="buy" href="/membership/?plan=birdie&amp;funding=connected"><span data-role="buy-label">구성 미리 보기</span> <small data-role="buy-mode">내 AI 계정</small> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <div class="inc">
-          <p class="inc-lbl">포함</p>
-          <ul>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 5GB</li>
-            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료는 내 계정에서 · DeepSeek·GPT·Claude·Grok·Gemini</span></li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>전용 실행 환경 자동 생성</li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>구독 관리는 웹에서</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="plan" data-plan="eagle" data-funding-selected="connected" data-reveal data-storage="25GB">
-        <div class="plan-top">
-          <div class="plan-name">Eagle <em>추천</em><span class="plan-save" data-role="save" hidden></span></div>
-          <div class="seg" role="group" aria-label="Eagle AI 사용료">
-            <button type="button" data-funding="included" aria-pressed="false">Sidekick AI</button>
-            <button type="button" data-funding="connected" aria-pressed="true">내 AI 계정 연결 <em>더 저렴</em></button>
-          </div>
-        </div>
-        <p class="plan-desc">매일 여러 건, 반복 업무까지 맡겨요.</p>
-        <p class="price"><b data-role="price">—</b><span>/ 월</span></p>
-        <p class="price-sub" data-role="price-sub"><span class="flat">매월 같은 금액</span></p>
-        <a class="button buy" data-role="buy" href="/membership/?plan=eagle&amp;funding=connected"><span data-role="buy-label">구성 미리 보기</span> <small data-role="buy-mode">내 AI 계정</small> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <div class="inc">
-          <p class="inc-lbl">포함</p>
-          <ul>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 25GB</li>
-            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료는 내 계정에서 · DeepSeek·GPT·Claude·Grok·Gemini</span></li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>전용 실행 환경 자동 생성</li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>구독 관리는 웹에서</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="plan" data-plan="albatross" data-funding-selected="connected" data-reveal data-storage="100GB">
-        <div class="plan-top">
-          <div class="plan-name">Albatross<span class="plan-save" data-role="save" hidden></span></div>
-          <div class="seg" role="group" aria-label="Albatross AI 사용료">
-            <button type="button" data-funding="included" aria-pressed="false">Sidekick AI</button>
-            <button type="button" data-funding="connected" aria-pressed="true">내 AI 계정 연결 <em>더 저렴</em></button>
-          </div>
-        </div>
-        <p class="plan-desc">하루 종일 여러 흐름을 함께 돌려요.</p>
-        <p class="price"><b data-role="price">—</b><span>/ 월</span></p>
-        <p class="price-sub" data-role="price-sub"><span class="flat">매월 같은 금액</span></p>
-        <a class="button buy" data-role="buy" href="/membership/?plan=albatross&amp;funding=connected"><span data-role="buy-label">구성 미리 보기</span> <small data-role="buy-mode">내 AI 계정</small> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <div class="inc">
-          <p class="inc-lbl">포함</p>
-          <ul>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>자료함 100GB</li>
-            <li data-role="ai-line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>AI 사용료는 내 계정에서 · DeepSeek·GPT·Claude·Grok·Gemini</span></li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>전용 실행 환경 자동 생성</li>
-            <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>구독 관리는 웹에서</li>
-          </ul>
-        </div>
-      </article>
-    </div>
-    <details class="pricing-more" data-reveal>
-      <summary>원(KRW) 기준 월 정기결제 · 앱스토어 결제는 수수료로 더 비쌈</summary>
-      <p>앱에 가입하면 7일 무료 체험이 결제수단 없이 바로 시작돼요. 구독 중이면 <a href="/membership/">같은 계정으로 로그인</a>하세요.</p>
-      <p id="pricing-closed">웹 결제는 준비 중이에요. 지금은 구성과 최종 금액만 미리 볼 수 있어요.</p>
-      <p>카드 등록은 토스페이먼츠 결제창에서 하고, 해지는 로그인한 멤버십 페이지에서 바로 할 수 있어요. 내 AI 계정을 연결하면 AI 사용료는 제공업체가 청구해요.</p>
-    </details>
-  </section>
-
-  <!-- 6. Download -->
-  <section class="download" id="download" aria-labelledby="download-h">
-    <div class="wrap-wide" data-reveal-group>
-      <div data-reveal>
-        <h2 class="section-h" id="download-h">사이드킥 받기</h2>
-        <p class="section-p"><b>휴대폰 하나면 돼요.</b> 말로 맡기고, 확인할 때만 알림을 받아요.</p>
-      </div>
-      <div class="dl-cards" data-reveal>
-        <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="1.5" width="8" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 12.5h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><div><b>iPhone</b><small>App Store 출시 준비 중</small></div><span class="badge idle">준비 중</span></div>
-        <div class="dl"><span class="ui-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="1.5" width="9" height="13" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="12.3" r="0.9" fill="currentColor"/></svg></span><div><b>Android</b><small>Google Play 준비 중</small></div><span class="badge idle">준비 중</span></div>
+      <ul class="plan-rows" id="plans" data-reveal>
+        <li><a class="plan-row" data-plan="birdie" href="/membership/?plan=birdie&amp;funding=included"><span class="plan-row-name"><b>Birdie</b><small>하루 한두 건 · 동시에 1개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+        <li><a class="plan-row" data-plan="eagle" href="/membership/?plan=eagle&amp;funding=included"><span class="plan-row-name"><b>Eagle <em>추천</em></b><small>매일 여러 건 · 동시에 2개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+        <li><a class="plan-row" data-plan="albatross" href="/membership/?plan=albatross&amp;funding=included"><span class="plan-row-name"><b>Albatross</b><small>하루 종일 여러 흐름 · 동시에 4개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+      </ul>
+      <div class="pricing-more" data-reveal>
+        <p>원(KRW) 기준 월 정기결제예요. 내 AI 계정을 연결하면 더 저렴해져요. 구독 중이면 <a href="/membership/">같은 계정으로 로그인</a>해 확인하세요.</p>
+        <p id="pricing-closed">웹 결제는 준비 중이에요. 지금은 구성과 금액만 미리 볼 수 있어요.</p>
       </div>
     </div>
   </section>
 
-  <!-- 7. Guides -->
-  <section class="guides" id="guides" aria-labelledby="guides-h">
-    <div class="wrap-wide" data-reveal>
-      <div>
-        <h2 id="guides-h">도움말</h2>
-        <p>계정, 결제, 개인정보에 대해 자주 묻는 내용이에요.</p>
-      </div>
-      <a class="text-link" href="/support/">도움말 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    </div>
-  </section>
-
-  <!-- 8. FAQ -->
+  <!-- 5. Questions people ask before trusting it with work. -->
   <section class="faq" id="faq" aria-labelledby="faq-h">
     <div class="wrap">
       <h2 class="section-h" id="faq-h" data-reveal>자주 묻는 질문</h2>
       <div data-reveal-group>
         <details open data-reveal>
           <summary>AI 비서 앱과 뭐가 다른가요?</summary>
-          <p>답만 주는 게 아니라 맡은 일을 끝까지 진행해요. 확인이 필요한 일만 보내기 전에 물어봅니다.</p>
+          <p>답만 주는 게 아니라 고른 일을 끝까지 진행해요. 확인이 필요한 일만 진행하기 전에 물어봐요.</p>
         </details>
         <details data-reveal>
-          <summary>어떤 AI 모델을 쓸 수 있나요?</summary>
-          <p>DeepSeek, GPT, Claude, Grok, Gemini 중 작업마다 골라요. 내 AI 계정을 연결하면 멤버십이 더 저렴해져요.</p>
+          <summary>무엇을 준비해야 하나요?</summary>
+          <p>하고 싶은 일만 고르면 돼요. 서비스 연결처럼 필요한 건 일하면서 그때 물어봐요.</p>
         </details>
         <details data-reveal>
-          <summary>서버를 따로 준비해야 하나요?</summary>
-          <p>아니요, 가입하면 전용 실행 환경이 자동으로 만들어져요. 맥미니도 클라우드 세팅도 필요 없어요.</p>
-        </details>
-        <details data-reveal>
-          <summary>지금 누가 쓸 수 있나요?</summary>
-          <p>iPhone 앱은 App Store 출시 준비 중이에요. 멤버십은 웹에서 미리 구성할 수 있어요.</p>
-        </details>
-        <details data-reveal>
-          <summary>어디서 직원과 대화하나요?</summary>
-          <p>앱 안에서 말로 맡겨요. 직원마다 대화가 나뉘어 있어 지난 작업을 찾기 쉬워요.</p>
-        </details>
-        <details data-reveal>
-          <summary>비용은 얼마인가요?</summary>
-          <p>Birdie·Eagle·Albatross는 업무량으로 나뉘어요. 앱에서 7일 무료 체험을 먼저 써 볼 수 있고, 내 AI 계정을 연결하면 금액이 더 낮아져요.</p>
+          <summary>어떤 AI로 일하나요?</summary>
+          <p>기본으로 준비된 AI로 바로 시작해요. 원하면 쓰고 있는 AI 계정을 연결할 수 있고, 그러면 멤버십이 더 저렴해져요.</p>
         </details>
         <details data-reveal>
           <summary>직원이 내 계정으로 아무거나 하지 않나요?</summary>
-          <p>보내기·결제·삭제처럼 되돌리기 어려운 일은 먼저 확인을 받아요. 연결은 언제든 끊을 수 있어요.</p>
+          <p>올리기·보내기·결제·삭제처럼 되돌리기 어려운 일은 먼저 확인을 받아요. 연결은 언제든 끊을 수 있어요.</p>
         </details>
         <details data-reveal>
-          <summary>내 데이터는 어떻게 다뤄지나요?</summary>
-          <p>사용자마다 분리된 내 서버에 보관되고, 삭제는 앱에서 직접 요청해요. 기준은 <a href="/privacy/">개인정보처리방침</a>에서 확인하세요.</p>
+          <summary>비용은 얼마인가요?</summary>
+          <p>앱에서 7일 무료 체험을 먼저 써 볼 수 있어요. 그다음 Birdie·Eagle·Albatross 중 업무량에 맞게 고르고, 내 AI 계정을 연결하면 금액이 더 낮아져요.</p>
+        </details>
+        <details data-reveal>
+          <summary>지금 쓸 수 있나요?</summary>
+          <p>iPhone·Android 앱은 출시 준비 중이에요. 지금 로그인해 두면 출시 뒤 같은 계정으로 바로 이어서 쓸 수 있어요.</p>
+        </details>
+        <details data-reveal>
+          <summary>내 자료는 어떻게 다뤄지나요?</summary>
+          <p>사용자마다 나뉜 공간에 보관되고, 삭제는 앱에서 직접 요청해요. 기준은 <a href="/privacy/">개인정보처리방침</a>에서 확인하세요.</p>
         </details>
         <details data-reveal>
           <summary>투자 판단이나 매매도 대신하나요?</summary>
-          <p>아니요, 매수·매도 추천이나 매매는 하지 않아요. 자료만 정리하고 결정은 직접 합니다.</p>
+          <p>아니요, 매수·매도 추천이나 매매는 하지 않아요. 자료만 정리하고 결정은 직접 해요.</p>
         </details>
       </div>
     </div>
   </section>
 
-  <!-- 9. Closing call -->
+  <!-- 6. Closing: the same one action as the hero. -->
   <section class="start" id="start" aria-labelledby="start-h">
-    <h2 class="section-h" id="start-h" data-reveal>첫 직원을 만나보세요</h2>
-    <p class="section-p" data-reveal>내 부업을 굴려주는 AI 직원</p>
-    <div class="actions" data-reveal>
-      <a class="button" href="/membership/">멤버십 구성하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      <a class="button secondary" href="/support/">도움말</a>
+    <h2 class="section-h" id="start-h" data-reveal>무엇부터 시작할까요?</h2>
+    <div data-reveal>
+      <!-- closing-goals:start -->
+      <ul class="goal-chips centered" aria-label="시작할 수 있는 일">
+        <li><a class="goal-chip" href="/use/youtube/" data-goal="youtube" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.5" width="12.4" height="9" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 6.1v3.8L10 8Z" fill="currentColor"/></svg><span>유튜브 시작하기</span></a></li>
+        <li><a class="goal-chip" href="/use/blog/" data-goal="blog" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13h2.6l7.2-7.2a1.8 1.8 0 0 0-2.6-2.6L3 10.4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.4 4.6l2 2" stroke="currentColor" stroke-width="1.5"/></svg><span>블로그 시작하기</span></a></li>
+        <li><a class="goal-chip" href="/use/instagram/" data-goal="instagram" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.6" cy="4.4" r="0.9" fill="currentColor"/></svg><span>인스타 콘텐츠 만들기</span></a></li>
+        <li><a class="goal-chip" href="/use/store-cs/" data-goal="store-cs" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7.5H8.5L5.5 13.5V11h-3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.7h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>스토어 문의 정리하기</span></a></li>
+        <li><a class="goal-chip" href="/use/briefing/" data-goal="briefing" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2.5v1.6M3.4 4.4l1.1 1.1M12.6 4.4l-1.1 1.1M1.8 9h1.6M12.6 9h1.6M2.5 13.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>아침 브리핑 받기</span></a></li>
+        <li><a class="goal-chip" href="/use/price-watch/" data-goal="price-watch" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 8.2l2.6 2.4L14 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.6 4.6H14V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>가격 변동 지켜보기</span></a></li>
+        <li><a class="goal-chip" href="/use/real-estate/" data-goal="real-estate" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.4 8 2.8l5.5 4.6V13.5h-11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 13.5V10h3v3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>임장 자료 정리하기</span></a></li>
+        <li><a class="goal-chip" href="/use/tax/" data-goal="tax" data-source="landing_closing"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.8h9v12.4l-1.8-1.1-1.8 1.1-1.9-1.1-1.8 1.1-1.7-1.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 5.4h4.4M5.8 8h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>경비 정리하기</span></a></li>
+      </ul>
+      <!-- closing-goals:end -->
     </div>
+    <p class="start-note" data-reveal>앱은 출시 준비 중이에요. 궁금한 점은 <a href="/support/">도움말</a>에서 확인하세요.</p>
   </section>
 
   <footer class="footer">
     <div class="foot-brand">
       <img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥" decoding="async" />
-      <p>내 부업을 굴려주는 AI 직원.</p>
+      <p>시작하고 싶은 일을 고르면 움직이는 AI 팀.</p>
       <small>© 2026 Sidekick</small>
     </div>
     <div class="foot-cols">

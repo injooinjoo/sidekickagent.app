@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg='; style-src 'unsafe-inline'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; base-uri 'none'; form-action 'none'">
+  <script>(() => {
+  'use strict';
+  const query = new URLSearchParams(window.location.search);
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  const atLogin = window.location.origin === 'https://sidekickagent.app' && window.location.pathname === '/login/';
+  let cleared = false;
+  // Capture first, then scrub before any external script, request or render.
+  try { history.replaceState(null, '', '/login/'); cleared = true; } catch (_) {}
+  const proof = /^[A-Za-z0-9_-]{32,128}$/;
+  const id = /^[A-Za-z0-9._:-]{1,160}$/;
+  const exact = (params, allowed) => Array.from(params.keys()).every((key) =>
+    allowed.includes(key) && params.getAll(key).length === 1);
+  const result = { invalid: !cleared || !atLogin, mode: 'none', handoff: null, provider: null, web: null };
+  if (fragment.size) {
+    result.mode = query.has('web_login_attempt') || query.has('web_login_state') ? 'web' : 'app';
+    const attempt = fragment.get('app_handoff') || '';
+    const state = fragment.get('state') || '';
+    const hint = fragment.get('provider') || '';
+    if (query.size || !exact(fragment, ['app_handoff', 'state', 'provider'])
+        || !id.test(attempt) || !proof.test(state) || (hint && !['google', 'apple'].includes(hint)))
+      result.invalid = true;
+    else result.handoff = { id: attempt, state, provider: hint };
+  } else if (query.size) {
+    const web = query.has('web_login_attempt') || query.has('web_login_state');
+    result.mode = web ? 'web' : 'app';
+    const attempt = query.get(web ? 'web_login_attempt' : 'oauth_attempt') || '';
+    const state = query.get(web ? 'web_login_state' : 'oauth_state') || '';
+    const code = query.get('code') || '';
+    const failed = query.has('error');
+    const allowed = [web ? 'web_login_attempt' : 'oauth_attempt', web ? 'web_login_state' : 'oauth_state',
+      'code', 'error', 'error_code', 'error_description'];
+    if (!exact(query, allowed) || !id.test(attempt) || !proof.test(state)
+        || (failed && (query.has('code') || !query.get('error') || query.get('error').length > 160))
+        || (!failed && (query.has('error_code') || query.has('error_description')
+          || !/^[A-Za-z0-9._~-]{1,2048}$/.test(code)))
+        || (query.get('error_code') || '').length > 160
+        || (query.get('error_description') || '').length > 1000) result.invalid = true;
+    else result[web ? 'web' : 'provider'] = { attempt, state, code, error: failed };
+  }
+  window.__sidekickLoginInput = result;
+})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>앱 로그인 · 사이드킥</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #202323; background: #f7f7f3; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 28px 20px; }
+    main { width: min(100%, 390px); }
+    .brand { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; letter-spacing: -.3px; color: #565c56; }
+    .brand-mark { width: 18px; height: 18px; flex: none; }
+    h1 { font-size: 28px; letter-spacing: -1px; margin: 20px 0 14px; }
+    p { line-height: 1.65; word-break: keep-all; }
+    #handoff-status { min-height: 54px; color: #535953; }
+    .actions { display: grid; gap: 12px; margin-top: 28px; }
+    button, .return { width: 100%; min-height: 52px; border: 1px solid #d9ddd6; border-radius: 14px; background: white; color: #202323; font: inherit; font-weight: 600; padding: 12px 16px; cursor: pointer; }
+    .primary { background: #273d2d; border-color: #273d2d; color: white; }
+    .return { display: block; text-align: center; text-decoration: none; margin-top: 24px; }
+    #handoff-cancel { margin-top: 18px; color: #656c64; border: 0; background: transparent; font-weight: 400; }
+    :focus-visible { outline: 3px solid #4f795b; outline-offset: 4px; }
+    [hidden] { display: none !important; }
+  </style>
+  <script src="/auth.js" defer></script>
+</head>
+<body>
+  <main aria-labelledby="handoff-title">
+    <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg>사이드킥</span>
+    <h1 id="handoff-title">앱에 로그인</h1>
+    <p id="handoff-status" role="status" aria-live="polite">로그인 정보를 확인하고 있어요.</p>
+    <div id="handoff-choices" class="actions" hidden>
+      <button type="button" id="handoff-existing" class="primary" hidden>이 브라우저 계정으로 계속</button>
+      <button type="button" id="handoff-google">Google로 로그인</button>
+      <button type="button" id="handoff-apple">Apple로 로그인</button>
+    </div>
+    <button type="button" id="handoff-confirm" class="primary" hidden>앱에 로그인하고 돌아가기</button>
+    <a id="handoff-return" class="return primary" rel="noreferrer" hidden>앱으로 돌아가기</a>
+    <button type="button" id="handoff-cancel" hidden>취소</button>
+    <noscript><p>로그인을 계속하려면 브라우저에서 JavaScript를 켜고 앱에서 다시 시작해 주세요.</p></noscript>
+  </main>
+</body>
+</html>

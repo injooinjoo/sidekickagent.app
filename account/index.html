@@ -15,6 +15,7 @@
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="description" content="사이드킥 계정, 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인하세요." />
   <title>내 계정 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/account/" />
@@ -41,17 +42,14 @@
     <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
     <nav class="nav" aria-label="주요 메뉴">
       <a href="/support/">도움말</a>
-      <a href="/privacy/">개인정보</a>
-      <a href="/terms/">이용약관</a>
     </nav>
     <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
   </header>
 
   <main class="account-shell">
     <section class="account-intro" aria-labelledby="page-title">
-      <p class="account-eyebrow">SIDEKICK 계정</p>
       <h1 id="page-title">내 계정</h1>
-      <p>로그인한 계정의 정보와 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인해요.</p>
+      <p>멤버십과 프로젝트, AI 연결을 한곳에서 확인해요.</p>
     </section>
 
     <p class="account-status" id="account-loading" aria-live="polite">계정을 확인하고 있어요.</p>
@@ -67,18 +65,6 @@
     </section>
 
     <div id="account-view" hidden>
-      <section class="account-card" aria-labelledby="profile-heading">
-        <h2 id="profile-heading">계정</h2>
-        <dl class="account-rows" id="profile-rows" hidden></dl>
-        <p class="account-status" id="profile-status" aria-live="polite">계정 정보를 불러오고 있어요.</p>
-        <div class="account-actions" id="profile-retry" hidden></div>
-        <p class="account-note">앱과 다른 방법으로 로그인하면 다른 계정이 열릴 수 있어요. 앱에서 쓰는 방법으로 로그인했는지 확인해 주세요.</p>
-        <p class="account-note" id="profile-kept">공용 컴퓨터라면 다 쓴 뒤 로그아웃해 주세요.</p>
-        <div class="account-actions">
-          <button class="account-button secondary" type="button" id="signout-button">로그아웃</button>
-        </div>
-      </section>
-
       <section class="account-card" aria-labelledby="membership-heading">
         <h2 id="membership-heading">멤버십</h2>
         <dl class="account-rows" id="membership-rows" hidden></dl>
@@ -96,6 +82,18 @@
         <ul class="project-list" id="project-list" hidden></ul>
         <p class="account-status" id="projects-status" aria-live="polite">프로젝트를 불러오고 있어요.</p>
         <div class="account-next" id="projects-next" hidden></div>
+      </section>
+
+      <section class="account-card" aria-labelledby="profile-heading">
+        <h2 id="profile-heading">계정</h2>
+        <dl class="account-rows" id="profile-rows" hidden></dl>
+        <p class="account-status" id="profile-status" aria-live="polite">계정 정보를 불러오고 있어요.</p>
+        <div class="account-actions" id="profile-retry" hidden></div>
+        <p class="account-note">앱과 다른 방법으로 로그인하면 다른 계정이 열릴 수 있어요. 앱에서 쓰는 방법으로 로그인했는지 확인해 주세요.</p>
+        <p class="account-note" id="profile-kept">공용 컴퓨터라면 다 쓴 뒤 로그아웃해 주세요.</p>
+        <div class="account-actions">
+          <button class="account-button secondary" type="button" id="signout-button">로그아웃</button>
+        </div>
       </section>
 
       <section class="account-card" aria-labelledby="manage-heading">

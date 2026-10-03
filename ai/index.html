@@ -15,6 +15,7 @@
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 사이드킥 프로젝트에 연결하세요." />
   <title>AI 연결 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/ai/" />
@@ -41,17 +42,14 @@
     <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
     <nav class="nav" aria-label="주요 메뉴">
       <a href="/support/">도움말</a>
-      <a href="/privacy/">개인정보</a>
-      <a href="/terms/">이용약관</a>
     </nav>
     <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
   </header>
 
   <main class="ai-shell">
     <section class="ai-intro" aria-labelledby="page-title">
-      <p class="ai-eyebrow">SIDEKICK AI 연결</p>
-      <h1 id="page-title">내 AI를 프로젝트에 연결해요</h1>
-      <p>쓰고 있는 AI 서비스에 로그인하거나 API 키를 넣으면, 고른 프로젝트의 AI 직원이 그 AI로 일해요. 연결 정보는 암호화해 사이드킥 서버에만 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
+      <h1 id="page-title">쓰던 AI 계정을 연결해요</h1>
+      <p>쓰고 있는 AI 계정으로 로그인하면, 고른 프로젝트의 팀이 그 AI로 일해요. 연결 정보는 암호화해 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
       <p class="ai-who" id="ai-who" hidden></p>
     </section>
 
@@ -82,10 +80,17 @@
     </section>
 
     <section class="ai-step" id="connections-step" aria-labelledby="connections-heading" hidden>
-      <h2 id="connections-heading">연결된 AI</h2>
+      <h2 id="connections-heading">AI 엔진 연결</h2>
+      <p class="ai-note">이 프로젝트의 AI 직원이 사용할 AI 엔진이에요. 파견직 실행 연결과는 별도로 관리해요.</p>
       <p class="ai-note" id="connections-empty" hidden>이 프로젝트에 연결한 AI가 아직 없어요.</p>
       <ul class="connection-list" id="connection-list"></ul>
       <p class="ai-status" id="connections-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="execution-step" aria-labelledby="execution-heading" hidden>
+      <h2 id="execution-heading">파견직 실행 연결</h2>
+      <p><span class="pill is-warn">준비 중</span></p>
+      <p class="ai-note">파견직에게 일을 맡기는 연결은 아직 준비 중이에요. 같은 업체의 AI 엔진이 연결되어 있어도 파견직을 실행할 수 있다는 뜻은 아니에요.</p>
     </section>
 
     <section class="ai-step" id="connect-step" aria-labelledby="connect-heading" hidden>
@@ -99,7 +104,7 @@
 
     <section class="ai-step" id="providers-step" aria-labelledby="providers-heading" hidden>
       <h2 id="providers-heading">연결할 AI 고르기</h2>
-      <p class="ai-note">계정으로 로그인하거나 API 키를 넣어 연결해요. 연결하면 이 프로젝트의 새 업무부터 그 AI를 써요.</p>
+      <p class="ai-note">계정으로 로그인해 연결해요. 계정 로그인을 지원하지 않는 AI는 고른 뒤에 다른 방법을 안내해요. 연결하면 이 프로젝트의 새 업무부터 그 AI로 일해요.</p>
       <div class="provider-grid" id="provider-featured"></div>
       <details class="provider-more" id="provider-more" hidden>
         <summary id="provider-more-summary">다른 AI 서비스</summary>
