@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="ko">
 <head>
+  <!-- The app's AI information page opens this page with ?in_app=1. In that mode
+       /app-mode.js takes out the header menu, the account menu and every link
+       further into the site before anything is drawn; sign-in, project choice
+       and the connections below stay. Without it the page is as before. -->
+  <script src="/app-mode.js"></script>
   <script src="/analytics.js"></script>
   <script src="/analytics-config.js"></script>
   <script defer src="/analytics-runtime.js"></script>

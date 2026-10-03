@@ -122,6 +122,11 @@
     // /account/ links here as /ai/?workspace=<id>. Read before the address bar
     // is cleaned below; it only picks which project is selected first.
     requestedWorkspace: readRequestedWorkspace(),
+    // The app's AI information page links here as /ai/?provider=<id>. Read
+    // before the address bar is cleaned below; once the providers are on the
+    // page, that provider's card is marked and brought into view. It never
+    // starts a connection by itself.
+    requestedProvider: readRequestedProvider(),
     returnedCode: readReturnedCode()
   };
 
@@ -130,6 +135,11 @@
   function readRequestedWorkspace() {
     const id = String(new URLSearchParams(window.location.search).get('workspace') || '').trim();
     return SAFE_ID.test(id) ? id : '';
+  }
+
+  function readRequestedProvider() {
+    const id = String(new URLSearchParams(window.location.search).get('provider') || '').trim();
+    return PROVIDER_ID.test(id) ? id : '';
   }
 
   // OpenRouter returns with ?code=. It is read and taken out of the address bar
@@ -660,6 +670,28 @@
     $('provider-more-summary').textContent = `다른 AI 서비스 ${rest.length}개`;
     $('providers-step').hidden = false;
     setStatus('providers-status', state.catalog.length ? '' : '지금 연결할 수 있는 AI가 없어요. 잠시 뒤 다시 시도해 주세요.', !state.catalog.length);
+    showRequestedProvider();
+  }
+
+  // /ai/?provider=<id>: the first time the catalog is drawn, the card of that
+  // provider is marked, its group opened if it sits under "다른 AI 서비스", and
+  // the page scrolls to it with its first button focused. Once only: a later
+  // redraw (a project change, a finished connection) leaves the page alone. A
+  // provider this catalog does not list is ignored.
+  function showRequestedProvider() {
+    const id = state.requestedProvider;
+    if (!id) return;
+    state.requestedProvider = '';
+    const provider = state.catalog.find((item) => item.id === id);
+    if (!provider) return;
+    const card = Array.from(document.querySelectorAll('.provider-card'))
+      .find((node) => node.getAttribute('data-provider') === provider.id);
+    if (!card) return;
+    if ($('provider-rest').contains(card)) $('provider-more').open = true;
+    card.classList.add('is-requested');
+    smoothScroll(card);
+    const action = card.querySelector('button');
+    if (action) action.focus({ preventScroll: true });
   }
 
   function providerCard(provider) {
@@ -667,7 +699,7 @@
     const noted = provider.methods.find((method) => method.note);
     const detail = (account && account.requirement) || (noted && noted.note) || '';
     const linked = state.connections.some((connection) => connection.provider === provider.id && connection.connected);
-    return el('article', { className: 'provider-card' }, [
+    return el('article', { className: 'provider-card', 'data-provider': provider.id }, [
       el('div', { className: 'provider-head' }, [
         el('strong', { text: provider.name }),
         linked ? el('span', { className: 'pill is-ok', text: '연결됨' }) : null

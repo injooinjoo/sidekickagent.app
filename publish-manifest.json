@@ -26,16 +26,16 @@
       "sha256": "4428c705ef5e53bfdc5e0a63c7f50e08434819defb5ec57f34b7295530f12055"
     },
     "ai/ai.css": {
-      "bytes": 6796,
-      "sha256": "a3f59c01e51294024aec5d6d73af4640df46f50999a3e4689a6fb0b975cd468f"
+      "bytes": 7036,
+      "sha256": "719d0325de71544f3a61e7a83b04bee136ce92d8c200de833c50f1d5a6668199"
     },
     "ai/ai.js": {
-      "bytes": 54284,
-      "sha256": "b429b7012bab765a43e355437cb6bbd3b7428da4db1bedc258b440b44224fe33"
+      "bytes": 55861,
+      "sha256": "f1bd9a6b5a86645bc83070fc46d2149cd8a57f7b25934ef501d5d26982ea62a6"
     },
     "ai/index.html": {
-      "bytes": 10242,
-      "sha256": "12b0e1438606086e18f12c0b68a627de197813c158228f5feb9ad644ce69ac27"
+      "bytes": 10598,
+      "sha256": "f4eb9b302bd6f1ab67c4afe068e99bd92f910844799d3d77e2e99c06dec8f7f5"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -272,5 +272,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "2892975e21a17f6e5af559af9cf53968ec7e29ea"
+  "source_sha": "96f4159f8920d6a7a7e8be1ace6e948c45f89d6c"
 }
