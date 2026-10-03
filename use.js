@@ -78,9 +78,17 @@
   pick();
 
   // Weekly grid: dots land one after another when the grid scrolls into view.
+  // Each dot's place (data-i) becomes its --i delay here, through the CSSOM:
+  // the page's CSP allows no style attribute (motion.css .week-dot).
   var week = document.getElementById('week-grid');
   if (week) {
     if (REDUCED) week.classList.add('in');
-    else { week.classList.add('js'); demo.observe(week, function () { week.classList.add('in'); }, null, 0.4); }
+    else {
+      Array.prototype.forEach.call(week.querySelectorAll('.week-dot[data-i]'), function (dot) {
+        dot.style.setProperty('--i', dot.getAttribute('data-i'));
+      });
+      week.classList.add('js');
+      demo.observe(week, function () { week.classList.add('in'); }, null, 0.4);
+    }
   }
 })();

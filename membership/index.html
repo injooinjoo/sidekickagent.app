@@ -1,14 +1,16 @@
 <!doctype html>
 <html lang="ko">
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com https://apigw-sandbox.tosspayments.com https://log.tosspayments.com https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://js.tosspayments.com https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com https://payment-gateway.tosspayments.com https://payment-gateway-sandbox.tosspayments.com https://challenges.cloudflare.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="strict-origin" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script src="/analytics.js"></script>
   <script src="/analytics-config.js"></script>
   <script defer src="/analytics-runtime.js"></script>
   <link rel="stylesheet" href="/analytics.css" />
-  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Toss loads only when checkout needs it. PostHog starts only after explicit service-improvement consent, with private content masked. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://api.tosspayments.com https://event.tosspayments.com https://apigw-sandbox.tosspayments.com https://log.tosspayments.com https://wdjlokfsehsnvcipkods.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self' data: https://static.tosspayments.com; style-src 'self'; script-src 'self' https://js.tosspayments.com https://us-assets.i.posthog.com; frame-src https://js.tosspayments.com https://pay.tosspayments.com https://payment-gateway.tosspayments.com https://payment-gateway-sandbox.tosspayments.com; form-action 'self' https://pay.tosspayments.com; base-uri 'none'; object-src 'none'" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />

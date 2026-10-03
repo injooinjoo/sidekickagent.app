@@ -613,9 +613,9 @@
   }
 
   render();
-  // The Supabase redirect has to be adopted before anything asks the backend who
-  // this is, or the first call goes out unauthenticated and the page renders the
-  // signed-out state over a session that already exists.
+  // The stored session has to be settled (auth.init) before anything asks the
+  // backend who this is, or the first call goes out unauthenticated and the page
+  // renders the signed-out state over a session that already exists.
   auth.init({ onSignedIn: afterSignIn, onSignedOut: afterSignOut })
     .then(() => {
       state.token = auth.token();

@@ -18,24 +18,25 @@
   // holds, and 로그아웃 in one tab signs every open tab out (the storage event).
   //
   // Google and Apple are Supabase logins in the app. No SDK is loaded: a
-  // redirect to Supabase's authorize endpoint, and an access token read back
-  // out of the URL fragment, which is cleared at once. That token lasts about
-  // an hour, so it is not kept: it is presented once, from memory, to POST
-  // /auth/session/exchange, which answers with a 30-day Sidekick session on the
-  // same account -- what an email, phone or ChatGPT sign-in already hands over.
+  // redirect to Supabase's authorize endpoint with a PKCE challenge, and a code
+  // that comes back only to /login/ (receiveWebLogin), which trades it with the
+  // verifier this tab kept for a 30-day Sidekick session on the same account --
+  // what an email, phone or ChatGPT sign-in already hands over. A session
+  // handed over in the URL fragment (#access_token=, Supabase's implicit flow)
+  // is never taken: anyone can put their own session in a link (login CSRF), so
+  // a page only takes it out of the address bar (discardSessionFragment).
   const API_ORIGIN = 'https://api.sidekickagent.app';
   const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
   const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
-  // The one return address Supabase is told about. A page on this list leaves
-  // its own path behind, and the membership page sends the person straight back
-  // to it after the fragment is read. Any other page (the landing, a policy
-  // page, the 404) returns to the account page rather than to /membership/: a
-  // sign-in started on a page the app opens must not end on the web checkout.
-  const RETURN_URL = 'https://sidekickagent.app/membership/';
+  // Where a Google/Apple sign-in ends after /login/. A page on this list goes
+  // back to its own path; any other page (the landing, a policy page, the 404)
+  // returns to the account page rather than to /membership/: a sign-in started
+  // on a page the app opens must not end on the web checkout.
   const RETURN_PATHS = ['/ai/', '/account/'];
   const DEFAULT_RETURN_PATH = '/account/';
-  // Per tab (sessionStorage): where a Google/Apple sign-in started, and a
-  // message to say on the page it comes back to.
+  // Per tab (sessionStorage), left by the retired fragment sign-in: where it
+  // started, and a message to say on the page it came back to. Nothing writes
+  // them any more; a tab that still holds them clears them (로그아웃, init()).
   const RETURN_KEY = 'sidekick_web_return_path';
   const NOTICE_KEY = 'sidekick_web_auth_notice';
   // The session (localStorage): {token, expires_at}, one JSON value, so another
@@ -1139,6 +1140,7 @@
     document.body.style.overflow = 'hidden';
     const first = sheet.querySelector('.door');
     if (first) first.focus({ preventScroll: true });
+    prepareTurnstile();
   }
 
   function close() {
@@ -1450,45 +1452,24 @@
     } finally { webStarting = false; }
   }
 
-  // A person who started on another page goes back there now. The session is
-  // already stored, and that page checks it itself.
-  function returnToStartingPage() {
-    const back = readTab(RETURN_KEY);
-    writeTab(RETURN_KEY, '');
-    if (!back || !RETURN_PATHS.includes(back) || back === window.location.pathname) return false;
-    window.location.replace(back);
-    return true;
-  }
-
-  // Supabase's implicit flow returns its session in the fragment: an access
-  // token and a refresh token. The fragment leaves the address bar before
-  // anything else runs, so neither sits in history or in anything that later
-  // logs a URL. The refresh token is never read; the access token is traded at
-  // once for a Sidekick session and dropped.
-  async function adoptSupabaseRedirect() {
+  // Google and Apple come back only to /login/ (receiveWebLogin), bound to this
+  // tab's PKCE verifier. A Supabase session in the fragment (#access_token=…,
+  // the implicit flow this site no longer starts) proves nothing about who
+  // opened the link: anyone can paste their own session into one, and taking it
+  // would sign the visitor into that account for 30 days (login CSRF). So it is
+  // never read, traded or stored -- only taken out of the address bar, so it
+  // sits in no history entry and in nothing that later logs a URL.
+  function discardSessionFragment() {
     const hash = window.location.hash || '';
-    if (!hash.includes('access_token=')) {
-      if (hash.includes('error=')) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-        writeTab(NOTICE_KEY, SOCIAL_FAILED_COPY);
-        if (returnToStartingPage()) return new Promise(() => {});
-      }
-      return false;
-    }
-    const params = new URLSearchParams(hash.slice(1));
-    const supabaseToken = String(params.get('access_token') || '').trim();
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-    if (!supabaseToken) return false;
-    const traded = await exchangeSupabaseToken(supabaseToken);
-    if (traded !== true) writeTab(NOTICE_KEY, traded);
-    showSocialStatus('', false);
-    if (returnToStartingPage()) return new Promise(() => {});
-    return traded === true;
+    if (!hash.includes('access_token=')) return;
+    try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_) { /* never used either way */ }
   }
 
-  // POST /auth/session/exchange: the Supabase access token, from memory, is the
-  // bearer of this one call, and a 30-day Sidekick session on the same account
-  // comes back -- the only thing kept. Answers true, or the sentence to say.
+  // POST /auth/session/exchange for a per-tab Google/Apple bearer kept before
+  // the 30-day session (loadSession: this browser's own sessionStorage, never a
+  // URL). The token, from memory, is the bearer of this one call, and a 30-day
+  // Sidekick session on the same account comes back -- the only thing kept.
+  // Answers true, or the sentence to say.
   async function exchangeSupabaseToken(supabaseToken) {
     let answer = null;
     try {
@@ -1565,6 +1546,12 @@
       const cancelled = () => finish(null);
       window.addEventListener('pagehide', cancelled);
       timer = setTimeout(() => finish(null), 60000);
+      // No event.origin check, on purpose: the app's viewer (react-native-webview)
+      // delivers its reply with an empty origin, so there is nothing to compare.
+      // The reply is bound instead by `state` -- 32 fresh random bytes this page
+      // sent only to the app, through ReactNativeWebView.postMessage -- and by
+      // the S256 verifier that never leaves this page: a forged message cannot
+      // name the state, and a code without the verifier is refused by the server.
       // iOS delivers the viewer's message on window, Android on document.
       window.addEventListener('message', receive);
       document.addEventListener('message', receive);
@@ -1827,15 +1814,159 @@
     writeTab(HANDOFF_KEY, '');
   }
 
+  // ---- Turnstile in front of the email/phone code --------------------------
+  //
+  // Cloudflare Turnstile (owner 2026-10-04): a bot check before 인증번호 sends a
+  // mail or a text. Off while TURNSTILE_SITE_KEY is empty: no script is loaded,
+  // no field is sent and the sheet is exactly what it was. To turn it on, create
+  // the widget in the Cloudflare dashboard for sidekickagent.app, put its site
+  // key here (public, not a secret), and have the backend verify
+  // `turnstile_token` with the widget's secret key (siteverify) on POST
+  // /auth/start. Every page that can open the sheet already allows
+  // https://challenges.cloudflare.com in script-src and frame-src; /login/ has
+  // no code sign-in and does not.
+  const TURNSTILE_SITE_KEY = '';
+  const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  const TURNSTILE_RETRY_MS = 5000;
+  const TURNSTILE_FAILED_COPY = '보안 확인을 하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  const TURNSTILE_EXPIRED_COPY = '보안 확인 시간이 지나 다시 확인하고 있어요.';
+  const TURNSTILE_WAIT_COPY = '보안 확인이 끝나면 인증번호를 받을 수 있어요.';
+  // One widget per page. A token is single-use and lasts five minutes; `stale`
+  // marks a widget that must run again the next time the code form shows.
+  const turnstile = { loading: null, widget: null, token: '', stale: false, said: '', retry: null };
+
+  function codeButton() {
+    const form = $('email-form');
+    return form ? form.querySelector('button[type="submit"]') : null;
+  }
+
+  function codeFormShowing() {
+    const sheet = $('signin-sheet');
+    const block = $('otp-block');
+    return Boolean(sheet && !sheet.hidden && block && !block.hidden);
+  }
+
+  // 인증번호 can be pressed only while an unused token is held. A token that
+  // arrives takes back the sentence the check itself put up, nothing else.
+  function holdTurnstileToken(token) {
+    turnstile.token = typeof token === 'string' ? token : '';
+    const button = codeButton();
+    if (button) button.disabled = !turnstile.token;
+    if (turnstile.token && turnstile.said) {
+      const status = $('auth-status');
+      if (status && status.textContent === turnstile.said) setAuthStatus('', false);
+      turnstile.said = '';
+    }
+  }
+
+  function sayTurnstile(message) {
+    turnstile.said = message;
+    setAuthStatus(message, true);
+  }
+
+  function loadTurnstile() {
+    if (!turnstile.loading) {
+      turnstile.loading = new Promise((resolve, reject) => {
+        const ready = () => Boolean(window.turnstile && typeof window.turnstile.render === 'function');
+        if (ready()) { resolve(window.turnstile); return; }
+        const script = document.createElement('script');
+        script.src = TURNSTILE_SCRIPT;
+        script.async = true;
+        script.onload = () => (ready() ? resolve(window.turnstile) : reject(new Error('turnstile_unavailable')));
+        script.onerror = () => reject(new Error('turnstile_unavailable'));
+        document.head.append(script);
+      });
+      // A load that failed (offline, blocked) is tried again the next time.
+      turnstile.loading.catch(() => { turnstile.loading = null; });
+    }
+    return turnstile.loading;
+  }
+
+  function resetTurnstile() {
+    clearTimeout(turnstile.retry);
+    turnstile.retry = null;
+    turnstile.stale = false;
+    holdTurnstileToken('');
+    try { window.turnstile.reset(turnstile.widget); } catch (_) { turnstile.stale = true; }
+  }
+
+  // Expired or timed out: run again now while the form shows, else when it next shows.
+  function lapseTurnstile() {
+    holdTurnstileToken('');
+    if (!codeFormShowing()) { turnstile.stale = true; return; }
+    sayTurnstile(TURNSTILE_EXPIRED_COPY);
+    resetTurnstile();
+  }
+
+  // Failed: said, and run again after a pause -- never in a tight loop.
+  function failTurnstile() {
+    holdTurnstileToken('');
+    clearTimeout(turnstile.retry);
+    turnstile.stale = true;
+    if (codeFormShowing()) sayTurnstile(TURNSTILE_FAILED_COPY);
+    turnstile.retry = setTimeout(() => {
+      turnstile.retry = null;
+      if (codeFormShowing()) resetTurnstile();
+    }, TURNSTILE_RETRY_MS);
+  }
+
+  // Runs whenever the code form shows (the sheet opens on it, or 이메일 ·
+  // 휴대폰으로 로그인 opens it): the script loads once, the widget renders once
+  // into a slot under the form, and a spent, expired or failed check runs again.
+  function prepareTurnstile() {
+    if (!TURNSTILE_SITE_KEY) return;
+    // Fetched as the sheet opens, so it is there by the time the form shows.
+    loadTurnstile().catch(() => {});
+    const form = $('email-form');
+    if (!form || !codeFormShowing()) return;
+    let slot = $('turnstile-slot');
+    if (!slot) {
+      slot = document.createElement('div');
+      slot.id = 'turnstile-slot';
+      slot.className = 'turnstile-slot';
+      form.after(slot);
+    }
+    if (turnstile.widget !== null) {
+      if (turnstile.stale) resetTurnstile();
+      else holdTurnstileToken(turnstile.token);
+      return;
+    }
+    holdTurnstileToken('');
+    loadTurnstile().then((api) => {
+      if (turnstile.widget !== null) return;
+      turnstile.widget = api.render(slot, {
+        sitekey: TURNSTILE_SITE_KEY,
+        action: 'sign_in',
+        appearance: 'interaction-only',
+        language: 'ko',
+        'response-field': false,
+        'refresh-expired': 'never',
+        'refresh-timeout': 'never',
+        callback: (token) => holdTurnstileToken(token),
+        'expired-callback': lapseTurnstile,
+        'timeout-callback': lapseTurnstile,
+        'error-callback': () => { failTurnstile(); return true; }
+      });
+    }).catch(() => { if (codeFormShowing()) sayTurnstile(TURNSTILE_FAILED_COPY); });
+  }
+
   // ---- Email / phone code ---------------------------------------------------
 
   async function sendCode(event) {
     event.preventDefault();
+    const body = { method: session.method, value: $('email').value.trim() };
+    if (TURNSTILE_SITE_KEY) {
+      if (!turnstile.token) { sayTurnstile(TURNSTILE_WAIT_COPY); return; }
+      // Spent by this request: the next 인증번호 waits for a fresh token.
+      body.turnstile_token = turnstile.token;
+      holdTurnstileToken('');
+      turnstile.stale = true;
+    }
     setAuthStatus('인증번호를 보내고 있어요.', false);
     try {
       const result = await api('/auth/start', {
         method: 'POST',
-        body: JSON.stringify({ method: session.method, value: $('email').value.trim() })
+        body: JSON.stringify(body)
       });
       session.challengeId = result.challenge_id;
       $('code-form').hidden = false;
@@ -1846,6 +1977,8 @@
         : error && error.status === 422 ? (session.method === 'phone' ? '휴대폰 번호를 확인해 주세요.' : '이메일 주소를 확인해 주세요.')
         : error && error.status === 429 ? '인증번호를 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.'
         : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+    } finally {
+      if (TURNSTILE_SITE_KEY && codeFormShowing()) resetTurnstile();
     }
   }
 
@@ -1882,6 +2015,7 @@
       const block = $('otp-block');
       block.hidden = !block.hidden;
       if (!block.hidden) $('email').focus();
+      prepareTurnstile();
     });
     $('email-form').addEventListener('submit', sendCode);
     $('code-form').addEventListener('submit', verifyCode);
@@ -1899,13 +2033,13 @@
   let initialized = null;
 
   // Each page calls this once; a page with no script of its own gets it on
-  // DOMContentLoaded below. It resolves to whether a bearer is held, after any
-  // Supabase fragment has been read and traded, a pre-30-day Google/Apple
-  // bearer traded the same way, and the server has confirmed the bearer; it
-  // never resolves while the page is handing the person back to the page they
-  // started on. Page hooks: onSignedIn(user, {otherTab}) after a sign-in here
-  // or in another tab, onSignedOut() after 로그아웃 here or in another tab or an
-  // expiry, onNotice(message, isError) for what the page should say.
+  // DOMContentLoaded below. It resolves to whether a bearer is held, after a
+  // pre-30-day Google/Apple bearer has been traded and the server has confirmed
+  // the bearer. A session in the URL fragment is removed, never used
+  // (discardSessionFragment). Page hooks: onSignedIn(user, {otherTab}) after a
+  // sign-in here or in another tab, onSignedOut() after 로그아웃 here or in
+  // another tab or an expiry, onNotice(message, isError) for what the page
+  // should say.
   function init(options = {}) {
     if (initialized) return initialized;
     if (LOGIN_RECEIVER) { initialized = receiveWebLogin(loginInput); return initialized; }
@@ -1917,7 +2051,8 @@
     // A page that ships the sheet in its HTML has it bound now; any other page
     // builds it the first time someone asks to sign in.
     if ($('signin-sheet')) ensureSheet();
-    initialized = adoptSupabaseRedirect().then(async (adopted) => {
+    discardSessionFragment();
+    initialized = Promise.resolve().then(async () => {
       const legacy = loaded.exchange;
       loaded.exchange = '';
       if (legacy && !session.token) {
@@ -1934,7 +2069,7 @@
       await validateSession();
       scheduleExpiry();
       renderHeader();
-      return Boolean(adopted || session.token);
+      return Boolean(session.token);
     });
     return initialized;
   }
