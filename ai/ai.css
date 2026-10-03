@@ -10,7 +10,6 @@ button, input, select, textarea { font: inherit; }
 
 .ai-shell { max-width: 860px; margin: 0 auto; padding: 40px 22px 74px; }
 .ai-intro { max-width: 680px; margin-bottom: 28px; }
-.ai-eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .1em; }
 .ai-intro h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); line-height: 1.18; letter-spacing: -.045em; }
 .ai-intro > p { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
 

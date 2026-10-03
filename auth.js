@@ -89,10 +89,12 @@
     kakao: '카카오로 로그인했어요',
     naver: '네이버로 로그인했어요',
     supabase: 'Google 또는 Apple로 로그인했어요',
-    unknown: 'Google 또는 Apple로 로그인했어요'
+    unknown: '로그인했어요'
   };
   const METHOD_LABELS = {
     google: 'Google', apple: 'Apple', chatgpt: 'ChatGPT', email: '이메일', phone: '휴대폰 번호',
+    // A web Google/Apple sign-in is answered as `unknown` on purpose (the server
+    // cannot tell the two apart), so it is named the way the person chose it.
     kakao: '카카오', naver: '네이버', supabase: 'Google 또는 Apple', unknown: 'Google 또는 Apple'
   };
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -219,9 +221,15 @@
   // The only write of a token to storage. A token the backend did not mint (a
   // Supabase token above all) or one without a future expiry is refused: the
   // sign-in then lasts for this page only.
-  function storeSession(token, expiresAt) {
+  function storeSession(token, expiresAt, strict = false) {
     if (!isSidekickToken(token) || !(expiresAt > nowSeconds())) return false;
-    writeLocal(SESSION_KEY, JSON.stringify({ token, expires_at: expiresAt }));
+    const serialized = JSON.stringify({ token, expires_at: expiresAt });
+    if (strict) {
+      const area = storageArea('local');
+      if (!area) return false;
+      try { area.setItem(SESSION_KEY, serialized); if (area.getItem(SESSION_KEY) !== serialized) return false; }
+      catch (_) { return false; }
+    } else writeLocal(SESSION_KEY, serialized);
     return true;
   }
 
@@ -253,9 +261,367 @@
     return { ...loaded, token: legacy, expiresAt, expired: false };
   }
 
-  const loaded = loadSession();
+  // ---- App handoff receiver --------------------------------------------------
+  // Reuse the site's authorize/fetch owner, with an isolated PKCE client per
+  // attempt. This is the same /token?grant_type=pkce body auth-js 2.108.2 uses;
+  // no shared SDK storage or SIGNED_IN subscription can adopt a candidate.
+  async function initAppHandoff(input) {
+    const ACTIVE = 'sidekick_web_app_handoff_active';
+    const PREFIX = 'sidekick_web_app_handoff:';
+    const FINISHED = 'sidekick_web_app_handoff_finished:';
+    const LOGIN_URL = 'https://sidekickagent.app/login/';
+    // Existing project's public client key; never an account credential.
+    const PUBLIC_KEY = 'sb_publishable_nzZjUATdZBWRKZfNLUuCUg_q7TmhhPh';
+    const PROOF = /^[A-Za-z0-9_-]{32,128}$/;
+    const el = (id) => document.getElementById(id);
+    const status = el('handoff-status');
+    const choices = el('handoff-choices');
+    const existing = el('handoff-existing');
+    const confirm = el('handoff-confirm');
+    const back = el('handoff-return');
+    const cancel = el('handoff-cancel');
+    let pending = null;
+    let candidate = null; // bearer lives only in this page's memory
+    let browser = null;
+    let stopped = false;
+    let busy = false;
+    let expiryTimer = null;
+    let callbackExpiresAt = 0;
+
+    function say(message, failed = false) {
+      status.textContent = message;
+      status.setAttribute('role', failed ? 'alert' : 'status');
+    }
+
+    function clearAttempt() {
+      if (!pending) return;
+      writeTab(PREFIX + pending.id, '');
+      if (readTab(ACTIVE) === pending.id) writeTab(ACTIVE, '');
+      // A bounded tombstone contains no proofs and prevents reload/remint.
+      writeTab(FINISHED + pending.id, String(pending.expires_at));
+      pending.oauth = null;
+      pending.state = '';
+      candidate = null;
+      browser = null;
+    }
+
+    function stop(message) {
+      stopped = true;
+      clearTimeout(expiryTimer);
+      clearAttempt();
+      choices.hidden = true;
+      confirm.hidden = true;
+      back.hidden = true;
+      back.removeAttribute('href');
+      cancel.hidden = true;
+      say(message, true);
+    }
+
+    function fail(error) {
+      const copy = {
+        400: '로그인 정보를 확인하지 못했어요. 앱에서 다시 시작해 주세요.',
+        401: '로그인이 만료됐어요. 앱에서 다시 시작해 주세요.',
+        403: '이 계정으로 계속할 수 없어요. 앱에서 계정을 확인해 주세요.',
+        409: '계정이 다르거나 이미 사용한 로그인이에요. 앱에서 다시 시작해 주세요.',
+        410: '로그인 시간이 지났거나 취소됐어요. 앱에서 다시 시작해 주세요.',
+        429: '잠시 기다린 뒤 앱에서 다시 시작해 주세요.'
+      };
+      stop(copy[error && error.status] || '로그인을 확인하지 못했어요. 앱에서 다시 시작해 주세요.');
+    }
+
+    function assertCurrent() {
+      if (stopped || !pending || pending.expires_at <= nowSeconds()) throw { status: 410 };
+      if (readTab(ACTIVE) !== pending.id) throw { status: 409 };
+    }
+
+    function persist() {
+      assertCurrent();
+      const serialized = JSON.stringify(pending);
+      writeTab(PREFIX + pending.id, serialized);
+      if (readTab(PREFIX + pending.id) !== serialized) throw { status: 400 };
+    }
+
+    async function request(url, bearer, body, extraHeaders = {}, method = body === undefined ? 'GET' : 'POST') {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...extraHeaders,
+          ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}) },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error'
+      });
+      if (!response.ok) throw { status: response.status };
+      return response.json();
+    }
+
+    function base64url(bytes) {
+      return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function randomProof() {
+      return base64url(window.crypto.getRandomValues(new Uint8Array(32)));
+    }
+
+    async function digest(value) {
+      const bytes = new window.TextEncoder().encode(value);
+      return base64url(new Uint8Array(await window.crypto.subtle.digest('SHA-256', bytes)));
+    }
+
+    async function browserFingerprint() {
+      const stored = readStoredSession();
+      // Presence, expiry and bearer changes (including logout in another tab)
+      // fence this attempt, even if the new bearer names the same account.
+      return stored ? digest(stored.token + ':' + stored.expiresAt) : '';
+    }
+
+    async function checkBrowser() {
+      assertCurrent();
+      if (await browserFingerprint() !== pending.browser_fingerprint) throw { status: 409 };
+      assertCurrent();
+      if (browser && browser.expiresAt <= nowSeconds()) throw { status: 401 };
+    }
+
+    function checkedCandidate(answer) {
+      const token = String((answer && answer.access_token) || '');
+      const id = String((answer && answer.user && answer.user.id) || '');
+      const expiresAt = expiryOf(token, answer);
+      if (!isSidekickToken(token) || !SAFE_ID.test(id) || expiresAt <= nowSeconds()) throw { status: 401 };
+      if (pending.browser_user_id && pending.browser_user_id !== id) throw { status: 409 };
+      return { token, id, expiresAt };
+    }
+
+    async function verifyCandidate(person) {
+      const answer = await request(API_ORIGIN + '/auth/session', person.token);
+      await checkBrowser();
+      if (!answer || !answer.user || answer.user.id !== person.id) throw { status: 409 };
+      if (person.expiresAt <= nowSeconds()) throw { status: 401 };
+    }
+
+    async function startProvider(provider) {
+      if (busy || stopped || !SUPABASE_PROVIDERS[provider]) return;
+      busy = true;
+      choices.hidden = true;
+      try {
+        await checkBrowser();
+        // The hint never sends credentials or starts a provider by itself.
+        const verifier = randomProof();
+        const oauthState = randomProof();
+        const challenge = await digest(verifier);
+        await checkBrowser();
+        pending.provider = provider;
+        pending.oauth = { state: oauthState, verifier,
+          expires_at: Math.min(nowSeconds() + 300, pending.expires_at) };
+        pending.phase = 'provider';
+        persist();
+        const redirect = new URL(LOGIN_URL);
+        redirect.searchParams.set('oauth_attempt', pending.id);
+        redirect.searchParams.set('oauth_state', oauthState);
+        const authorize = new URL(SUPABASE_ORIGIN + '/auth/v1/authorize');
+        authorize.searchParams.set('provider', provider);
+        authorize.searchParams.set('redirect_to', redirect.toString());
+        authorize.searchParams.set('code_challenge', challenge);
+        authorize.searchParams.set('code_challenge_method', 's256');
+        if (provider === 'google') authorize.searchParams.set('prompt', 'select_account');
+        say(SUPABASE_PROVIDERS[provider] + '로 이동하고 있어요.');
+        window.location.assign(authorize.toString());
+      } catch (error) { fail(error); }
+      finally { busy = false; }
+    }
+
+    async function receiveProvider(returned) {
+      const oauth = pending.oauth;
+      if (!oauth || pending.phase !== 'provider' || returned.attempt !== pending.id
+          || returned.state !== oauth.state || oauth.expires_at <= nowSeconds()
+          || !PROOF.test(oauth.verifier)) throw { status: 400 };
+      if (returned.error) throw { status: 400 };
+      await checkBrowser();
+      pending.phase = 'exchanging';
+      persist(); // A lost response or reload must start a fresh attempt.
+      say('선택한 계정을 확인하고 있어요.');
+      const providerAnswer = await request(SUPABASE_ORIGIN + '/auth/v1/token?grant_type=pkce', '',
+        { auth_code: returned.code, code_verifier: oauth.verifier }, { apikey: PUBLIC_KEY });
+      returned.code = '';
+      await checkBrowser();
+      const providerToken = String((providerAnswer && providerAnswer.access_token) || '');
+      if (!providerToken) throw { status: 401 };
+      const answer = await request(API_ORIGIN + '/auth/session/exchange', providerToken, undefined, {}, 'POST');
+      await checkBrowser();
+      candidate = checkedCandidate(answer);
+      await verifyCandidate(candidate);
+      pending.oauth = null;
+      pending.selected_user_id = candidate.id;
+      pending.phase = 'confirmed';
+      persist();
+      confirm.hidden = false;
+      say(SUPABASE_PROVIDERS[pending.provider] + '에서 선택한 계정으로 앱에 로그인할 준비가 됐어요.');
+    }
+
+    async function selectExisting() {
+      if (busy || stopped || !browser) return;
+      busy = true;
+      choices.hidden = true;
+      try {
+        await checkBrowser();
+        candidate = { token: browser.token, id: pending.browser_user_id, expiresAt: browser.expiresAt };
+        await verifyCandidate(candidate);
+        pending.selected_user_id = candidate.id;
+        pending.phase = 'confirmed';
+        pending.oauth = null;
+        persist();
+        confirm.hidden = false;
+        say('이 브라우저에서 확인한 계정으로 앱에 로그인할 준비가 됐어요.');
+      } catch (error) { fail(error); }
+      finally { busy = false; }
+    }
+
+    function callbackUrl(answer) {
+      if (!answer || answer.attempt_id !== pending.id) throw { status: 400 };
+      const expiry = Number(answer.expires_at);
+      if (!Number.isInteger(expiry) || expiry <= nowSeconds()
+          || expiry > Math.min(nowSeconds() + 60, pending.expires_at, candidate.expiresAt)) throw { status: 410 };
+      const url = new URL(answer.callback_url);
+      const keys = Array.from(url.searchParams.keys()).sort();
+      if (url.protocol !== 'sidekick:' || url.hostname !== 'auth' || url.pathname !== '/complete'
+          || url.username || url.password || url.port || url.hash || keys.join(',') !== 'code,state'
+          || !PROOF.test(url.searchParams.get('code') || '') || url.searchParams.get('state') !== pending.state)
+        throw { status: 400 };
+      return { url: url.toString(), expiry };
+    }
+
+    async function complete() {
+      if (busy || stopped || !candidate || pending.phase !== 'confirmed') return;
+      busy = true;
+      confirm.hidden = true;
+      try {
+        await checkBrowser();
+        await verifyCandidate(candidate);
+        pending.phase = 'completing';
+        persist();
+        say('앱으로 돌아갈 준비를 하고 있어요.');
+        const answer = await request(API_ORIGIN + '/auth/app-handoff/complete', candidate.token,
+          { attempt_id: pending.id, state: pending.state, workspace_id: null });
+        await checkBrowser();
+        const returned = callbackUrl(answer);
+        stopped = true;
+        clearTimeout(expiryTimer);
+        clearAttempt();
+        cancel.hidden = true;
+        back.href = returned.url;
+        callbackExpiresAt = returned.expiry;
+        back.hidden = false;
+        say('계정을 확인했어요. 앱으로 돌아가 로그인을 마쳐 주세요.');
+        expiryTimer = setTimeout(() => stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.'),
+          Math.max(0, returned.expiry * 1000 - Date.now()));
+        window.location.assign(returned.url);
+      } catch (error) { fail(error); }
+      finally { busy = false; }
+    }
+
+    cancel.addEventListener('click', () => stop('로그인을 취소했어요. 이 창을 닫고 앱으로 돌아가 주세요.'));
+    back.addEventListener('click', (event) => {
+      if (callbackExpiresAt <= nowSeconds()) {
+        event.preventDefault();
+        stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.');
+      }
+    });
+    confirm.addEventListener('click', complete);
+    existing.addEventListener('click', selectExisting);
+    el('handoff-google').addEventListener('click', () => startProvider('google'));
+    el('handoff-apple').addEventListener('click', () => startProvider('apple'));
+    window.addEventListener('storage', (event) => {
+      if (!stopped && (event.key === null || event.key === SESSION_KEY)) fail({ status: 409 });
+    });
+    window.addEventListener('hashchange', () => {
+      // Same-document navigation does not rerun the inline bootstrap. Scrub
+      // it immediately and require a fresh app attempt instead of rebinding.
+      try { history.replaceState(null, '', '/login/'); } catch (_) {}
+      fail({ status: 409 });
+    });
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted && !stopped) fail({ status: 409 });
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!stopped && document.visibilityState === 'visible') checkBrowser().catch(fail);
+    });
+
+    try {
+      if (!input || input.invalid || !window.crypto || !window.crypto.subtle) throw { status: 400 };
+      // Sweep only this receiver's expired attempt/proof/tombstone records.
+      const area = storageArea('tab');
+      if (!area) throw { status: 400 };
+      for (const key of Object.keys(area)) {
+        if (!key.startsWith(PREFIX) && !key.startsWith(FINISHED)) continue;
+        let expiry = 0;
+        try { expiry = key.startsWith(FINISHED) ? Number(readTab(key)) : JSON.parse(readTab(key)).expires_at; } catch (_) {}
+        if (!(expiry > nowSeconds())) writeTab(key, '');
+      }
+      if (input.handoff) {
+        const entry = input.handoff;
+        if (readTab(FINISHED + entry.id)) throw { status: 409 };
+        if (readTab(PREFIX + entry.id)) {
+          pending = JSON.parse(readTab(PREFIX + entry.id));
+          throw { status: 409 };
+        }
+        const old = readTab(ACTIVE);
+        if (old) {
+          let oldExpiry = nowSeconds() + 600;
+          try { oldExpiry = JSON.parse(readTab(PREFIX + old)).expires_at; } catch (_) {}
+          writeTab(FINISHED + old, String(Math.min(oldExpiry, nowSeconds() + 600)));
+          writeTab(PREFIX + old, '');
+        }
+        writeTab(ACTIVE, entry.id);
+        pending = { id: entry.id, state: entry.state, provider: entry.provider, phase: 'choosing',
+          expires_at: nowSeconds() + 600, browser_fingerprint: await browserFingerprint(),
+          browser_user_id: '', selected_user_id: '', oauth: null };
+        persist();
+      } else {
+        const id = input.provider ? input.provider.attempt : readTab(ACTIVE);
+        if (!SAFE_ID.test(id || '') || readTab(ACTIVE) !== id || readTab(FINISHED + id)) throw { status: 400 };
+        pending = JSON.parse(readTab(PREFIX + id) || 'null');
+        if (!pending || pending.id !== id || !PROOF.test(pending.state)
+            || !Number.isInteger(pending.expires_at) || pending.expires_at > nowSeconds() + 600
+            || !['choosing', 'provider'].includes(pending.phase)) throw { status: 409 };
+      }
+      await checkBrowser();
+      const stored = readStoredSession();
+      if (stored) {
+        browser = stored;
+        const answer = await request(API_ORIGIN + '/auth/session', browser.token);
+        await checkBrowser();
+        const id = String((answer && answer.user && answer.user.id) || '');
+        if (!SAFE_ID.test(id) || (pending.browser_user_id && pending.browser_user_id !== id)) throw { status: 409 };
+        pending.browser_user_id = id;
+        persist();
+        existing.hidden = false;
+      }
+      expiryTimer = setTimeout(() => fail({ status: 410 }), Math.max(0, pending.expires_at * 1000 - Date.now()));
+      cancel.hidden = false;
+      if (input.provider) await receiveProvider(input.provider);
+      else {
+        choices.hidden = false;
+        say(browser ? '이 브라우저의 계정을 계속 사용하거나 같은 계정으로 로그인해 주세요.'
+          : '앱에서 쓰는 계정으로 로그인해 주세요.');
+      }
+    } catch (error) { fail(error); }
+    finally { delete window.__sidekickLoginInput; }
+  }
+
+  const LOGIN_RECEIVER = window.location.pathname === '/login/';
+  const loginInput = window.__sidekickLoginInput;
+  // App handoff never subscribes or adopts this browser's shared account.
+  if (LOGIN_RECEIVER && loginInput && (loginInput.mode === 'app'
+      || (!loginInput.invalid && loginInput.mode === 'none'
+        && readTab('sidekick_web_app_handoff_active') && !readTab('sidekick_web_pkce_active')))) {
+    initAppHandoff(loginInput);
+    return;
+  }
+  // Generic callbacks must not migrate, expire or delete the source session.
+  const sourceAtLoad = LOGIN_RECEIVER ? readStoredSession() : null;
+  const loaded = LOGIN_RECEIVER ? { token: sourceAtLoad ? sourceAtLoad.token : '',
+    expiresAt: sourceAtLoad ? sourceAtLoad.expiresAt : 0, expired: false, exchange: '' } : loadSession();
 
   const session = {
+    webHandoff: null,
+    handoffGeneration: 0,
     token: loaded.token,
     // Epoch seconds; 0 for a sign-in this page could not keep.
     expiresAt: loaded.expiresAt,
@@ -343,15 +709,17 @@
   }
 
   // A sign-in's answer becomes this browser's session.
-  function setToken(token, user, expiresAt) {
+  function setToken(token, user, expiresAt, strict = false) {
     const value = String(token || '').trim();
-    if (!value) return false;
+    if (!value || (strict && !storeSession(value, expiresAt, true))) return false;
+    invalidateWebLogin();
+    retireWebHandoff();
     session.token = value;
     session.expiresAt = expiresAt > 0 ? expiresAt : 0;
     session.user = user && typeof user === 'object' ? user : null;
     session.source = '';
     session.checked = false;
-    storeSession(value, session.expiresAt);
+    if (!strict) storeSession(value, session.expiresAt);
     scheduleExpiry();
     return true;
   }
@@ -360,6 +728,8 @@
   // this tab's own session. Another tab may have signed in again in the
   // meantime; its newer session is not this tab's to delete.
   function clearLocalSession() {
+    invalidateWebLogin();
+    retireWebHandoff();
     stopChatGpt();
     const mine = session.token;
     session.token = '';
@@ -457,7 +827,8 @@
   window.addEventListener('storage', (event) => {
     if (event.storageArea !== storageArea('local')) return;
     if (event.key !== null && event.key !== SESSION_KEY) return;
-    followOtherTab();
+    if (LOGIN_RECEIVER) invalidateWebLogin('계정이 바뀌었어요. 로그인을 다시 시작해 주세요.');
+    else { invalidateWebLogin(); followOtherTab(); }
   });
 
   async function api(path, options = {}) {
@@ -604,6 +975,11 @@
   // for a session whose token says `email`; the server's source name is the
   // fallback.
   function signInMethod() {
+    // A checked bearer can explicitly say its current sign-in method is unknown.
+    // Its account identity source and old display hints cannot make it known.
+    const verifiedClaims = session.checked && isSidekickToken(session.token) ? tokenClaims(session.token) : null;
+    if (verifiedClaims?.sign_in === 'unknown') return 'unknown';
+    if (session.source === 'sidekick-unknown') return 'unknown';
     const hinted = session.profile ? session.profile.method : '';
     if (METHOD_PHRASES[hinted] && hinted !== 'supabase' && hinted !== 'unknown') return hinted;
     const source = session.source;
@@ -663,7 +1039,7 @@
     return link;
   }
 
-  // Built on first use: 누가 로그인했는지, 내 계정, AI 연결, 로그아웃. It never
+  // Built on first use: 누가 로그인했는지, 내 계정, AI 연결, 서비스 연결, 로그아웃. It never
   // links to /membership/ -- the policy pages carry this header too.
   function ensureMenu() {
     let menu = $('account-menu');
@@ -687,7 +1063,7 @@
     signOutButton.id = 'account-menu-signout';
     signOutButton.textContent = '로그아웃';
     signOutButton.addEventListener('click', () => signOut());
-    menu.append(who, menuLink('/account/', '내 계정'), menuLink('/ai/', 'AI 연결'), signOutButton);
+    menu.append(who, menuLink('/account/', '내 계정'), menuLink('/ai/', 'AI 연결'), menuLink('/connections/', '서비스 연결'), signOutButton);
     pill.parentElement.append(menu);
     return menu;
   }
@@ -766,6 +1142,7 @@
   }
 
   function close() {
+    invalidateWebLogin();
     const sheet = $('signin-sheet');
     if (!sheet || sheet.hidden) return;
     sheet.classList.remove('is-open');
@@ -821,17 +1198,256 @@
 
   // ---- Google / Apple through Supabase -------------------------------------
 
-  function startSupabaseLogin(provider) {
-    if (!SUPABASE_PROVIDERS[provider]) return;
-    const here = window.location.pathname;
-    writeTab(RETURN_KEY, RETURN_PATHS.includes(here) ? here : here === '/membership/' ? '' : DEFAULT_RETURN_PATH);
-    // Which door, so the account page can say "Google로 로그인했어요".
-    rememberAccount(provider, null);
-    showSocialStatus(`${SUPABASE_PROVIDERS[provider]}으로 이동하고 있어요.`, false);
-    const url = new URL(`${SUPABASE_ORIGIN}/auth/v1/authorize`);
-    url.searchParams.set('provider', provider);
-    url.searchParams.set('redirect_to', RETURN_URL);
-    window.location.assign(url.toString());
+  // ---- General web PKCE: one tab's candidate, never an SDK session -----------
+  const WEB_ACTIVE = 'sidekick_web_pkce_active';
+  const WEB_PREFIX = 'sidekick_web_pkce:';
+  const WEB_PROOF = /^[A-Za-z0-9_-]{43}$/;
+  let webAttempt = null;
+  let webGeneration = 0;
+  let webStarting = false;
+  let webTimer = null;
+
+  function webProof() {
+    const bytes = window.crypto.getRandomValues(new Uint8Array(32));
+    return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function webDigest(value) {
+    const bytes = new window.TextEncoder().encode(value);
+    const hash = new Uint8Array(await window.crypto.subtle.digest('SHA-256', bytes));
+    return btoa(String.fromCharCode(...hash)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function webRequest(path, bearer, body) {
+    const response = await fetch(API_ORIGIN + path, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: { 'Content-Type': 'application/json', ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}) },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error'
+    });
+    if (!response.ok) throw { status: response.status };
+    return response.json();
+  }
+
+  function currentWebSource() {
+    const area = storageArea('local');
+    if (!area) throw { status: 400 };
+    let raw;
+    try { raw = area.getItem(SESSION_KEY); } catch (_) { throw { status: 400 }; }
+    const stored = readStoredSession();
+    if (raw && !stored) throw { status: 400 };
+    const source = stored || { token: '', expiresAt: 0 };
+    if (source.token !== session.token || source.expiresAt !== session.expiresAt
+        || (source.token && source.expiresAt <= nowSeconds())) throw { status: 409 };
+    return source;
+  }
+
+  function sameWebSource(left, right) {
+    return left.token === right.token && left.expiresAt === right.expiresAt;
+  }
+
+  function webSay(message, failed = false) {
+    if (!LOGIN_RECEIVER) return;
+    const node = document.getElementById('handoff-status');
+    if (node) { node.textContent = message; node.setAttribute('role', failed ? 'alert' : 'status'); }
+    for (const id of ['handoff-choices', 'handoff-confirm', 'handoff-return']) {
+      const item = $(id);
+      if (item) { item.hidden = true; if (id === 'handoff-return') item.removeAttribute('href'); }
+    }
+  }
+
+  function invalidateWebLogin(message = '') {
+    webGeneration += 1;
+    clearTimeout(webTimer);
+    webTimer = null;
+    const id = webAttempt ? webAttempt.id : readTab(WEB_ACTIVE);
+    if (WEB_PROOF.test(id || '')) {
+      writeTab(WEB_PREFIX + id, '');
+      if (readTab(WEB_ACTIVE) === id) writeTab(WEB_ACTIVE, '');
+    }
+    if (webAttempt) { webAttempt.verifier = ''; webAttempt.state = ''; }
+    webAttempt = null;
+    if (message) {
+      webSay(message, true);
+      const cancel = document.getElementById('handoff-cancel');
+      if (LOGIN_RECEIVER && cancel) cancel.hidden = true;
+    }
+  }
+
+  function assertWebAttempt() {
+    const pending = webAttempt;
+    if (!pending || pending.generation !== webGeneration || pending.expires_at <= nowSeconds()
+        || pending.oauth_expires_at <= nowSeconds() || readTab(WEB_ACTIVE) !== pending.id) throw { status: 410 };
+    let saved;
+    try { saved = JSON.parse(readTab(WEB_PREFIX + pending.id)); } catch (_) { throw { status: 400 }; }
+    if (!saved || saved.generation !== pending.generation || saved.phase !== pending.phase
+        || saved.id !== pending.id || saved.state !== pending.state || saved.verifier !== pending.verifier)
+      throw { status: 409 };
+  }
+
+  function persistWebAttempt(start = false) {
+    const serialized = JSON.stringify(webAttempt);
+    writeTab(WEB_PREFIX + webAttempt.id, serialized);
+    if (start) writeTab(WEB_ACTIVE, webAttempt.id);
+    if (readTab(WEB_PREFIX + webAttempt.id) !== serialized || readTab(WEB_ACTIVE) !== webAttempt.id)
+      throw { status: 400 };
+    assertWebAttempt();
+  }
+
+  async function checkWebSource() {
+    assertWebAttempt();
+    const source = currentWebSource();
+    const fingerprint = source.token ? await webDigest(source.token + ':' + source.expiresAt) : '';
+    assertWebAttempt();
+    if (!sameWebSource(source, currentWebSource()) || fingerprint !== webAttempt.source_fingerprint
+        || Boolean(source.token) !== Boolean(webAttempt.source_user_id)) throw { status: 409 };
+    return source;
+  }
+
+  function restoredWebAttempt(id) {
+    if (!WEB_PROOF.test(id || '') || readTab(WEB_ACTIVE) !== id) throw { status: 400 };
+    let p;
+    try { p = JSON.parse(readTab(WEB_PREFIX + id)); } catch (_) { throw { status: 400 }; }
+    const now = nowSeconds();
+    if (!p || p.id !== id || typeof p.state !== 'string' || typeof p.verifier !== 'string'
+        || !WEB_PROOF.test(p.state) || !WEB_PROOF.test(p.verifier)
+        || !Object.hasOwn(SUPABASE_PROVIDERS, p.provider_intent) || p.phase !== 'provider'
+        || !Number.isSafeInteger(p.generation) || p.generation < 0
+        || !Number.isInteger(p.created_at) || p.created_at > now
+        || !Number.isInteger(p.expires_at) || p.expires_at <= now || p.expires_at > p.created_at + 600
+        || !Number.isInteger(p.oauth_expires_at) || p.oauth_expires_at <= now
+        || p.oauth_expires_at > p.created_at + 300 || p.oauth_expires_at > p.expires_at
+        || !RETURN_PATHS.includes(p.return_path)
+        || typeof p.source_user_id !== 'string' || !(p.source_user_id === '' || SAFE_ID.test(p.source_user_id))
+        || typeof p.source_fingerprint !== 'string' || !(p.source_fingerprint === '' || WEB_PROOF.test(p.source_fingerprint))) throw { status: 400 };
+    return p;
+  }
+
+  async function receiveWebLogin(input) {
+    document.title = '로그인 · 사이드킥';
+    const title = document.getElementById('handoff-title');
+    if (title) title.textContent = '사이드킥 로그인';
+    const cancel = document.getElementById('handoff-cancel');
+    if (cancel) cancel.addEventListener('click', () => invalidateWebLogin('로그인을 취소했어요. 원래 화면에서 다시 시작해 주세요.'));
+    window.addEventListener('hashchange', () => {
+      try { history.replaceState(null, '', '/login/'); } catch (_) {}
+      invalidateWebLogin('로그인 정보가 바뀌었어요. 다시 시작해 주세요.');
+    });
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) invalidateWebLogin('원래 화면에서 로그인을 다시 시작해 주세요.');
+    });
+    let receiverGeneration = null;
+    try {
+      if (!input || input.invalid || input.mode !== 'web' || !input.web
+          || readTab('sidekick_web_app_handoff_active') || !window.crypto || !window.crypto.subtle)
+        throw { status: 400 };
+      const returned = input.web;
+      webAttempt = restoredWebAttempt(returned.attempt);
+      webGeneration = webAttempt.generation;
+      receiverGeneration = webGeneration;
+      if (returned.state !== webAttempt.state || returned.error) throw { status: 400 };
+      if (cancel) cancel.hidden = false;
+      webTimer = setTimeout(() => invalidateWebLogin('로그인 시간이 지났어요. 다시 시작해 주세요.'),
+        Math.max(0, Math.min(webAttempt.oauth_expires_at, session.expiresAt || Infinity) * 1000 - Date.now()));
+      const source = await checkWebSource();
+      if (source.token) {
+        const answer = await webRequest('/auth/session', source.token);
+        await checkWebSource();
+        if (!answer || !answer.user || answer.user.id !== webAttempt.source_user_id) throw { status: 409 };
+      }
+      webAttempt.phase = 'exchanging';
+      persistWebAttempt();
+      webSay('선택한 계정을 확인하고 있어요.');
+      const exchange = webRequest('/auth/session/exchange', source.token, {
+        flow: 'web_pkce', provider: webAttempt.provider_intent,
+        auth_code: returned.code, code_verifier: webAttempt.verifier
+      });
+      returned.code = '';
+      const answer = await exchange;
+      await checkWebSource();
+      const token = String((answer && answer.access_token) || '');
+      const id = String((answer && answer.user && answer.user.id) || '');
+      const expiresAt = expiryOf(token, answer);
+      if (!isSidekickToken(token) || !SAFE_ID.test(id) || expiresAt <= nowSeconds()
+          || answer.method !== 'unknown' || (webAttempt.source_user_id && webAttempt.source_user_id !== id))
+        throw { status: 409 };
+      const checked = await webRequest('/auth/session', token);
+      await checkWebSource();
+      if (!checked || !checked.user || checked.user.id !== id) throw { status: 409 };
+      const destination = webAttempt.return_path;
+      // No await in this final source fence + storage adoption block.
+      assertWebAttempt();
+      if (!sameWebSource(source, currentWebSource()) || expiresAt <= nowSeconds()) throw { status: 409 };
+      if (!setToken(token, checked.user, expiresAt, true)) throw { status: 400 };
+      rememberAccount('unknown', checked.user);
+      session.source = 'sidekick-unknown';
+      session.checked = true;
+      webSay('로그인했어요.');
+      if (cancel) cancel.hidden = true;
+      window.location.replace(destination);
+      return true;
+    } catch (error) {
+      // The server's one account-mismatch refusal gets its own sentence: the
+      // person picked a different Google/Apple account than the one this browser
+      // is already signed in with, and only signing out first fixes that.
+      const copy = error && error.status === 423 ? DELETION_PENDING_COPY
+        : error && error.status === 409 && error.detail === 'Sign-in account does not match'
+          ? '지금 로그인한 계정과 다른 계정이에요. 로그아웃한 뒤 다시 로그인해 주세요.'
+        : '로그인을 완료하지 못했어요. 원래 화면에서 다시 시작해 주세요.';
+      if (receiverGeneration === null || receiverGeneration === webGeneration) invalidateWebLogin(copy);
+      return false;
+    } finally {
+      if (input && input.web) input.web.code = '';
+      delete window.__sidekickLoginInput;
+    }
+  }
+
+
+  async function startSupabaseLogin(provider) {
+    if (!Object.hasOwn(SUPABASE_PROVIDERS, provider) || webStarting) return;
+    webStarting = true;
+    invalidateWebLogin();
+    const generation = webGeneration;
+    try {
+      if (!window.crypto || !window.crypto.subtle) throw { status: 400 };
+      const source = currentWebSource();
+      const assertStart = () => {
+        if (generation !== webGeneration || !sameWebSource(source, currentWebSource())) throw { status: 409 };
+      };
+      let sourceId = '';
+      if (source.token) {
+        const answer = await webRequest('/auth/session', source.token);
+        assertStart();
+        sourceId = String((answer && answer.user && answer.user.id) || '');
+        if (!SAFE_ID.test(sourceId)) throw { status: 401 };
+      }
+      const verifier = webProof();
+      const challenge = await webDigest(verifier);
+      assertStart();
+      const fingerprint = source.token ? await webDigest(source.token + ':' + source.expiresAt) : '';
+      assertStart();
+      const here = window.location.pathname;
+      const now = nowSeconds();
+      webAttempt = { id: webProof(), state: webProof(), verifier, provider_intent: provider,
+        phase: 'provider', generation, created_at: now, expires_at: now + 600,
+        oauth_expires_at: now + 300, source_user_id: sourceId, source_fingerprint: fingerprint,
+        return_path: RETURN_PATHS.includes(here) ? here : DEFAULT_RETURN_PATH };
+      persistWebAttempt(true);
+      await checkWebSource();
+      const redirect = new URL('https://sidekickagent.app/login/');
+      redirect.searchParams.set('web_login_attempt', webAttempt.id);
+      redirect.searchParams.set('web_login_state', webAttempt.state);
+      const url = new URL(SUPABASE_ORIGIN + '/auth/v1/authorize');
+      url.searchParams.set('provider', provider);
+      url.searchParams.set('redirect_to', redirect.toString());
+      url.searchParams.set('code_challenge', challenge);
+      url.searchParams.set('code_challenge_method', 's256');
+      if (provider === 'google') url.searchParams.set('prompt', 'select_account');
+      showSocialStatus(SUPABASE_PROVIDERS[provider] + '로 이동하고 있어요.', false);
+      window.location.assign(url.toString());
+    } catch (_) {
+      if (generation === webGeneration) { invalidateWebLogin(); showSocialStatus(SOCIAL_FAILED_COPY, true); }
+    } finally { webStarting = false; }
   }
 
   // A person who started on another page goes back there now. The session is
@@ -894,6 +1510,108 @@
     // The server resolved the account and its deletion lock to mint this.
     session.checked = true;
     return true;
+  }
+
+  // ---- App→Web: the app the person is signed in to vouches for this page ----
+  // Only the in-app /connections/ page inside the Sidekick app's own viewer asks
+  // (docs/08 2026-10-01 앱→웹 인계). The page keeps its S256 verifier; the app
+  // sees only the challenge and returns a 60s single-use code bound to this
+  // page's state. A different account already signed in here is refused by the
+  // server and stays as it is.
+  const APP_WEB_REQUEST = 'sidekick.web_handoff.request';
+  const APP_WEB_CODE = 'sidekick.web_handoff.code';
+  let appWebPending = null;
+
+  function retireWebHandoff() {
+    session.handoffGeneration += 1;
+    if (session.webHandoff) session.webHandoff = { required: true };
+  }
+  function webHandoffWorkspace() {
+    const receipt = session.webHandoff;
+    if (!receipt) return null;
+    const current = receipt.generation === session.handoffGeneration && receipt.token === session.token
+      && receipt.userId === String(session.user?.id || '') && !sessionExpired();
+    return { required: true, workspaceId: current ? receipt.workspaceId : '' };
+  }
+  window.addEventListener('pagehide', retireWebHandoff);
+
+  function appWebHandoffAvailable() {
+    const bridge = window.ReactNativeWebView;
+    let inApp = false;
+    try { inApp = new URLSearchParams(window.location.search).get('in_app') === '1'; } catch (_) { inApp = false; }
+    return Boolean(bridge && typeof bridge.postMessage === 'function' && inApp
+      && window.location.origin === 'https://sidekickagent.app' && window.location.pathname === '/connections/'
+      && window.crypto && window.crypto.subtle);
+  }
+
+  function appWebCode(state) {
+    return new Promise((resolve) => {
+      let timer = null;
+      const receive = (event) => {
+        let data = null;
+        try { data = typeof event.data === 'string' ? JSON.parse(event.data) : null; } catch (_) { data = null; }
+        if (!data || data.type !== APP_WEB_CODE || data.state !== state) return;
+        const attempt = String(data.attempt_id || '');
+        const code = String(data.code || '');
+        finish(/^ah_[A-Za-z0-9_-]{32}$/.test(attempt) && /^[A-Za-z0-9_-]{43}$/.test(code) ? { attempt, code } : null);
+      };
+      const finish = (value) => {
+        clearTimeout(timer);
+        window.removeEventListener('message', receive);
+        document.removeEventListener('message', receive);
+        window.removeEventListener('pagehide', cancelled);
+        resolve(value);
+      };
+      const cancelled = () => finish(null);
+      window.addEventListener('pagehide', cancelled);
+      timer = setTimeout(() => finish(null), 60000);
+      // iOS delivers the viewer's message on window, Android on document.
+      window.addEventListener('message', receive);
+      document.addEventListener('message', receive);
+      return state;
+    });
+  }
+
+  async function appWebHandoff() {
+    if (!appWebHandoffAvailable()) return false;
+    if (appWebPending) return appWebPending;
+    appWebPending = (async () => {
+      const verifier = webProof();
+      const state = webProof();
+      const before = session.token;
+      const generation = session.handoffGeneration;
+      session.webHandoff = { required: true };
+      const replied = appWebCode(state);
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: APP_WEB_REQUEST, version: 1, state, code_challenge: await webDigest(verifier)
+      }));
+      const reply = await replied;
+      if (!reply || session.token !== before || session.handoffGeneration !== generation) return false;
+      let answer = null;
+      try {
+        answer = await api('/auth/web-handoff/exchange', {
+          method: 'POST',
+          body: JSON.stringify({ attempt_id: reply.attempt, state, code: reply.code, code_verifier: verifier }),
+          cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error'
+        });
+      } catch (_) {
+        return false;
+      }
+      const token = String((answer && answer.access_token) || '').trim();
+      const user = answer && answer.user && typeof answer.user === 'object' ? answer.user : null;
+      const receipt = answer && answer.handoff;
+      if (!isSidekickToken(token) || !user || !SAFE_ID.test(String(user.id || '')) || session.token !== before
+        || session.handoffGeneration !== generation || !receipt || receipt.attempt_id !== reply.attempt
+        || receipt.user_id !== user.id || typeof receipt.workspace_id !== 'string' || !SAFE_ID.test(receipt.workspace_id)) return false;
+      if (before && session.user && String(session.user.id || '') !== String(user.id)) return false;
+      setToken(token, user, expiryOf(token, answer));
+      session.webHandoff = { required: true, attemptId: reply.attempt, userId: user.id, workspaceId: receipt.workspace_id,
+        token: session.token, generation: session.handoffGeneration };
+      // The server resolved the account and its deletion lock to mint this.
+      session.checked = true;
+      return true;
+    })().finally(() => { appWebPending = null; });
+    return appWebPending;
   }
 
   // ---- ChatGPT: a device code the person approves in another tab ------------
@@ -1066,6 +1784,11 @@
   // also when a session that ran out while the machine slept is noticed.
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
+    if (LOGIN_RECEIVER) {
+      if (webAttempt && (webAttempt.oauth_expires_at <= nowSeconds() || sessionExpired()))
+        invalidateWebLogin('로그인 시간이 지났어요. 다시 시작해 주세요.');
+      return;
+    }
     if (sessionExpired()) { expireSession(); return; }
     if (!session.chatgpt) return;
     if (session.chatgpt.timer) clearTimeout(session.chatgpt.timer);
@@ -1119,7 +1842,10 @@
       $('code').focus();
       setAuthStatus(`${result.value_masked || `입력한 ${AUTH_METHODS[session.method].label}`}로 인증번호를 보냈어요.`, false);
     } catch (error) {
-      setAuthStatus(error && error.network ? NETWORK_COPY : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+      setAuthStatus(error && error.network ? NETWORK_COPY
+        : error && error.status === 422 ? (session.method === 'phone' ? '휴대폰 번호를 확인해 주세요.' : '이메일 주소를 확인해 주세요.')
+        : error && error.status === 429 ? '인증번호를 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.'
+        : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
     }
   }
 
@@ -1182,6 +1908,7 @@
   // expiry, onNotice(message, isError) for what the page should say.
   function init(options = {}) {
     if (initialized) return initialized;
+    if (LOGIN_RECEIVER) { initialized = receiveWebLogin(loginInput); return initialized; }
     hooks.onSignedIn = options.onSignedIn || null;
     hooks.onSignedOut = options.onSignedOut || null;
     hooks.onNotice = options.onNotice || null;
@@ -1232,6 +1959,8 @@
     methodLabel,
     chatGptHandoff,
     forgetChatGptHandoff,
+    appWebHandoff,
+    webHandoffWorkspace,
     token: () => session.token,
     user: () => session.user
   });

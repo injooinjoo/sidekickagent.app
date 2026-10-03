@@ -345,6 +345,18 @@
     "source_sequence": {
       "type": "number",
       "minimum": 1
+    },
+    "cache_read_tokens": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cache_write_tokens": {
+      "type": "number",
+      "minimum": 0
+    },
+    "reasoning_tokens": {
+      "type": "number",
+      "minimum": 0
     }
   },
   "events": {
@@ -352,6 +364,16 @@
       "owner": "client",
       "required": [],
       "optional": [],
+      "pii": false
+    },
+    "use_case_selected": {
+      "owner": "client",
+      "required": [
+        "task_type"
+      ],
+      "optional": [
+        "source"
+      ],
       "pii": false
     },
     "app_opened": {
@@ -1138,7 +1160,10 @@
         "total_tokens",
         "estimated_cost",
         "retry_count",
-        "error_type"
+        "error_type",
+        "cache_read_tokens",
+        "cache_write_tokens",
+        "reasoning_tokens"
       ],
       "pii": false
     },

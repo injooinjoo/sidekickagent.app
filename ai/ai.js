@@ -82,7 +82,7 @@
     400: '요청을 처리하지 못했어요. 다시 시도해 주세요.',
     401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
     403: '이 프로젝트에 접근할 수 없어요. 다른 프로젝트를 골라 주세요.',
-    404: '찾는 연결을 찾지 못했어요. 목록을 다시 불러왔어요.',
+    404: '찾는 프로젝트나 연결이 더 이상 없어요. 이 페이지를 새로고침해서 목록을 다시 확인해 주세요.',
     409: '그사이 상태가 바뀌었어요. 다시 시도해 주세요.',
     410: '로그인 코드가 만료됐어요. 처음부터 다시 연결해 주세요.',
     422: '입력한 내용을 확인해 주세요. 키나 주소의 형식이 맞지 않거나, 아직 지원하지 않는 연결이에요.',
@@ -363,7 +363,8 @@
   }
 
   function hideProjectSteps() {
-    ['workspace-step', 'handoff-step', 'connections-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
+    ['workspace-step', 'handoff-step', 'connections-step', 'execution-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
+    $('connection-list').replaceChildren();
     showNext(null);
   }
 
@@ -408,6 +409,7 @@
 
   async function boot() {
     const seq = ++state.seq;
+    hideProjectSteps();
     if (!signedIn()) {
       showSignedOut();
       if (state.returnedCode) setStatus('signin-status', '로그인하면 하던 AI 연결을 이어서 마칠게요.', false);
@@ -485,6 +487,9 @@
     closeFlow();
     $('handoff-step').hidden = true;
     $('connections-step').hidden = true;
+    $('execution-step').hidden = true;
+    $('connection-list').replaceChildren();
+    state.connections = [];
     $('providers-step').hidden = true;
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
@@ -534,13 +539,16 @@
 
   async function reloadConnections() {
     if (!state.user || !state.workspaceId) return;
+    const seq = state.seq;
+    const user = state.user;
     const workspaceId = state.workspaceId;
     try {
       const connections = await api(`/ai-engine-connections?${scopeQuery()}`, { method: 'GET' });
-      if (workspaceId !== state.workspaceId) return;
+      if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
       state.connections = sanitizeConnections(connections);
       renderConnections();
     } catch (error) {
+      if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
       showFailure(error, 'connections-status');
     }
   }
@@ -552,6 +560,8 @@
     list.replaceChildren(...state.connections.map(connectionItem));
     $('connections-empty').hidden = state.connections.length > 0;
     $('connections-step').hidden = false;
+    // No execution query is supported yet. Engine readiness cannot open it.
+    $('execution-step').hidden = false;
   }
 
   function connectionItem(connection) {
@@ -1083,6 +1093,9 @@
       setBusy(false, controls);
       if (error.status === 401) { showFailure(error, 'handoff-status'); return; }
       if (HANDOFF_SPENT_COPY[error.code]) { dropHandoff(HANDOFF_SPENT_COPY[error.code], error.code !== 'AI_ENGINE_HANDOFF_ALREADY_CLAIMED'); }
+      // A check that ran and failed is not an expired offer: say what failed and
+      // leave the offer up so the person can fix the account and try again.
+      else if (error.code === 'AI_ENGINE_CONNECTION_VERIFICATION_FAILED' || error.code === 'AI_ENGINE_CONNECTION_ANSWER_FAILED') { setStatus('handoff-status', CODE_COPY[error.code], true); }
       else if (error.status === 400 || error.status === 410 || (error.status === 409 && !CODE_COPY[error.code])) { dropHandoff(HANDOFF_EXPIRED_COPY, true); }
       else setStatus('handoff-status', errorCopy(error), true);
       if (state.user && workspaceId === state.workspaceId) await reloadConnections();

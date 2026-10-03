@@ -1,8 +1,26 @@
 (function () {
   'use strict';
 
-  // In-app mode for the four policy pages the iOS app opens (privacy, terms,
-  // support, delete-account). The app opens them with ?in_app=1; this tab then
+  // Page transitions (/styles.css, #1857): when this page is left or entered
+  // mid-transition (a policy link opened from /connections/, then straight
+  // back), Chromium rejects a transition promise the page never receives and
+  // reports "AbortError: Transition was skipped" as an uncaught page error.
+  // Only that rejection is marked handled; every other one reports as before.
+  // This runs first and in every mode; only a host without window events
+  // skips it.
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event.reason;
+      var error = reason instanceof Error || (typeof DOMException === 'function' && reason instanceof DOMException);
+      if (error && reason.name === 'AbortError' && String(reason.message).indexOf('Transition was skipped') !== -1) {
+        event.preventDefault();
+      }
+    });
+  }
+
+  // In-app navigation for policy pages and the approved service-connections
+  // entry. It limits navigation, not authentication or service authority.
+  // The app opens them with ?in_app=1; this tab then
   // remembers the mode (sessionStorage), so a policy link followed from here
   // stays in it too.
   //
@@ -65,7 +83,8 @@
       if (!ownSite(url)) return;
       if (POLICY_PATHS.indexOf(url.pathname) !== -1) {
         url.searchParams.set('in_app', '1');
-        link.setAttribute('href', url.pathname + url.search + url.hash);
+        var target = url.pathname + url.search + url.hash;
+        if (href !== target) link.setAttribute('href', target);
         return;
       }
       if (link.closest('.footer')) { link.remove(); return; }
@@ -77,6 +96,17 @@
     });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', strip);
-  else strip();
+  function ready() {
+    strip();
+    // Account changes and service responses may add links after page startup.
+    // Keep the same navigation rule on those actual DOM updates too.
+    if (typeof window.MutationObserver === 'function') {
+      new window.MutationObserver(strip).observe(document.documentElement, {
+        childList: true, subtree: true, attributes: true, attributeFilter: ['href']
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);
+  else ready();
 })();

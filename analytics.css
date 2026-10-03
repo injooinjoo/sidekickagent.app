@@ -1,1 +1,60 @@
-.sidekick-consent{position:fixed;bottom:16px;left:16px;right:16px;z-index:1000;max-width:560px;margin:auto;padding:16px;border:1px solid #d5d5d5;border-radius:12px;background:#fff;color:#222;box-shadow:0 3px 20px #0002;font:14px/1.5 system-ui}.sidekick-consent p{margin:0 0 12px}.sidekick-consent button,.sidekick-consent a{display:inline-block;margin:4px 12px 4px 0;font:inherit}.sidekick-consent button{padding:8px 12px;border:1px solid #555;border-radius:6px;background:#fff;color:#222;cursor:pointer}.sidekick-consent button:first-of-type{background:#222;color:#fff}
+/* The analytics consent bar (/analytics-runtime.js builds it on first visit).
+   Compact and in the site's own type and tokens so it reads as part of the
+   page, not a system dialog: one row on a wide screen, text over two buttons
+   on a phone, never taller than it needs to be. Fallbacks keep it readable on
+   a page that does not load /styles.css. */
+.sidekick-consent {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 1000;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 12px 12px 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  border: 1px solid var(--line, #e1e5ea);
+  border-radius: 16px;
+  background: var(--card, #fff);
+  color: var(--ink, #1a1d21);
+  box-shadow: var(--shadow, 0 18px 50px rgba(26, 29, 33, 0.08));
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.sidekick-consent p { flex: 1 1 280px; margin: 0; font-size: inherit; color: var(--ink-soft, #3f454d); }
+.sidekick-consent button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line, #e1e5ea);
+  border-radius: 999px;
+  background: var(--card, #fff);
+  color: var(--ink, #1a1d21);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sidekick-consent button:first-of-type { border-color: var(--ink, #1a1d21); background: var(--ink, #1a1d21); color: #fff; }
+.sidekick-consent button:hover { border-color: #c9cfd6; }
+.sidekick-consent button:first-of-type:hover { background: #2b3036; }
+.sidekick-consent a { display: inline-flex; align-items: center; min-height: 40px; color: var(--muted, #6b737d); font-size: 12.5px; font-weight: 600; }
+.sidekick-consent a:hover { color: var(--ink, #1a1d21); }
+@media (pointer: coarse) { .sidekick-consent button, .sidekick-consent a { min-height: 44px; } }
+@media (max-width: 520px) {
+  .sidekick-consent { padding: 12px; }
+  .sidekick-consent p { flex-basis: 100%; }
+  .sidekick-consent button { flex: 1 1 0; }
+  .sidekick-consent a { flex-basis: 100%; justify-content: center; }
+}
+
+/* The same choice on /privacy/, changeable any time: touch-size controls in
+   the site's own look rather than the browser's defaults. */
+[data-analytics-preference] label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink, #1a1d21); font-weight: 600; cursor: pointer; }
+[data-analytics-preference] input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--ink, #1a1d21); }
+[data-analytics-preference] button { min-height: 44px; padding: 0 18px; border: 1px solid var(--ink, #1a1d21); border-radius: 999px; background: var(--ink, #1a1d21); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+[data-analytics-preference] button:hover { background: #2b3036; }
+[data-analytics-preference] button:disabled { opacity: 0.55; cursor: default; }

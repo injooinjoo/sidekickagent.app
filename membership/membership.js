@@ -34,7 +34,10 @@
 
   const state = {
     plan: DEFAULT_PLAN,
-    funding: 'connected',
+    // Sidekick AI 포함이 기본이다 (2026-10-02 소유자 방향: 설정보다 결과가 먼저).
+    // 내 AI 계정 연결은 더 싸지만 계정을 따로 준비해야 하므로, 바꾸고 싶은 사람이
+    // 스위치로 고르는 두 번째 선택지로 둔다. 링크의 ?funding= 은 그대로 따른다.
+    funding: 'included',
     storage: 'managed',
     // A copy of the shared sign-in's bearer, refreshed whenever it changes, so
     // every "is this person signed in" below reads one field.
@@ -125,6 +128,32 @@
     return Boolean(error) && error.status === 409 && error.detail === 'subscription_exists';
   }
 
+  // 서버가 거절한 이유를 사람이 할 다음 일로 바꾼다. 상태 숫자나 서버 문구는 화면에
+  // 나오지 않는다. "청구되지 않았어요"는 서버가 결제 전에 멈췄다고 알 수 있을 때만
+  // 붙인다 — 첫 달 결제(complete)처럼 결과를 모르는 경우(chargeUnknown)에는 쓰지 않는다.
+  function failureCopy(error, fallback, options) {
+    const chargeUnknown = Boolean(options && options.chargeUnknown);
+    if (!error) return fallback;
+    if (isSubscriptionExists(error)) return subscriptionExistsCopy();
+    if (error.status === 401) return '로그인이 만료됐어요. 다시 로그인한 뒤 이어서 해 주세요.';
+    if (error.status === 423) return auth.DELETION_PENDING_COPY;
+    const code = String(error.code || error.detail || '');
+    if (code === 'provider_rejected') return '카드사에서 결제를 승인하지 않았어요. 청구되지 않았어요. 다른 카드로 다시 시도해 주세요.';
+    if (code === 'billing_key_missing') return '등록된 카드를 찾지 못했어요. 청구되지 않았어요. 카드를 다시 등록해 주세요.';
+    if (code === 'test_checkout_not_allowed') return '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 청구되지 않았어요.';
+    if (code === 'sales_disabled' || code === 'selection_not_saleable' || code === 'schema_not_ready') return '지금은 웹에서 구매할 수 없어요. 청구되지 않았어요.';
+    if (code === 'plan_unchanged') return '이미 이 플랜을 쓰고 있어요. 바뀐 것은 없어요.';
+    if (code === 'subscription_inactive') return '이용 중인 웹 구독이 없어요. 새로 구독해 주세요.';
+    if (error.network && !chargeUnknown) return '인터넷 연결을 확인한 뒤 다시 시도해 주세요.';
+    return fallback;
+  }
+
+  // 쓰기 요청에서 로그인이 끝난 것을 알았으면 이 브라우저의 로그인도 정리한다.
+  // 그대로 두면 다음 버튼도 같은 이유로 실패한다.
+  function endSessionIfRefused(error) {
+    if (error && (error.status === 401 || error.status === 423)) auth.signOut({ server: false, silent: true });
+  }
+
   function renderSubscription() {
     const panel = $('subscription-panel');
     const subscription = state.subscription;
@@ -210,8 +239,8 @@
     toggle.classList.toggle('is-on', connected);
     toggle.setAttribute('aria-checked', String(connected));
     $('mode-note').textContent = connected
-      ? '내 AI 계정을 쓰면 AI 사용료가 멤버십 금액에서 빠지고, 그만큼 AI 제공업체가 직접 청구해요.'
-      : 'Sidekick AI가 포함돼요. 따로 준비할 것 없이 바로 시작해요.';
+      ? '내 AI 계정을 연결하면 AI 사용료는 그 계정에서 나가고, 멤버십은 그만큼 저렴해져요.'
+      : 'AI 사용료가 포함돼 있어요. 따로 준비할 것 없이 바로 시작해요.';
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
@@ -413,9 +442,8 @@
     } catch (error) {
       state.busy = false;
       sessionStorage.removeItem(SELECTION_KEY);
-      say(isSubscriptionExists(error)
-        ? subscriptionExistsCopy()
-        : '카드 등록 창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+      say(failureCopy(error, '카드 등록 창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.'), true);
+      endSessionIfRefused(error);
       render();
     }
   }
@@ -459,9 +487,10 @@
           say('플랜을 바꾸지 못했어요. 청구되지 않았어요.', true);
         }
       }
-    } catch (_) {
+    } catch (error) {
       state.quote = null;
-      say('플랜 변경을 처리하지 못했어요. 중복 청구되지 않으니 잠시 뒤 다시 시도해 주세요.', true);
+      say(failureCopy(error, '플랜 변경을 처리하지 못했어요. 중복 청구되지 않으니 잠시 뒤 다시 시도해 주세요.', { chargeUnknown: true }), true);
+      endSessionIfRefused(error);
     }
     state.busy = false;
     render();
@@ -476,8 +505,9 @@
     try {
       state.subscription = await api('/membership/toss/cancel', { method: 'POST' });
       say('해지했어요. 이용이 바로 중단됐고 다음 결제는 청구되지 않아요.', false);
-    } catch (_) {
-      say('해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+    } catch (error) {
+      say(failureCopy(error, '해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), true);
+      endSessionIfRefused(error);
     }
     state.busy = false;
     render();
@@ -493,9 +523,8 @@
       state.subscription = await api('/membership/toss/resume', { method: 'POST' });
       say('다시 시작했어요. 추가로 결제되는 금액은 없어요.', false);
     } catch (error) {
-      say(isSubscriptionExists(error)
-        ? subscriptionExistsCopy()
-        : '다시 시작하지 못했어요. 결제 기간이 끝났다면 새로 구독해 주세요.', true);
+      say(failureCopy(error, '다시 시작하지 못했어요. 결제 기간이 끝났다면 새로 구독해 주세요.'), true);
+      endSessionIfRefused(error);
     }
     state.busy = false;
     render();
@@ -538,13 +567,17 @@
       });
       sessionStorage.removeItem(SELECTION_KEY);
       state.subscription = result;
-      say(result.active ? '구독이 시작됐어요. 앱에서 바로 쓸 수 있어요.' : '결제를 확인하지 못했어요. 청구되지 않았어요.', !result.active);
+      say(result.active ? '구독이 시작됐어요. 앱에서 바로 쓸 수 있어요.'
+        // 결제는 됐는데 구독이 켜지지 않은 경우를 "청구되지 않았어요"로 말하지 않는다.
+        : result.charged ? '결제는 됐지만 구독을 바로 시작하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.'
+        : '결제를 확인하지 못했어요. 청구되지 않았어요.', !result.active);
     } catch (error) {
       if (isSubscriptionExists(error)) {
         sessionStorage.removeItem(SELECTION_KEY);
         say(subscriptionExistsCopy(), true);
       } else {
-        say('결제를 확인하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.', true);
+        say(failureCopy(error, '결제를 확인하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.', { chargeUnknown: true }), true);
+        endSessionIfRefused(error);
       }
     }
     state.busy = false;
