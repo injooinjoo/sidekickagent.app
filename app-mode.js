@@ -33,8 +33,9 @@
   // the app, and a web checkout or web AI-account login two taps away from it
   // is steering (owner decision 2026-09-29/30).
   //
-  // Loaded first in <head> as a plain file: no inline script, so the page's
-  // CSP is unchanged. The class goes on <html> at once, before the body is
+  // The first file in <head> (only the hashed inline frame guard runs before
+  // it), so the mode needs no inline script of its own and nothing in the
+  // page's CSP. The class goes on <html> at once, before the body is
   // drawn, and /styles.css hides the header chrome from that first paint. Once
   // the page is parsed the chrome is taken out of the document, before
   // /auth.js (deferred) binds the account slot: with no slot, auth.js builds

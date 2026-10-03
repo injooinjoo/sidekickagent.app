@@ -6,8 +6,8 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "404.html": {
-      "bytes": 3741,
-      "sha256": "3f1c23f76fa36b4cf2dce5cb1bd9f33b17c1ff2d1871ced863308d52cf4b6cd8"
+      "bytes": 4304,
+      "sha256": "eff19ae6a9432340478ca3fa185de8f1fc0d69986a26c01b3205cf520491d878"
     },
     "CNAME": {
       "bytes": 18,
@@ -22,8 +22,8 @@
       "sha256": "a228eb31983078cb9a4141b076c4da19121b55cde13d0473d08d904892279b76"
     },
     "account/index.html": {
-      "bytes": 7262,
-      "sha256": "4428c705ef5e53bfdc5e0a63c7f50e08434819defb5ec57f34b7295530f12055"
+      "bytes": 7825,
+      "sha256": "5cc67e73bb7b430e1a22965640c1ca20904fc34f0db10f1c43fd23e2a160e3c8"
     },
     "ai/ai.css": {
       "bytes": 7036,
@@ -34,8 +34,8 @@
       "sha256": "f1bd9a6b5a86645bc83070fc46d2149cd8a57f7b25934ef501d5d26982ea62a6"
     },
     "ai/index.html": {
-      "bytes": 10598,
-      "sha256": "f4eb9b302bd6f1ab67c4afe068e99bd92f910844799d3d77e2e99c06dec8f7f5"
+      "bytes": 11349,
+      "sha256": "f155dc9397284f8d33252f431c5c66a7bdce918aca38c10bdf7c0536537a9b01"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -58,8 +58,8 @@
       "sha256": "4b93f04f5fe0495668354753a9e1b84d3283455f4cb12de7095e23d4f9bcaa95"
     },
     "app-mode.js": {
-      "bytes": 5140,
-      "sha256": "c74efe29cfb8a51944a828cd3c900e3594191eec4e5b19fe095f7f183e3be1c3"
+      "bytes": 5210,
+      "sha256": "a2bb6dadb809eb1601278767fdbdcd09e6e2e139ddf10c8dffd59d2a9d7a4144"
     },
     "assets/apple-touch-icon.png": {
       "bytes": 8293,
@@ -146,8 +146,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 88759,
-      "sha256": "72b465718080f46d4200533e82fd5e0df14316c88e4241b5bb40eb866cbbab82"
+      "bytes": 94815,
+      "sha256": "f8e031b8684fbbdd03ce60837be1d160fc3da571c812f74ec3d6e61349f20665"
     },
     "connections/connections.css": {
       "bytes": 3208,
@@ -158,52 +158,52 @@
       "sha256": "3abd9eeb858c19c628df9c3ec47ce89f4e7b5f3e50657b9d0ffbdae594fb82d9"
     },
     "connections/index.html": {
-      "bytes": 6122,
-      "sha256": "5ea4ceeaf1863f38ac22a6a35505beff3a9409d6b6b98ddf07c52c1b3583a3f2"
+      "bytes": 6685,
+      "sha256": "24c21f7861c858776aef6e51d3827df9ca6ef06b2fd2f4091a922cacb859c90b"
     },
     "delete-account/index.html": {
-      "bytes": 7257,
-      "sha256": "670a7231c5c7c2f8aa680db6291496a44be281542c8faa52ccceac6f9780b337"
+      "bytes": 8145,
+      "sha256": "dc0d52b4ebf83759511a920aa088010170bf7d779fe2626d75e0c72b840bd061"
     },
     "favicon.ico": {
       "bytes": 15086,
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "index.html": {
-      "bytes": 26789,
-      "sha256": "fa684cf375e8f079c5edf93cfee42fc0aa228eaab1eeeaa68c8da3efd186a3f2"
+      "bytes": 27677,
+      "sha256": "71a240ab5846740c1d8191ad123e1c5f3ffbe0ffc2dbccf976e3064a9f744e7e"
     },
     "landing.js": {
       "bytes": 18980,
       "sha256": "1caa19992c1014c4a7a49d934a0329271572529a4caec6baeaac83c459c9e512"
     },
     "login/index.html": {
-      "bytes": 6037,
-      "sha256": "00bc01e58cb3a1c6abd0a958d3a7fc0a95a791983323e2b9ffe3555ba2ba2640"
+      "bytes": 6508,
+      "sha256": "8581e94e794c0c7dd29f70a28aa163e79fbaf45f18d27e2d8e6d65ae91707309"
     },
     "manifest.json": {
       "bytes": 591,
       "sha256": "f00ceac48003dafd1ae005ce4e4218ad5b0e1a269d6315481590c1a235034535"
     },
     "membership/index.html": {
-      "bytes": 15524,
-      "sha256": "253a4777e659b5d2cd47c2309dd2340606321d947708d77fa31f02a6715baede"
+      "bytes": 16017,
+      "sha256": "9b3b7b6d3aa1ec94a20b74f8eb0f89ee187ace07f5486c618d8e6eb721b11288"
     },
     "membership/membership.css": {
       "bytes": 15188,
       "sha256": "97a0f939ac614bf25cd8fe8448918db5731cc9f16bc3595edea6bdd9675ac3f6"
     },
     "membership/membership.js": {
-      "bytes": 32702,
-      "sha256": "7af4a97edeb9af4b67c9eed254799b40679587d8d4e58dc922d61f638b4552f6"
+      "bytes": 32711,
+      "sha256": "526c346756b5402775905c6b99b2b54c27925dea5b1385be641eda15d0150c99"
     },
     "motion.css": {
       "bytes": 4659,
       "sha256": "bc11a525e72b495e321d604cc2a0d7167581280d4361b9c1648699b2355eaa8d"
     },
     "privacy/index.html": {
-      "bytes": 24654,
-      "sha256": "91d75fdeab2da8752c30220468252af6ef8f978caea964e1af924cd2077c7aab"
+      "bytes": 25542,
+      "sha256": "438c40b250e20100535555e079030a94ab892b1774952293b5ca2bda01dee64a"
     },
     "robots.txt": {
       "bytes": 71,
@@ -218,59 +218,59 @@
       "sha256": "3af3bf5471212c1301df216eb02b14abf42884984423f8e091348fae4e3eb277"
     },
     "styles.css": {
-      "bytes": 47243,
-      "sha256": "f9679df843b483c7778c889dd8982912a4fcab348aab7ab85be34efd3fe3e1dc"
+      "bytes": 47551,
+      "sha256": "2142a99a20092ac9051875e141021455d9bf2e33eaa79e33dab94cc5c9f3b6f8"
     },
     "support/index.html": {
-      "bytes": 7647,
-      "sha256": "2da826e423c4dff168c93fefe18dfcb7fd72cd8409c3be2cd31b4b5437498b6f"
+      "bytes": 8535,
+      "sha256": "26dad6e8712037edf515f8f655f7d6048d21c9dcb68ec145840a6d70e81949f2"
     },
     "terms/index.html": {
-      "bytes": 10469,
-      "sha256": "e7cfbd796e50a1858b11dfea9ac13e5a11d70c502f8d00bdb162ac4cb01fe2b2"
+      "bytes": 11357,
+      "sha256": "7a14613703e4d725293cdf5c7943c5f0ffa8b24b37bcd710ccb1adbbb2ffb504"
     },
     "use.js": {
-      "bytes": 3518,
-      "sha256": "0bb232c51e60ca55f0c5cb56cc9ece52c6626b1253fd36d4e68da49b788a9808"
+      "bytes": 3854,
+      "sha256": "5bd1da3a28b66bf17a2211f2f039221543da8d9f5748ae1b015b983a8bbee397"
     },
     "use/blog/index.html": {
-      "bytes": 14587,
-      "sha256": "bc2355b08afd5bcb3e030e15080ac9f8ed06262c6e67b22006b8f50c9a11fde2"
+      "bytes": 15466,
+      "sha256": "95db232d7b44e4f88e056b156c9b656d12ec90521844fc1db78b6e93c7eae701"
     },
     "use/briefing/index.html": {
-      "bytes": 13647,
-      "sha256": "3df476e0dc7e336f64dbe8da5fd507ee7e0fd72ed77c04dd738c68c7a62be2e9"
+      "bytes": 14514,
+      "sha256": "858d58def3506ee3e6aef5d2eb36d573bee5851c9b6c2e188639c90d6136a11e"
     },
     "use/index.html": {
-      "bytes": 10938,
-      "sha256": "060fdf9bd3f19b27afb2a46978461b8700e4146dec1dba8591f8a1e0fa254312"
+      "bytes": 11826,
+      "sha256": "6431a347a153272d45e299bda6a42f41cd416b5bbfee86798d3dbb5dc58b064f"
     },
     "use/instagram/index.html": {
-      "bytes": 14375,
-      "sha256": "eb9af6f266a19ed94390d6004d7c10cc528005d5a3315a229e452efbeedf047b"
+      "bytes": 15254,
+      "sha256": "05b4c653455cb16cf6a21c7aea4edf63c9b6363bb23ae1e5b227464049736587"
     },
     "use/price-watch/index.html": {
-      "bytes": 13602,
-      "sha256": "240d6b802a72ec098178a5ccdcd6cdecda14f1bbf18ff8049d48aa1f7763f32b"
+      "bytes": 14469,
+      "sha256": "584372f0465ebfba445eef378c6a117e260ff4c5bf908c696f41538bf507d817"
     },
     "use/real-estate/index.html": {
-      "bytes": 14292,
-      "sha256": "83b1c059fcf64854b76727d784ff86c5a50cd4dda7df7b6205adfa42ba967f08"
+      "bytes": 15177,
+      "sha256": "b4bc68c7e531b94297a068a2a80c64461e949a62ef90aadcc2831917897598b2"
     },
     "use/store-cs/index.html": {
-      "bytes": 14503,
-      "sha256": "db2eedeeb74abc8c9664898827d601c5a064f471e2fd787c9411ffe8385613e8"
+      "bytes": 15376,
+      "sha256": "b2bb60bf4803a5ec7eccd8f19a12d29270c431266674fe9196ef9fd6d57e108c"
     },
     "use/tax/index.html": {
-      "bytes": 14047,
-      "sha256": "0271b9826968b25a50f01a682c73152d82111d6e0f998961923a79d5eb8cfd6c"
+      "bytes": 14929,
+      "sha256": "0b0f1ee2574158c449f9785a4067f4fee214387788981a65c46336d97367f0e6"
     },
     "use/youtube/index.html": {
-      "bytes": 14379,
-      "sha256": "e1abbaa833d402a802bd8423b093b9420d09e1bbefdb6b56420661b55ed72c16"
+      "bytes": 15261,
+      "sha256": "074dfde856e8edae014b2ac9495c2b8b0efb0dee9aa4f72224e5d1561cea387c"
     }
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "96f4159f8920d6a7a7e8be1ace6e948c45f89d6c"
+  "source_sha": "b65465244f157b431de45c0556b72c92b8710592"
 }

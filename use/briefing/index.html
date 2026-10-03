@@ -1,11 +1,14 @@
 <!doctype html>
 <html lang="ko">
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script src="/analytics.js"></script>
   <script src="/analytics-config.js"></script>
   <script defer src="/analytics-runtime.js"></script>
   <link rel="stylesheet" href="/analytics.css" />
-  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
@@ -100,7 +103,7 @@
       <p class="section-p"><b>매일 이어서 해요.</b> 결과가 도착하면 앱에서 알려드려요.</p>
       <div class="week-grid" id="week-grid" role="img" aria-label="한 주에 7번 이어서 하는 일정">
           <div class="week-row head"><span></span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div>
-          <div class="week-row"><span class="week-lbl">아침</span><span class="week-cell"><i class="week-dot" style="--i:1"></i></span><span class="week-cell"><i class="week-dot" style="--i:2"></i></span><span class="week-cell"><i class="week-dot" style="--i:3"></i></span><span class="week-cell"><i class="week-dot" style="--i:4"></i></span><span class="week-cell"><i class="week-dot" style="--i:5"></i></span><span class="week-cell"><i class="week-dot" style="--i:6"></i></span><span class="week-cell"><i class="week-dot" style="--i:7"></i></span></div>
+          <div class="week-row"><span class="week-lbl">아침</span><span class="week-cell"><i class="week-dot" data-i="1"></i></span><span class="week-cell"><i class="week-dot" data-i="2"></i></span><span class="week-cell"><i class="week-dot" data-i="3"></i></span><span class="week-cell"><i class="week-dot" data-i="4"></i></span><span class="week-cell"><i class="week-dot" data-i="5"></i></span><span class="week-cell"><i class="week-dot" data-i="6"></i></span><span class="week-cell"><i class="week-dot" data-i="7"></i></span></div>
           <div class="week-row"><span class="week-lbl">낮</span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span></div>
           <div class="week-row"><span class="week-lbl">저녁</span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span><span class="week-cell"></span></div>
       </div>

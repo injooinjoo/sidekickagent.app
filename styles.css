@@ -363,6 +363,10 @@ li + li { margin-top: 8px; }
   background: var(--card); color: var(--ink); }
 .signin-sheet .form-row button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: var(--ink-soft);
   color: var(--card); font-size: 12px; font-weight: 750; cursor: pointer; }
+/* Turnstile (auth.js, off until its site key is set): 인증번호 waits for the check. */
+.signin-sheet .form-row button:disabled { opacity: .5; cursor: default; }
+.signin-sheet .turnstile-slot { width: 100%; display: flex; justify-content: center; }
+.signin-sheet .turnstile-slot:empty { display: none; }
 .signin-sheet .form-status, .signin-sheet .social-status { min-height: 18px; margin: 8px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
 .signin-sheet .form-status.is-error, .signin-sheet .social-status.is-error { color: var(--accent); }
 .signin-sheet .app-hint { margin: 14px 0 0; color: var(--muted); font-size: 12px; text-align: center; }

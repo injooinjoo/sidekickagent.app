@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="ko">
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <!-- 위 CSP: 이 페이지가 부르는 곳은 사이드킥 API와 명시적 동의 뒤의 PostHog뿐이다.
+       Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않고,
+       AI 서비스의 로그인 페이지는 새 탭이나 이동으로 열리므로 connect-src에 들이지 않는다.
+       challenges.cloudflare.com 은 로그인 시트의 Turnstile(auth.js, 꺼져 있으면 불리지 않음)이다.
+       ?code= 가 실린 주소가 Referer 로 나가지 않게 no-referrer 다. -->
   <!-- The app's AI information page opens this page with ?in_app=1. In that mode
        /app-mode.js takes out the header menu, the account menu and every link
        further into the site before anything is drawn; sign-in, project choice
@@ -10,12 +19,7 @@
   <script src="/analytics-config.js"></script>
   <script defer src="/analytics-runtime.js"></script>
   <link rel="stylesheet" href="/analytics.css" />
-  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- 이 페이지가 부르는 곳은 사이드킥 API와 명시적 동의 뒤의 PostHog뿐이다.
-       Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않고,
-       AI 서비스의 로그인 페이지는 새 탭이나 이동으로 열리므로 connect-src에 들이지 않는다. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' https://us-assets.i.posthog.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
