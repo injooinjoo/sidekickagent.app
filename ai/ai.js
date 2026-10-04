@@ -40,7 +40,8 @@
   // artwork the app bundles (apps/mobile/app/assets/ai-engines/), 192x192, drawn here at 40x40. The ids are the
   // catalog's own. A provider that is not listed keeps the text-only card; nothing is ever asked of another host.
   const PROVIDER_LOGOS = [
-    'anthropic', 'copilot', 'deepseek', 'gemini', 'minimax', 'nous', 'openai', 'openrouter', 'qwen', 'xai'
+    'anthropic', 'copilot', 'deepseek', 'gemini', 'kimi', 'meta', 'minimax', 'mistral',
+    'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai'
   ];
   const PROVIDER_LOGO_SIZE = 40;
   // The cloud forms ask for exactly the fields the server's credential models
