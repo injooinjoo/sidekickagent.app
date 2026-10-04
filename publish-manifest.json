@@ -34,8 +34,8 @@
       "sha256": "f1bd9a6b5a86645bc83070fc46d2149cd8a57f7b25934ef501d5d26982ea62a6"
     },
     "ai/index.html": {
-      "bytes": 11349,
-      "sha256": "f155dc9397284f8d33252f431c5c66a7bdce918aca38c10bdf7c0536537a9b01"
+      "bytes": 11428,
+      "sha256": "73ede681f3ec105cfa4972b218748eee597d3e97cab32de51086059f3203ae63"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -146,8 +146,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 94815,
-      "sha256": "f8e031b8684fbbdd03ce60837be1d160fc3da571c812f74ec3d6e61349f20665"
+      "bytes": 110303,
+      "sha256": "c0245c871f8da1a75e7c3122c8889aefa7d0d24fe43e20f1a63429d89ff0e226"
     },
     "connections/connections.css": {
       "bytes": 3208,
@@ -178,16 +178,16 @@
       "sha256": "1caa19992c1014c4a7a49d934a0329271572529a4caec6baeaac83c459c9e512"
     },
     "login/index.html": {
-      "bytes": 6508,
-      "sha256": "8581e94e794c0c7dd29f70a28aa163e79fbaf45f18d27e2d8e6d65ae91707309"
+      "bytes": 12762,
+      "sha256": "dfb1dc171263a9374b6a1285be81eec0d400997a456e73c134d7164fae6caf91"
     },
     "manifest.json": {
       "bytes": 591,
       "sha256": "f00ceac48003dafd1ae005ce4e4218ad5b0e1a269d6315481590c1a235034535"
     },
     "membership/index.html": {
-      "bytes": 16017,
-      "sha256": "9b3b7b6d3aa1ec94a20b74f8eb0f89ee187ace07f5486c618d8e6eb721b11288"
+      "bytes": 16096,
+      "sha256": "b132eaa2295ce774b783a112c9f4b0e778624e36fb30b2fa9bc2ab998c71a7ba"
     },
     "membership/membership.css": {
       "bytes": 15188,
@@ -218,8 +218,8 @@
       "sha256": "3af3bf5471212c1301df216eb02b14abf42884984423f8e091348fae4e3eb277"
     },
     "styles.css": {
-      "bytes": 47551,
-      "sha256": "2142a99a20092ac9051875e141021455d9bf2e33eaa79e33dab94cc5c9f3b6f8"
+      "bytes": 47786,
+      "sha256": "5707b9e8b86816756de8631f25b8fe67a30aa8537fb951f8f73e553ff55aa16c"
     },
     "support/index.html": {
       "bytes": 8535,
@@ -272,5 +272,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "b65465244f157b431de45c0556b72c92b8710592"
+  "source_sha": "b6c34c334ebbbb317fe39cf22e49914ba3bc6eaa"
 }

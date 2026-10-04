@@ -9,6 +9,14 @@
   //
   // The doors are the ones the app offers, and the backend is the same.
   //
+  // /login/ is the one page that is only a way in: five doors (Google, Apple,
+  // ChatGPT, phone, email) and nothing else. Which end it has is decided by the
+  // address it was opened with. A login the app began (#app_handoff=…) is the
+  // hand-off (initAppHandoff): it ends by returning to the app, and keeps what it
+  // learns in the page's memory only. A login that begins on the website ends on
+  // the website, as a 30-day session like the sheet's. Both run the same door
+  // functions below; see "The code and ChatGPT doors".
+  //
   // A sign-in lasts 30 days in this browser (owner decision 2026-09-30, "30일
   // 유지"): across pages, tabs and restarts, until it expires or the person
   // signs out. The one credential kept is the Sidekick session token the
@@ -76,7 +84,7 @@
   // the account the person already has instead of minting a second one.
   const AUTH_METHODS = {
     email: { label: '이메일', inputType: 'email', autocomplete: 'email', placeholder: '' },
-    phone: { label: '휴대폰', inputType: 'tel', autocomplete: 'tel', placeholder: '010-1234-5678' }
+    phone: { label: '전화번호', inputType: 'tel', autocomplete: 'tel', placeholder: '010-1234-5678' }
   };
   // How each way in is named to the person. `supabase` is Google or Apple when
   // the page no longer knows which door was pressed; `unknown` is the server's
@@ -130,8 +138,8 @@
     '<div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호</button></div>',
     '</form>',
     '<form id="code-form" hidden>',
-    '<label for="code" class="sr-only">인증번호</label>',
-    '<div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required /><button type="submit">로그인</button></div>',
+    '<label for="code" class="field-label">인증번호 6자리</label>',
+    '<div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required /><button type="submit">로그인</button></div>',
     '</form>',
     '</div>',
     '<p class="form-status" id="auth-status" aria-live="polite"></p>',
@@ -262,6 +270,51 @@
     return { ...loaded, token: legacy, expiresAt, expired: false };
   }
 
+  // ---- The code and ChatGPT doors, wherever they run ------------------------------
+  //
+  // The phone/email code and ChatGPT's approval are used in three places: the
+  // sign-in sheet (every page), the /login/ page on the web, and the app hand-off
+  // on /login/. They are one implementation (sendCode, verifyCode,
+  // startChatGptLogin, ...) that the page running it hands two things:
+  //   call(path, body)          one POST to the API and its answer. The sheet and
+  //                             the web page send the shared api(); the app
+  //                             hand-off sends its own bounded fetch, which
+  //                             carries no credential and no stored session.
+  //   signedIn(method, answer)  what becomes of a sign-in answer. The sheet and
+  //                             the web page keep it as this browser's session
+  //                             (adoptSignIn); the app hand-off keeps it in the
+  //                             page's memory only, as a candidate the person must
+  //                             still confirm.
+  // Declared before the hand-off is routed: that path never builds the page's
+  // session, so nothing the doors use may reach for it.
+  const door = { method: 'email', challengeId: null, busy: false, sending: false, verifying: false,
+    chatgpt: null, call: null, signedIn: null };
+  // Every code the server sends is six digits (login.py: :06d). The field takes no
+  // more and sends itself when the sixth arrives.
+  const CODE_DIGITS = 6;
+  const byId = (id) => document.getElementById(id);
+
+  // Turnstile in front of the email/phone code.
+  //
+  // Cloudflare Turnstile (owner 2026-10-04): a bot check before 인증번호 sends a
+  // mail or a text. Off while TURNSTILE_SITE_KEY is empty: no script is loaded,
+  // no field is sent and the sheet is exactly what it was. To turn it on, create
+  // the widget in the Cloudflare dashboard for sidekickagent.app, put its site
+  // key here (public, not a secret), and have the backend verify
+  // `turnstile_token` with the widget's secret key (siteverify) on POST
+  // /auth/start. Every page that can show a code form allows
+  // https://challenges.cloudflare.com in script-src and frame-src -- the pages
+  // with the sheet, and /login/ -- so the key is the only thing to change.
+  const TURNSTILE_SITE_KEY = '';
+  const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  const TURNSTILE_RETRY_MS = 5000;
+  const TURNSTILE_FAILED_COPY = '보안 확인을 하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  const TURNSTILE_EXPIRED_COPY = '보안 확인 시간이 지나 다시 확인하고 있어요.';
+  const TURNSTILE_WAIT_COPY = '보안 확인이 끝나면 인증번호를 받을 수 있어요.';
+  // One widget per page. A token is single-use and lasts five minutes; `stale`
+  // marks a widget that must run again the next time the code form shows.
+  const turnstile = { loading: null, widget: null, token: '', stale: false, said: '', retry: null };
+
   // ---- App handoff receiver --------------------------------------------------
   // Reuse the site's authorize/fetch owner, with an isolated PKCE client per
   // attempt. This is the same /token?grant_type=pkce body auth-js 2.108.2 uses;
@@ -281,6 +334,13 @@
     const confirm = el('handoff-confirm');
     const back = el('handoff-return');
     const cancel = el('handoff-cancel');
+    // Which account this browser's own sign-in is, said beside the button that would
+    // hand it to the app. Display only.
+    const accountNote = el('handoff-account');
+    const who = el('handoff-who');
+    const other = el('handoff-other');
+    // What each door says once its account is held, ready to be confirmed.
+    const DOOR_READY = { chatgpt: 'ChatGPT', phone: '전화번호', email: '이메일' };
     let pending = null;
     let candidate = null; // bearer lives only in this page's memory
     let browser = null;
@@ -310,6 +370,7 @@
       stopped = true;
       clearTimeout(expiryTimer);
       clearAttempt();
+      releaseDoors();
       choices.hidden = true;
       confirm.hidden = true;
       back.hidden = true;
@@ -327,7 +388,11 @@
         410: '로그인 시간이 지났거나 취소됐어요. 앱에서 다시 시작해 주세요.',
         429: '잠시 기다린 뒤 앱에서 다시 시작해 주세요.'
       };
-      stop(copy[error && error.status] || '로그인을 확인하지 못했어요. 앱에서 다시 시작해 주세요.');
+      // The one conflict the person can do something about gets its own sentence: the browser
+      // holds another account than the one chosen, and only that account may go to the app.
+      stop(error && error.mismatch
+        ? '이 브라우저의 계정과 선택한 계정이 다르면 앱에 로그인할 수 없어요. 이 브라우저에서 로그아웃한 뒤 앱에서 다시 시작해 주세요.'
+        : copy[error && error.status] || '로그인을 확인하지 못했어요. 앱에서 다시 시작해 주세요.');
     }
 
     function assertCurrent() {
@@ -386,7 +451,7 @@
       const id = String((answer && answer.user && answer.user.id) || '');
       const expiresAt = expiryOf(token, answer);
       if (!isSidekickToken(token) || !SAFE_ID.test(id) || expiresAt <= nowSeconds()) throw { status: 401 };
-      if (pending.browser_user_id && pending.browser_user_id !== id) throw { status: 409 };
+      if (pending.browser_user_id && pending.browser_user_id !== id) throw { status: 409, mismatch: true };
       return { token, id, expiresAt };
     }
 
@@ -468,10 +533,59 @@
         pending.phase = 'confirmed';
         pending.oauth = null;
         persist();
+        releaseDoors();
         confirm.hidden = false;
         say('이 브라우저에서 확인한 계정으로 앱에 로그인할 준비가 됐어요.');
       } catch (error) { fail(error); }
       finally { busy = false; }
+    }
+
+    // ChatGPT, and the phone or email code, answer in this page rather than by a redirect.
+    // They run the shared door functions; what comes back is held here as a candidate, the
+    // same way as the account a provider returns -- in memory, never as this browser's
+    // session, and handed to the app only after the person confirms it.
+    async function doorRequest(path, body) {
+      try { return await request(API_ORIGIN + path, '', body); }
+      catch (error) { throw error && typeof error.status === 'number' ? error : { status: 0, network: true }; }
+    }
+
+    async function takeDoorAnswer(method, answer) {
+      if (busy || stopped) return;
+      busy = true;
+      try {
+        await checkBrowser();
+        const person = checkedCandidate(answer);
+        await verifyCandidate(person);
+        candidate = person;
+        pending.oauth = null;
+        pending.selected_user_id = candidate.id;
+        pending.phase = 'confirmed';
+        persist();
+        releaseDoors();
+        choices.hidden = true;
+        confirm.hidden = false;
+        say(DOOR_READY[method] + '로 확인한 계정으로 앱에 로그인할 준비가 됐어요.');
+      } catch (error) { fail(error); }
+      finally { busy = false; }
+    }
+
+    async function startChatGpt() {
+      if (busy || stopped) return;
+      try { await checkBrowser(); } catch (error) { fail(error); return; }
+      hideCodePanel();
+      await startChatGptLogin();
+    }
+
+    // The browser's own sign-in, named in masked form (GET /account). A failed read only
+    // leaves the words general; the fence on the attempt does not depend on it.
+    async function showBrowserAccount() {
+      let info = null;
+      try { info = await request(API_ORIGIN + '/account', browser.token); } catch (_) { info = null; }
+      await checkBrowser();
+      const label = accountLabel(info);
+      if (who) { who.textContent = label; who.hidden = !label; }
+      if (accountNote) accountNote.hidden = false;
+      if (other) other.hidden = false;
     }
 
     function callbackUrl(answer) {
@@ -517,7 +631,7 @@
       finally { busy = false; }
     }
 
-    cancel.addEventListener('click', () => stop('로그인을 취소했어요. 이 창을 닫고 앱으로 돌아가 주세요.'));
+    cancel.addEventListener('click', () => stop('로그인을 취소했어요. 이 창을 닫고 앱에서 다시 시작해 주세요.'));
     back.addEventListener('click', (event) => {
       if (callbackExpiresAt <= nowSeconds()) {
         event.preventDefault();
@@ -528,6 +642,13 @@
     existing.addEventListener('click', selectExisting);
     el('handoff-google').addEventListener('click', () => startProvider('google'));
     el('handoff-apple').addEventListener('click', () => startProvider('apple'));
+    // A copy of the page cached from before the other doors existed has only these two; it
+    // keeps working with them (the page and this script are published together, not cached together).
+    const chatgptButton = el('handoff-chatgpt');
+    if (chatgptButton) chatgptButton.addEventListener('click', startChatGpt);
+    door.call = doorRequest;
+    door.signedIn = takeDoorAnswer;
+    bindLoginDoors();
     window.addEventListener('storage', (event) => {
       if (!stopped && (event.key === null || event.key === SESSION_KEY)) fail({ status: 409 });
     });
@@ -541,7 +662,10 @@
       if (event.persisted && !stopped) fail({ status: 409 });
     });
     document.addEventListener('visibilitychange', () => {
-      if (!stopped && document.visibilityState === 'visible') checkBrowser().catch(fail);
+      if (stopped || document.visibilityState !== 'visible') return;
+      checkBrowser().catch(fail);
+      // Coming back from ChatGPT's approval tab is when its answer is ready.
+      resumeChatGptPoll();
     });
 
     try {
@@ -593,17 +717,35 @@
         pending.browser_user_id = id;
         persist();
         existing.hidden = false;
+        await showBrowserAccount();
       }
       expiryTimer = setTimeout(() => fail({ status: 410 }), Math.max(0, pending.expires_at * 1000 - Date.now()));
       cancel.hidden = false;
       if (input.provider) await receiveProvider(input.provider);
       else {
         choices.hidden = false;
-        say(browser ? '이 브라우저의 계정을 계속 사용하거나 같은 계정으로 로그인해 주세요.'
-          : '앱에서 쓰는 계정으로 로그인해 주세요.');
+        say(browser ? '이 브라우저의 계정으로 계속하거나, 같은 계정으로 로그인해 주세요.'
+          : '로그인 방법을 골라 주세요. 마치면 앱으로 돌아가요.');
+        // The app's hint stresses one door; it never starts it and never hides the others.
+        const hinted = pending.provider ? el('handoff-' + pending.provider) : null;
+        if (hinted) {
+          hinted.setAttribute('data-hint', 'true');
+          if (typeof hinted.focus === 'function') hinted.focus();
+        }
       }
     } catch (error) { fail(error); }
     finally { delete window.__sidekickLoginInput; }
+  }
+
+  // The app hand-off this tab began and has not finished, while it is inside its ten
+  // minutes: what a reload of the bare address returns to (the fragment is scrubbed on
+  // arrival). One that ran out is not resumed -- the bare address is then the web login.
+  function resumableHandoff() {
+    const id = readTab('sidekick_web_app_handoff_active');
+    if (!SAFE_ID.test(id)) return false;
+    let record = null;
+    try { record = JSON.parse(readTab('sidekick_web_app_handoff:' + id) || 'null'); } catch (_) { record = null; }
+    return Boolean(record && record.id === id && Number.isInteger(record.expires_at) && record.expires_at > nowSeconds());
   }
 
   const LOGIN_RECEIVER = window.location.pathname === '/login/';
@@ -611,7 +753,7 @@
   // App handoff never subscribes or adopts this browser's shared account.
   if (LOGIN_RECEIVER && loginInput && (loginInput.mode === 'app'
       || (!loginInput.invalid && loginInput.mode === 'none'
-        && readTab('sidekick_web_app_handoff_active') && !readTab('sidekick_web_pkce_active')))) {
+        && resumableHandoff() && !readTab('sidekick_web_pkce_active')))) {
     initAppHandoff(loginInput);
     return;
   }
@@ -632,14 +774,12 @@
     source: '',
     // True once the server answered for this token.
     checked: false,
-    profile: readProfile(),
-    method: 'email',
-    challengeId: null,
-    busy: false,
-    // A ChatGPT sign-in waiting for approval. Held in memory only: the page
-    // stays open while the person approves in another tab.
-    chatgpt: null
+    profile: readProfile()
   };
+  // The sheet and the web login page keep what a door answers as this browser's
+  // session; the app hand-off supplies its own pair (see "The code and ChatGPT doors").
+  door.call = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
+  door.signedIn = adoptSignIn;
   const hooks = { onSignedIn: null, onSignedOut: null, onNotice: null };
   let sheetOpener = null;
   let toastTimer = null;
@@ -655,6 +795,24 @@
   function maskedPhone(value) {
     const text = cleanText(value, 32);
     return /^[0-9*+ -]{4,32}$/.test(text) && text.includes('*') ? text : '';
+  }
+
+  // An address shown without its middle, as the backend masks it (_mask_email): the first
+  // and last letter before the @. Enough to tell which of their addresses it is.
+  function maskedEmail(value) {
+    const text = cleanText(value, 254);
+    const at = text.indexOf('@');
+    if (at < 1 || at !== text.lastIndexOf('@') || at === text.length - 1) return '';
+    const local = text.slice(0, at);
+    return (local.length <= 2 ? local.slice(0, 1) + '*' : local.slice(0, 1) + '***' + local.slice(-1)) + text.slice(at);
+  }
+
+  // Which account a sign-in is, in one line, from GET /account: the masked address or the
+  // number the server masked, then the door it came through. Never an id, a name or a full number.
+  function accountLabel(info) {
+    if (!info || typeof info !== 'object') return '';
+    const detail = maskedEmail(info.email) || maskedPhone(info.phone_masked);
+    return [detail, Object.hasOwn(METHOD_LABELS, info.method) ? METHOD_LABELS[info.method] : ''].filter(Boolean).join(' · ');
   }
 
   // A display hint only. Anything that does not look like one is dropped.
@@ -1158,17 +1316,23 @@
     if (opener && opener.isConnected && typeof opener.focus === 'function') opener.focus({ preventScroll: true });
   }
 
-  function applyAuthMethod(method) {
-    const chosen = AUTH_METHODS[method] ? method : 'email';
-    session.method = chosen;
-    session.challengeId = null;
-    const config = AUTH_METHODS[chosen];
-    const input = $('email');
+  // Marks which way in (phone or email) is chosen: the sheet's tabs say so with
+  // aria-selected, the /login/ page's buttons with aria-pressed. '' marks none.
+  function markMethod(chosen) {
     document.querySelectorAll('[data-method]').forEach((tab) => {
       const selected = tab.dataset.method === chosen;
       tab.classList.toggle('is-selected', selected);
-      tab.setAttribute('aria-selected', String(selected));
+      tab.setAttribute(tab.hasAttribute('aria-pressed') ? 'aria-pressed' : 'aria-selected', String(selected));
     });
+  }
+
+  function applyAuthMethod(method) {
+    const chosen = AUTH_METHODS[method] ? method : 'email';
+    door.method = chosen;
+    door.challengeId = null;
+    const config = AUTH_METHODS[chosen];
+    const input = $('email');
+    markMethod(chosen);
     input.type = config.inputType;
     input.autocomplete = config.autocomplete;
     input.placeholder = config.placeholder;
@@ -1196,6 +1360,67 @@
     renderHeader();
     if (typeof hooks.onSignedIn === 'function') await hooks.onSignedIn(session.user);
     else showToast('로그인했어요.', false);
+  }
+
+  // What the sheet and the web login page do with a door's answer: it becomes this
+  // browser's 30-day session. (The app hand-off never gets here; it holds the answer in
+  // memory and asks first.) A ChatGPT sign-in also keeps its one-time claim on the
+  // ChatGPT account for /ai/.
+  async function adoptSignIn(method, answer) {
+    setToken(answer.access_token, answer.user || null, expiryOf(answer.access_token, answer));
+    rememberAccount(method, answer.user);
+    if (method === 'chatgpt') keepChatGptHandoff(answer.ai_engine, answer.user);
+    await finishSignIn();
+  }
+
+  // ---- The /login/ page's own doors -----------------------------------------------
+  //
+  // The phone and email buttons open the code form in the page itself (no sheet); the
+  // form's two steps and ChatGPT's code panel are the same markup the sheet has, so the
+  // same functions drive them. Both modes of the page bind these; Google, Apple and
+  // ChatGPT's start are bound by the mode, because what they begin differs.
+
+  function showCodePanel(method) {
+    const block = $('otp-block');
+    if (!block) return;
+    // One door at a time: a ChatGPT code is put away when a form opens.
+    stopChatGpt();
+    showSocialStatus('', false);
+    if (!block.hidden && door.method === method) { $('email').focus(); return; }
+    block.hidden = false;
+    applyAuthMethod(method);
+    prepareTurnstile();
+  }
+
+  function hideCodePanel() {
+    const block = $('otp-block');
+    if (block) block.hidden = true;
+    door.challengeId = null;
+    markMethod('');
+    setAuthStatus('', false);
+  }
+
+  // Puts the code and ChatGPT doors back as they were before anything was asked or typed.
+  function releaseDoors() {
+    stopChatGpt();
+    hideCodePanel();
+    const form = $('code-form');
+    if (form) form.hidden = true;
+    for (const field of [$('email'), $('code')]) if (field) field.value = '';
+    showSocialStatus('', false);
+  }
+
+  function bindLoginDoors() {
+    // An older copy of the page has no code form at all; its redirect doors are all it offers.
+    if (!$('email-form') || !$('code-form') || !$('code')) return;
+    for (const method of ['phone', 'email']) {
+      const button = byId('handoff-' + method);
+      if (button) button.addEventListener('click', () => showCodePanel(method));
+    }
+    $('email-form').addEventListener('submit', sendCode);
+    $('code-form').addEventListener('submit', verifyCode);
+    bindCodeField();
+    bindChatGptBlock();
   }
 
   // ---- Google / Apple through Supabase -------------------------------------
@@ -1248,14 +1473,18 @@
     return left.token === right.token && left.expiresAt === right.expiresAt;
   }
 
+  // What the /login/ page says on the web. Progress and the end hide the doors; a failure
+  // leaves them in view, so trying again is one tap away.
   function webSay(message, failed = false) {
     if (!LOGIN_RECEIVER) return;
     const node = document.getElementById('handoff-status');
     if (node) { node.textContent = message; node.setAttribute('role', failed ? 'alert' : 'status'); }
-    for (const id of ['handoff-choices', 'handoff-confirm', 'handoff-return']) {
+    for (const id of ['handoff-confirm', 'handoff-return']) {
       const item = $(id);
       if (item) { item.hidden = true; if (id === 'handoff-return') item.removeAttribute('href'); }
     }
+    const choices = document.getElementById('handoff-choices');
+    if (choices) choices.hidden = !failed;
   }
 
   function invalidateWebLogin(message = '') {
@@ -1326,17 +1555,14 @@
   }
 
   async function receiveWebLogin(input) {
-    document.title = '로그인 · 사이드킥';
-    const title = document.getElementById('handoff-title');
-    if (title) title.textContent = '사이드킥 로그인';
     const cancel = document.getElementById('handoff-cancel');
-    if (cancel) cancel.addEventListener('click', () => invalidateWebLogin('로그인을 취소했어요. 원래 화면에서 다시 시작해 주세요.'));
+    if (cancel) cancel.addEventListener('click', () => invalidateWebLogin('로그인을 취소했어요. 다시 시도해 주세요.'));
     window.addEventListener('hashchange', () => {
       try { history.replaceState(null, '', '/login/'); } catch (_) {}
-      invalidateWebLogin('로그인 정보가 바뀌었어요. 다시 시작해 주세요.');
+      invalidateWebLogin('로그인 정보가 바뀌었어요. 다시 시도해 주세요.');
     });
     window.addEventListener('pageshow', (event) => {
-      if (event.persisted) invalidateWebLogin('원래 화면에서 로그인을 다시 시작해 주세요.');
+      if (event.persisted) invalidateWebLogin('로그인을 다시 시도해 주세요.');
     });
     let receiverGeneration = null;
     try {
@@ -1395,7 +1621,7 @@
       const copy = error && error.status === 423 ? DELETION_PENDING_COPY
         : error && error.status === 409 && error.detail === 'Sign-in account does not match'
           ? '지금 로그인한 계정과 다른 계정이에요. 로그아웃한 뒤 다시 로그인해 주세요.'
-        : '로그인을 완료하지 못했어요. 원래 화면에서 다시 시작해 주세요.';
+        : '로그인을 완료하지 못했어요. 다시 시도해 주세요.';
       if (receiverGeneration === null || receiverGeneration === webGeneration) invalidateWebLogin(copy);
       return false;
     } finally {
@@ -1450,6 +1676,59 @@
     } catch (_) {
       if (generation === webGeneration) { invalidateWebLogin(); showSocialStatus(SOCIAL_FAILED_COPY, true); }
     } finally { webStarting = false; }
+  }
+
+  // ---- /login/ on the web: a login that begins here ends here -----------------------
+  //
+  // Opened with no hand-off in the address, /login/ is the website's own login page. The
+  // five doors are the sheet's doors: Google and Apple through startSupabaseLogin (they come
+  // back to this page and finish in receiveWebLogin), ChatGPT, the phone code and the email
+  // code through the shared door functions. The end is the website: /account/. (A login the
+  // app began never reaches here; it is initAppHandoff.)
+
+  function setUpLoginPage() {
+    const google = byId('handoff-google');
+    const apple = byId('handoff-apple');
+    const chatgpt = byId('handoff-chatgpt');
+    if (google) google.addEventListener('click', () => startSupabaseLogin('google'));
+    if (apple) apple.addEventListener('click', () => startSupabaseLogin('apple'));
+    if (chatgpt) chatgpt.addEventListener('click', () => { hideCodePanel(); startChatGptLogin(); });
+    bindLoginDoors();
+    // Signed in here (the sheet's ending), the person leaves for their account.
+    hooks.onSignedIn = () => { webSay('로그인했어요.'); window.location.replace(DEFAULT_RETURN_PATH); };
+    hooks.onSignedOut = () => {};
+    hooks.onNotice = () => {};
+    window.addEventListener('hashchange', () => {
+      try { history.replaceState(null, '', '/login/'); } catch (_) {}
+    });
+  }
+
+  async function startLoginPage(input) {
+    try {
+      if (!input || input.invalid) {
+        webSay('이 주소로는 로그인할 수 없어요. 주소를 확인하고 다시 열어 주세요.', true);
+        const choices = document.getElementById('handoff-choices');
+        if (choices) choices.hidden = true;
+        return false;
+      }
+      // A browser that is already signed in has nothing to choose: it goes to its account. The
+      // server is asked first, so a session that has ended is dropped here and said so.
+      if (session.token) {
+        webSay('로그인 정보를 확인하고 있어요.');
+        await validateSession();
+        if (session.token) {
+          webSay('이미 로그인돼 있어요. 계정으로 이동해요.');
+          window.location.replace(DEFAULT_RETURN_PATH);
+          return true;
+        }
+      }
+      webSay('로그인 방법을 골라 주세요.');
+      const choices = document.getElementById('handoff-choices');
+      if (choices) choices.hidden = false;
+      return false;
+    } finally {
+      delete window.__sidekickLoginInput;
+    }
   }
 
   // Google and Apple come back only to /login/ (receiveWebLogin), bound to this
@@ -1603,11 +1882,13 @@
 
   // ---- ChatGPT: a device code the person approves in another tab ------------
 
+  // The panel that shows the code to type on ChatGPT's page: /login/ ships it in its markup,
+  // the sheet builds it under its doors the first time it is needed.
   function chatGptBlock() {
     let block = $('chatgpt-code-block');
     if (block) return block;
-    const doors = document.querySelector('#signin-sheet .doors');
-    if (!doors) return null;
+    const anchor = document.querySelector('#signin-sheet .doors');
+    if (!anchor) return null;
     block = document.createElement('div');
     block.id = 'chatgpt-code-block';
     block.className = 'otp-block';
@@ -1632,16 +1913,28 @@
     openPage.id = 'chatgpt-open-page';
     openPage.textContent = 'ChatGPT 승인 페이지 열기';
     block.append(hint, row, openPage);
-    doors.after(block);
-    copy.addEventListener('click', () => copyText(code.value, copy));
-    // The new tab opens from this click, so no pop-up blocker stands in the way,
-    // and noopener keeps the provider's page from reaching back into this one.
-    openPage.addEventListener('click', () => {
-      if (session.chatgpt && session.chatgpt.authorizationUrl) {
-        window.open(session.chatgpt.authorizationUrl, '_blank', 'noopener');
-      }
-    });
+    anchor.after(block);
+    bindChatGptBlock();
     return block;
+  }
+
+  function bindChatGptBlock() {
+    const copy = $('chatgpt-copy-code');
+    const openPage = $('chatgpt-open-page');
+    if (copy && !copy.dataset.bound) {
+      copy.dataset.bound = '1';
+      copy.addEventListener('click', () => copyText($('chatgpt-user-code').value, copy));
+    }
+    if (openPage && !openPage.dataset.bound) {
+      openPage.dataset.bound = '1';
+      // The new tab opens from this click, so no pop-up blocker stands in the way,
+      // and noopener keeps the provider's page from reaching back into this one.
+      openPage.addEventListener('click', () => {
+        if (door.chatgpt && door.chatgpt.authorizationUrl) {
+          window.open(door.chatgpt.authorizationUrl, '_blank', 'noopener');
+        }
+      });
+    }
   }
 
   async function copyText(value, button) {
@@ -1671,37 +1964,34 @@
   }
 
   function stopChatGpt() {
-    const pending = session.chatgpt;
+    const pending = door.chatgpt;
     if (pending && pending.timer) clearTimeout(pending.timer);
-    session.chatgpt = null;
+    door.chatgpt = null;
     hideChatGptCode();
   }
 
   function scheduleChatGptPoll(delay) {
-    const pending = session.chatgpt;
+    const pending = door.chatgpt;
     if (!pending) return;
     if (pending.timer) clearTimeout(pending.timer);
     pending.timer = setTimeout(pollChatGptLogin, delay);
   }
 
   async function startChatGptLogin() {
-    if (session.busy) return;
+    if (door.busy) return;
     stopChatGpt();
-    session.busy = true;
+    door.busy = true;
     showSocialStatus('ChatGPT 승인 코드를 받고 있어요.', false);
     const appState = randomAppState();
     try {
       // The server binds the code to this app_state and answers with the page to
       // approve on, the code to type there, and the state to poll with.
-      const started = await api('/auth/oauth/chatgpt/start', {
-        method: 'POST',
-        body: JSON.stringify({ app_state: appState })
-      });
+      const started = await door.call('/auth/oauth/chatgpt/start', { app_state: appState });
       const state = String(started.state || '');
       const userCode = String(started.user_code || '');
       const authorizationUrl = httpsUrl(started.authorization_url);
       if (!state || !userCode || !authorizationUrl) throw new Error('chatgpt_start_invalid');
-      session.chatgpt = {
+      door.chatgpt = {
         state,
         appState,
         authorizationUrl,
@@ -1712,19 +2002,19 @@
       };
       showChatGptCode(userCode);
       showSocialStatus('승인 페이지에서 코드를 입력하고 돌아오면 이어서 로그인해요.', false);
-      scheduleChatGptPoll(session.chatgpt.interval);
+      scheduleChatGptPoll(door.chatgpt.interval);
     } catch (error) {
       stopChatGpt();
       showSocialStatus(error && error.network ? NETWORK_COPY
         : error && error.status === 503 ? '지금은 ChatGPT로 로그인할 수 없어요. 다른 방법으로 로그인해 주세요.'
         : 'ChatGPT 로그인을 시작하지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
     } finally {
-      session.busy = false;
+      door.busy = false;
     }
   }
 
   async function pollChatGptLogin() {
-    const pending = session.chatgpt;
+    const pending = door.chatgpt;
     if (!pending || pending.inFlight) return;
     if (Date.now() > pending.expiresAt) {
       stopChatGpt();
@@ -1735,10 +2025,7 @@
     let signedIn = null;
     let failed = false;
     try {
-      const polled = await api('/auth/oauth/chatgpt/poll', {
-        method: 'POST',
-        body: JSON.stringify({ state: pending.state, app_state: pending.appState })
-      });
+      const polled = await door.call('/auth/oauth/chatgpt/poll', { state: pending.state, app_state: pending.appState });
       if (polled && polled.status === 'complete' && polled.access_token) signedIn = polled;
     } catch (error) {
       // A dropped connection is worth another try; any answer from the server
@@ -1748,14 +2035,11 @@
       pending.inFlight = false;
     }
     // Cancelled or replaced by a new attempt while this answer was on its way.
-    if (session.chatgpt !== pending) return;
+    if (door.chatgpt !== pending) return;
     if (signedIn) {
       stopChatGpt();
       showSocialStatus('', false);
-      setToken(signedIn.access_token, signedIn.user || null, expiryOf(signedIn.access_token, signedIn));
-      rememberAccount('chatgpt', signedIn.user);
-      keepChatGptHandoff(signedIn.ai_engine, signedIn.user);
-      await finishSignIn();
+      await door.signedIn('chatgpt', signedIn);
       return;
     }
     if (failed) {
@@ -1769,17 +2053,22 @@
   // A background tab's timers are throttled; the moment the person comes back
   // from the approval tab is exactly when the answer is ready. Coming back is
   // also when a session that ran out while the machine slept is noticed.
+  function resumeChatGptPoll() {
+    if (!door.chatgpt) return;
+    if (door.chatgpt.timer) clearTimeout(door.chatgpt.timer);
+    pollChatGptLogin();
+  }
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
     if (LOGIN_RECEIVER) {
       if (webAttempt && (webAttempt.oauth_expires_at <= nowSeconds() || sessionExpired()))
         invalidateWebLogin('로그인 시간이 지났어요. 다시 시작해 주세요.');
+      resumeChatGptPoll();
       return;
     }
     if (sessionExpired()) { expireSession(); return; }
-    if (!session.chatgpt) return;
-    if (session.chatgpt.timer) clearTimeout(session.chatgpt.timer);
-    pollChatGptLogin();
+    resumeChatGptPoll();
   });
 
   // A ChatGPT sign-in also proves a ChatGPT account the person may want their
@@ -1816,24 +2105,9 @@
 
   // ---- Turnstile in front of the email/phone code --------------------------
   //
-  // Cloudflare Turnstile (owner 2026-10-04): a bot check before 인증번호 sends a
-  // mail or a text. Off while TURNSTILE_SITE_KEY is empty: no script is loaded,
-  // no field is sent and the sheet is exactly what it was. To turn it on, create
-  // the widget in the Cloudflare dashboard for sidekickagent.app, put its site
-  // key here (public, not a secret), and have the backend verify
-  // `turnstile_token` with the widget's secret key (siteverify) on POST
-  // /auth/start. Every page that can open the sheet already allows
-  // https://challenges.cloudflare.com in script-src and frame-src; /login/ has
-  // no code sign-in and does not.
-  const TURNSTILE_SITE_KEY = '';
-  const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  const TURNSTILE_RETRY_MS = 5000;
-  const TURNSTILE_FAILED_COPY = '보안 확인을 하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
-  const TURNSTILE_EXPIRED_COPY = '보안 확인 시간이 지나 다시 확인하고 있어요.';
-  const TURNSTILE_WAIT_COPY = '보안 확인이 끝나면 인증번호를 받을 수 있어요.';
-  // One widget per page. A token is single-use and lasts five minutes; `stale`
-  // marks a widget that must run again the next time the code form shows.
-  const turnstile = { loading: null, widget: null, token: '', stale: false, said: '', retry: null };
+  // Its constants and state are declared with the doors, above (the app hand-off
+  // runs this code without ever building the page's session). Everything below
+  // only reads and drives them.
 
   function codeButton() {
     const form = $('email-form');
@@ -1843,7 +2117,7 @@
   function codeFormShowing() {
     const sheet = $('signin-sheet');
     const block = $('otp-block');
-    return Boolean(sheet && !sheet.hidden && block && !block.hidden);
+    return Boolean(block && !block.hidden && (!sheet || !sheet.hidden));
   }
 
   // 인증번호 can be pressed only while an unused token is held. A token that
@@ -1954,7 +2228,9 @@
 
   async function sendCode(event) {
     event.preventDefault();
-    const body = { method: session.method, value: $('email').value.trim() };
+    if (door.sending) return;
+    const method = door.method;
+    const body = { method, value: $('email').value.trim() };
     if (TURNSTILE_SITE_KEY) {
       if (!turnstile.token) { sayTurnstile(TURNSTILE_WAIT_COPY); return; }
       // Spent by this request: the next 인증번호 waits for a fresh token.
@@ -1962,44 +2238,86 @@
       holdTurnstileToken('');
       turnstile.stale = true;
     }
+    door.sending = true;
     setAuthStatus('인증번호를 보내고 있어요.', false);
     try {
-      const result = await api('/auth/start', {
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
-      session.challengeId = result.challenge_id;
+      const result = await door.call('/auth/start', body);
+      door.challengeId = result.challenge_id;
       $('code-form').hidden = false;
       $('code').focus();
-      setAuthStatus(`${result.value_masked || `입력한 ${AUTH_METHODS[session.method].label}`}로 인증번호를 보냈어요.`, false);
+      // The same sentence whoever asks and whatever the answer: nothing here says whether
+      // an account exists for this address or number.
+      setAuthStatus(`${result.value_masked || `입력한 ${AUTH_METHODS[method].label}`}로 인증번호를 보냈어요.`, false);
     } catch (error) {
       setAuthStatus(error && error.network ? NETWORK_COPY
-        : error && error.status === 422 ? (session.method === 'phone' ? '휴대폰 번호를 확인해 주세요.' : '이메일 주소를 확인해 주세요.')
+        : error && error.status === 422 ? (method === 'phone' ? '전화번호를 확인해 주세요.' : '이메일 주소를 확인해 주세요.')
         : error && error.status === 429 ? '인증번호를 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.'
         : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
     } finally {
+      door.sending = false;
       if (TURNSTILE_SITE_KEY && codeFormShowing()) resetTurnstile();
     }
   }
 
-  async function verifyCode(event) {
-    event.preventDefault();
-    if (!session.challengeId) return;
+  // The code is checked once at a time. A wrong one is said plainly and the field is
+  // left selected, so the next digits replace it; a right one goes to whoever runs the
+  // door (door.signedIn).
+  async function submitCode() {
+    if (!door.challengeId || door.verifying) return;
+    const method = door.method;
+    const field = $('code');
+    door.verifying = true;
     setAuthStatus('인증번호를 확인하고 있어요.', false);
-    let result;
     try {
-      result = await api('/auth/verify', {
-        method: 'POST',
-        body: JSON.stringify({ challenge_id: session.challengeId, code: $('code').value.trim() })
-      });
-    } catch (error) {
-      setAuthStatus(error && error.network ? NETWORK_COPY : '인증번호가 맞지 않거나 만료됐어요.', true);
-      return;
+      let result;
+      try {
+        result = await door.call('/auth/verify', { challenge_id: door.challengeId, code: field.value.trim() });
+      } catch (error) {
+        setAuthStatus(error && error.network ? NETWORK_COPY
+          : error && error.status === 423 ? DELETION_PENDING_COPY
+          : error && error.status === 429 ? '인증번호를 너무 여러 번 잘못 입력했어요. 잠시 뒤 다시 시도해 주세요.'
+          : '인증번호가 맞지 않거나 만료됐어요. 다시 입력하거나 인증번호를 다시 받아 주세요.', true);
+        if (typeof field.select === 'function') field.select();
+        field.focus();
+        return;
+      }
+      // A code opens one session: the challenge is spent, so nothing sends it again.
+      door.challengeId = null;
+      setAuthStatus('', false);
+      await door.signedIn(method, result);
+    } finally {
+      door.verifying = false;
     }
-    setToken(result.access_token, result.user || null, expiryOf(result.access_token, result));
-    rememberAccount(session.method, result.user);
-    setAuthStatus('', false);
-    await finishSignIn();
+  }
+
+  function verifyCode(event) {
+    event.preventDefault();
+    return submitCode();
+  }
+
+  // The code field takes digits and sends itself when the sixth arrives, so a code
+  // filled in by the phone's keyboard (one-time-code) or pasted needs no further tap.
+  // submitCode refuses a second send while one is out.
+  function onCodeInput() {
+    const field = $('code');
+    const digits = String(field.value).replace(/\D/g, '').slice(0, CODE_DIGITS);
+    if (field.value !== digits) field.value = digits;
+    if (digits.length === CODE_DIGITS) submitCode();
+  }
+
+  function onCodePaste(event) {
+    const clip = event.clipboardData;
+    const digits = String(clip && typeof clip.getData === 'function' ? clip.getData('text') : '').replace(/\D/g, '');
+    if (!digits) return;
+    event.preventDefault();
+    $('code').value = digits.slice(0, CODE_DIGITS);
+    onCodeInput();
+  }
+
+  function bindCodeField() {
+    const field = $('code');
+    field.addEventListener('input', onCodeInput);
+    field.addEventListener('paste', onCodePaste);
   }
 
   // ---- Wiring ----------------------------------------------------------------
@@ -2019,6 +2337,7 @@
     });
     $('email-form').addEventListener('submit', sendCode);
     $('code-form').addEventListener('submit', verifyCode);
+    bindCodeField();
     $('close-signin').addEventListener('click', close);
     sheet.addEventListener('click', (event) => { if (event.target === sheet) close(); });
   }
@@ -2042,7 +2361,11 @@
   // should say.
   function init(options = {}) {
     if (initialized) return initialized;
-    if (LOGIN_RECEIVER) { initialized = receiveWebLogin(loginInput); return initialized; }
+    if (LOGIN_RECEIVER) {
+      setUpLoginPage();
+      initialized = loginInput && loginInput.mode === 'web' ? receiveWebLogin(loginInput) : startLoginPage(loginInput);
+      return initialized;
+    }
     hooks.onSignedIn = options.onSignedIn || null;
     hooks.onSignedOut = options.onSignedOut || null;
     hooks.onNotice = options.onNotice || null;
