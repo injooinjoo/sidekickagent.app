@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "5ff849eb0cca23d78374e807c979b347d0f4b749321110670a1aac71ad36dd1e",
+  "export_rules_sha256": "24aef67cd3197b90dea48acf2bc641c3ebfe974534f06c08aa54d7ad949bdd52",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -30,8 +30,8 @@
       "sha256": "dca572a42a17ac11cec9355f688dcf67ea9a5abbe2f1266027dad754e9734ddc"
     },
     "ai/ai.js": {
-      "bytes": 57211,
-      "sha256": "613bf5eeb19d9c75f11cc4035bf2d700d0618d47995c6a8d8b3c955d6c892623"
+      "bytes": 57259,
+      "sha256": "c576cacc6c9ab7dad019d8763569626ed71d58ae8ab5920601a61709d08f7c10"
     },
     "ai/index.html": {
       "bytes": 13282,
@@ -77,13 +77,29 @@
       "bytes": 19712,
       "sha256": "2691cc39ae4753ba53452e59f64b590f06cce8daea663ba17c3b3416f044f170"
     },
+    "assets/ai/kimi.png": {
+      "bytes": 3920,
+      "sha256": "0c569940d79e2c65e16bedb2101d8ddba689923b34b9845eaad62d3f8e0df521"
+    },
+    "assets/ai/meta.png": {
+      "bytes": 16243,
+      "sha256": "279cfbe2175545bc3d2129e0cca96395b9782587cab99bfd1c7118c35106e24c"
+    },
     "assets/ai/minimax.png": {
       "bytes": 10014,
       "sha256": "1c1f4c7487d709910fe2696ddf0ce70ae69a23f69d502d0cbbe458013212e3ef"
     },
+    "assets/ai/mistral.png": {
+      "bytes": 2168,
+      "sha256": "2d1828b78bd25ab72cac961a41ac8510d40b0d26ba19755155fff7c3e30e14e0"
+    },
     "assets/ai/nous.png": {
       "bytes": 14807,
       "sha256": "8c00552600650e5e9f8db000e42eeaf83616b1a49196a85f22f295c93f7a9439"
+    },
+    "assets/ai/nvidia.png": {
+      "bytes": 13813,
+      "sha256": "200fbdaf10d63e0c33b99ae3b19d475dde9e31f801508dff3adac5f557fa609c"
     },
     "assets/ai/openai.png": {
       "bytes": 10724,
@@ -100,6 +116,10 @@
     "assets/ai/xai.png": {
       "bytes": 6770,
       "sha256": "942c10d1535ca60df908dfbeedeb098f4701a3155c5539f58ddeb0a381c933fc"
+    },
+    "assets/ai/zai.png": {
+      "bytes": 7817,
+      "sha256": "b7e7415816a20c918e11fb49074ab214952da8604c9a253468242fb5ca864bcd"
     },
     "assets/apple-touch-icon.png": {
       "bytes": 8293,
@@ -242,8 +262,8 @@
       "sha256": "bc11a525e72b495e321d604cc2a0d7167581280d4361b9c1648699b2355eaa8d"
     },
     "privacy/index.html": {
-      "bytes": 25542,
-      "sha256": "438c40b250e20100535555e079030a94ab892b1774952293b5ca2bda01dee64a"
+      "bytes": 25541,
+      "sha256": "7cb5f31c8152b0e67ea9e85c5fa7f0be0e2e4612aa489269afd982401a89d7dc"
     },
     "robots.txt": {
       "bytes": 71,
@@ -262,8 +282,8 @@
       "sha256": "5707b9e8b86816756de8631f25b8fe67a30aa8537fb951f8f73e553ff55aa16c"
     },
     "support/index.html": {
-      "bytes": 8535,
-      "sha256": "26dad6e8712037edf515f8f655f7d6048d21c9dcb68ec145840a6d70e81949f2"
+      "bytes": 8533,
+      "sha256": "ad0010121b052d4183c5b3f1cb2fd541776aab8887bfd0fcffa7d62348876435"
     },
     "terms/index.html": {
       "bytes": 11357,
@@ -312,5 +332,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "87ae3e37c325cb91d2bc70b4a8a7d1f6a28c8f1d"
+  "source_sha": "59692126442aaa0d7b3ec90fae352c43868c0ff2"
 }
