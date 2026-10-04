@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg='; style-src 'sha256-gWz4cSewQ0/SVo+MmUZyEzV9PE34m1WF+E3b1I3Tq/c='; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-6l58wxeHhojO5Wpj33tVAKfxmVH9WcLKGUhYIv6PTt4='; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -48,41 +48,108 @@
 })();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>앱 로그인 · 사이드킥</title>
+  <title>시작하기 · Sidekick</title>
   <style>
-    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #202323; background: #f7f7f3; }
+    /* The tokens are /styles.css's own, repeated here because this page may load no stylesheet
+       (its policy names this block by hash). test_login_page.py fails when a value drifts. */
+    :root { color-scheme: light; --ink: #1a1d21; --ink-soft: #3f454d; --muted: #6b737d; --bg: #f7f8fa; --card: #ffffff; --sunken: #f0f2f4; --line: #e1e5ea; --hairline: #eceff2; --accent: #b3230a; --shadow: 0 18px 50px rgba(26, 29, 33, 0.08); --radius-md: 14px; --radius-xl: 24px; --control-h-lg: 52px; }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 28px 20px; }
-    main { width: min(100%, 390px); }
-    .brand { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; letter-spacing: -.3px; color: #565c56; }
-    .brand-mark { width: 18px; height: 18px; flex: none; }
-    h1 { font-size: 28px; letter-spacing: -1px; margin: 20px 0 14px; }
-    p { line-height: 1.65; word-break: keep-all; }
-    #handoff-status { min-height: 54px; color: #535953; }
-    .actions { display: grid; gap: 12px; margin-top: 28px; }
-    button, .return { width: 100%; min-height: 52px; border: 1px solid #d9ddd6; border-radius: 14px; background: white; color: #202323; font: inherit; font-weight: 600; padding: 12px 16px; cursor: pointer; }
-    .primary { background: #273d2d; border-color: #273d2d; color: white; }
-    .return { display: block; text-align: center; text-decoration: none; margin-top: 24px; }
-    #handoff-cancel { margin-top: 18px; color: #656c64; border: 0; background: transparent; font-weight: 400; }
-    :focus-visible { outline: 3px solid #4f795b; outline-offset: 4px; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+    main { width: min(100%, 400px); }
+    .card { padding: 32px 24px 22px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
+    .brand { display: inline-flex; }
+    .brand-mark { width: 44px; height: 44px; flex: none; }
+    h1 { margin: 18px 0 6px; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
+    #handoff-status { margin: 0 0 26px; min-height: 1.6em; color: var(--muted); font-size: 15px; }
+    #handoff-status[role="alert"] { color: var(--accent); }
+    .choices { display: grid; gap: 10px; text-align: left; }
+    .options { display: grid; gap: 10px; }
+    .account { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+    .account strong { display: block; color: var(--ink); font-size: 16px; font-weight: 700; }
+    .option { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--control-h-lg); padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+    .option:hover { border-color: var(--ink-soft); background: var(--bg); }
+    .option.primary, .option[data-hint="true"], .option[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #ffffff; }
+    .option.primary:hover, .option[data-hint="true"]:hover, .option[aria-pressed="true"]:hover { background: var(--ink-soft); }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; color: var(--muted); font-size: 13px; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .panel { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--sunken); }
+    form { display: grid; gap: 6px; margin: 0; }
+    label { color: var(--ink-soft); font-size: 13px; font-weight: 600; }
+    input { min-width: 0; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 16px; }
+    .form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .form-row button { min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--ink); color: #ffffff; font: inherit; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .form-row button:disabled { opacity: 0.5; cursor: default; }
+    .form-status, .note { margin: 0; min-height: 1.4em; color: var(--muted); font-size: 13px; }
+    .form-status.is-error, .note.is-error { color: var(--accent); }
+    .turnstile-slot { display: flex; justify-content: center; }
+    .turnstile-slot:empty { display: none; }
+    .quiet { display: block; min-height: 44px; margin: 14px auto 0; padding: 8px 16px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .legal { margin: 18px 8px 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; text-align: center; }
+    .legal a { color: var(--ink-soft); font-weight: 600; text-underline-offset: 3px; }
+    :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
     [hidden] { display: none !important; }
-  </style>
+    @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .form-row { grid-template-columns: minmax(0, 1fr); } }
+    @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
+</style>
   <script src="/auth.js" defer></script>
 </head>
 <body>
   <main aria-labelledby="handoff-title">
-    <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg>사이드킥</span>
-    <h1 id="handoff-title">앱에 로그인</h1>
-    <p id="handoff-status" role="status" aria-live="polite">로그인 정보를 확인하고 있어요.</p>
-    <div id="handoff-choices" class="actions" hidden>
-      <button type="button" id="handoff-existing" class="primary" hidden>이 브라우저 계정으로 계속</button>
-      <button type="button" id="handoff-google">Google로 로그인</button>
-      <button type="button" id="handoff-apple">Apple로 로그인</button>
+    <div class="card">
+      <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg></span>
+      <h1 id="handoff-title">Sidekick 시작하기</h1>
+      <p id="handoff-status" role="status" aria-live="polite">로그인 정보를 확인하고 있어요.</p>
+
+      <div id="handoff-choices" class="choices" hidden>
+        <p id="handoff-account" class="account" hidden>이 브라우저에 로그인된 계정<strong id="handoff-who"></strong></p>
+        <button type="button" id="handoff-existing" class="option primary" hidden>이 계정으로 계속하기</button>
+        <p id="handoff-other" class="divider" hidden>다른 방법으로 로그인</p>
+
+        <div class="options" role="group" aria-label="로그인 방법">
+          <button type="button" id="handoff-google" class="option" data-login-option="google">Google로 계속하기</button>
+          <button type="button" id="handoff-apple" class="option" data-login-option="apple">Apple로 계속하기</button>
+          <button type="button" id="handoff-chatgpt" class="option" data-login-option="chatgpt">ChatGPT로 계속하기</button>
+          <div id="chatgpt-code-block" class="panel" hidden>
+            <p class="form-status">아래 코드를 ChatGPT 승인 페이지에 입력해 주세요.</p>
+            <div class="form-row">
+              <input id="chatgpt-user-code" readonly aria-label="ChatGPT 승인 코드">
+              <button type="button" id="chatgpt-copy-code">코드 복사</button>
+            </div>
+            <button type="button" id="chatgpt-open-page" class="option">ChatGPT 승인 페이지 열기</button>
+          </div>
+          <p class="divider" aria-hidden="true">또는</p>
+          <button type="button" id="handoff-phone" class="option" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">전화번호로 계속하기</button>
+          <button type="button" id="handoff-email" class="option" data-login-option="email" data-method="email" aria-pressed="false" aria-controls="otp-block">이메일로 계속하기</button>
+        </div>
+
+        <div id="otp-block" class="panel" hidden>
+          <form id="email-form">
+            <label for="email" id="value-label">이메일</label>
+            <div class="form-row">
+              <input id="email" name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+              <button type="submit">인증번호 받기</button>
+            </div>
+          </form>
+          <form id="code-form" hidden>
+            <label for="code" id="code-label">인증번호 6자리</label>
+            <div class="form-row">
+              <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+              <button type="submit">확인</button>
+            </div>
+          </form>
+          <p id="auth-status" class="form-status" aria-live="polite"></p>
+        </div>
+
+        <p id="social-status" class="note" aria-live="polite" hidden></p>
+      </div>
+
+      <button type="button" id="handoff-confirm" class="option primary" hidden>앱에 로그인하고 돌아가기</button>
+      <a id="handoff-return" class="option primary" rel="noreferrer" hidden>앱으로 돌아가기</a>
+      <button type="button" id="handoff-cancel" class="quiet" hidden>취소</button>
+      <noscript><p>로그인을 계속하려면 브라우저에서 JavaScript를 켜 주세요.</p></noscript>
     </div>
-    <button type="button" id="handoff-confirm" class="primary" hidden>앱에 로그인하고 돌아가기</button>
-    <a id="handoff-return" class="return primary" rel="noreferrer" hidden>앱으로 돌아가기</a>
-    <button type="button" id="handoff-cancel" hidden>취소</button>
-    <noscript><p>로그인을 계속하려면 브라우저에서 JavaScript를 켜고 앱에서 다시 시작해 주세요.</p></noscript>
+    <p class="legal">계속하면 <a href="/terms/" target="_blank" rel="noopener noreferrer">서비스 약관</a> 및 <a href="/privacy/" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>
   </main>
 </body>
 </html>

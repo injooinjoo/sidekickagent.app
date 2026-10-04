@@ -165,8 +165,8 @@
             <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호</button></div>
           </form>
           <form id="code-form" hidden>
-            <label for="code" class="sr-only">인증번호</label>
-            <div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,12}" required /><button type="submit">로그인</button></div>
+            <label for="code" class="field-label">인증번호 6자리</label>
+            <div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required /><button type="submit">로그인</button></div>
           </form>
         </div>
         <p class="form-status" id="auth-status" aria-live="polite"></p>

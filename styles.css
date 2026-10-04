@@ -358,6 +358,8 @@ li + li { margin-top: 8px; }
   background: var(--card); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
 .signin-sheet .method-tabs button.is-selected { border-color: var(--ink); color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .signin-body form { width: 100%; margin-top: 10px; }
+/* The code field says what it is above itself (a placeholder is gone once typing starts). */
+.signin-sheet .field-label { display: block; margin: 0 0 6px; color: var(--ink-soft); font-size: 12px; font-weight: 600; text-align: left; }
 .signin-sheet .form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
 .signin-sheet .form-row input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid var(--line); border-radius: 11px;
   background: var(--card); color: var(--ink); }
