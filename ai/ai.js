@@ -36,6 +36,13 @@
     copilot: 'GitHub Copilot', nous: 'Nous Portal', vertex: 'Google Vertex AI', bedrock: 'AWS Bedrock',
     'azure-foundry': 'Azure AI Foundry', '9router': '9Router', omniroute: 'OmniRoute'
   };
+  // The providers whose official mark is published with this site, at /assets/ai/<id>.png: the same transparent
+  // artwork the app bundles (apps/mobile/app/assets/ai-engines/), 192x192, drawn here at 40x40. The ids are the
+  // catalog's own. A provider that is not listed keeps the text-only card; nothing is ever asked of another host.
+  const PROVIDER_LOGOS = [
+    'anthropic', 'copilot', 'deepseek', 'gemini', 'minimax', 'nous', 'openai', 'openrouter', 'qwen', 'xai'
+  ];
+  const PROVIDER_LOGO_SIZE = 40;
   // The cloud forms ask for exactly the fields the server's credential models
   // accept (schemas.py), in the order the app asks for them.
   const CLOUD_FIELDS = {
@@ -694,6 +701,20 @@
     if (action) action.focus({ preventScroll: true });
   }
 
+  // The provider's mark, for a provider that has one published (PROVIDER_LOGOS); null for any other. It is decoration:
+  // the name stands right beside it, so it has no alt text. Its width and height fix its box, so the card does not move
+  // when the file arrives, and a file that does not load is taken out again instead of leaving a broken-image icon.
+  function providerLogo(id) {
+    if (!PROVIDER_LOGOS.includes(id)) return null;
+    // src last: the image is asked for once every other attribute is in place.
+    const logo = el('img', {
+      className: 'provider-logo', alt: '', width: PROVIDER_LOGO_SIZE, height: PROVIDER_LOGO_SIZE, decoding: 'async',
+      src: `/assets/ai/${id}.png`
+    });
+    logo.addEventListener('error', () => logo.remove(), { once: true });
+    return logo;
+  }
+
   function providerCard(provider) {
     const account = provider.methods.find((method) => method.kind === 'account');
     const noted = provider.methods.find((method) => method.note);
@@ -701,6 +722,7 @@
     const linked = state.connections.some((connection) => connection.provider === provider.id && connection.connected);
     return el('article', { className: 'provider-card', 'data-provider': provider.id }, [
       el('div', { className: 'provider-head' }, [
+        providerLogo(provider.id),
         el('strong', { text: provider.name }),
         linked ? el('span', { className: 'pill is-ok', text: '연결됨' }) : null
       ]),
