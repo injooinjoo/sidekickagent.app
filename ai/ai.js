@@ -115,6 +115,65 @@
   };
   const HANDOFF_EXPIRED_COPY = '로그인한 ChatGPT 계정으로 연결할 수 있는 시간이 지났어요. 아래에서 ChatGPT를 직접 연결해 주세요.';
 
+  // The way back to the app (owner, 2026-10-04). The one address the page leaves for the app by: the app's own scheme and
+  // one fixed path, and after a connection the catalog's id of the provider that was connected. Nothing else is ever put
+  // in it -- no code, token, workspace or account.
+  const APP_RETURN_URL = 'sidekick://ai/return';
+  const RETURN_HINT = '앱이 열리지 않으면 사이드킥 앱을 직접 열어 주세요.';
+  // The Korean subject particle follows how a name is said. These are the names the page knows that end in a consonant
+  // sound (Grok, Qwen, Copilot, Portal, Bedrock, Mistral); every other name takes 가.
+  const SUBJECT_WITH_I = ['xai', 'qwen', 'copilot', 'nous', 'bedrock', 'mistral'];
+  const CODE_TIP = '로그인 중 문자나 메일로 받은 6자리 번호는 복사하지 말고, 키보드 위에 뜨는 제안을 눌러 입력하면 위 코드가 지워지지 않아요.';
+
+  // AI 직원 실행 설정. The settings are the app's own (hermes_agent_ops.py: GET/PUT /hermes-agent/settings) and the tools
+  // are the Hermes toolsets of the person's own server, reached through the owner-only relay the app uses
+  // (POST /hermes-agent/native/request). The words for the settings are the app's (hermesAgentSettings.js), by value.
+  const SETTINGS_READ_MS = 10000;
+  const SETTINGS_WRITE_MS = 30000;
+  const WAKE_WINDOW_MS = 20000;
+  const REASONING_OPTIONS = [
+    { id: 'low', label: '빠르게', line: '짧게 생각하고 바로 답해요' },
+    { id: 'medium', label: '보통', line: '대부분의 일에 알맞아요' },
+    { id: 'high', label: '깊게', line: '오래 생각하지만 더 꼼꼼해요' }
+  ];
+  const NATIVE_REASONING = new Map([['none', '생각 단계 없이 답하기'], ['minimal', '아주 빠르게'], ['xhigh', '아주 깊게'],
+    ['max', '최대한 깊게'], ['ultra', '가장 깊게']]);
+  const RUNTIME_OPTIONS = [{ id: 10, label: '10분' }, { id: 30, label: '30분' }, { id: 60, label: '60분' }];
+  const APPROVAL_OPTIONS = [
+    { id: 'external_only', label: '보내기 전에만', line: '메일 발송·게시·삭제처럼 밖으로 나가는 일 전에만 확인을 받아요' },
+    { id: 'every_run', label: '모든 결과 전에', line: '결과를 적용하기 전에 매번 확인을 받아요' }
+  ];
+  // The only tools this page ever switches, in the order it shows them. The names are the dashboard's toolset names; they
+  // never reach the screen. A name is put in a request path only from this list (toolsetPath), never from the server's
+  // answer, the address or the page.
+  const TOOLSETS_PATH = '/api/tools/toolsets';
+  const TOOLSETS = [
+    { name: 'computer_use', title: '컴퓨터 사용 (Computer Use)', line: '화면을 보고 직접 누르고 입력하며 일해요.' },
+    { name: 'web', title: '웹 검색·읽기', line: '인터넷에서 찾고, 웹 페이지를 읽어 와요.' },
+    { name: 'file', title: '파일 읽기·쓰기', line: '파일을 읽고, 새로 만들고, 고쳐요.' },
+    { name: 'terminal', title: '터미널 명령 실행', line: '작업 공간에서 명령을 직접 실행해요.' },
+    { name: 'code_execution', title: '코드 실행', line: '코드를 짜서 돌려 보며 계산하고 확인해요.' },
+    { name: 'vision', title: '이미지 보기', line: '사진이나 화면 속 그림을 보고 이해해요.' },
+    { name: 'image_gen', title: '이미지 만들기', line: '글로 설명한 대로 그림을 만들어 줘요.' },
+    { name: 'tts', title: '음성 만들기', line: '글을 소리 내어 읽어 줘요.' },
+    { name: 'delegation', title: '작업 나누기', line: '큰 일을 나눠서 여러 도우미에게 맡겨요.' }
+  ];
+  const AGENT_STATE_COPY = {
+    loading: '불러오는 중…',
+    slow: '설정을 불러오는 데 시간이 오래 걸리고 있어요. 잠시 뒤 다시 시도해 주세요',
+    unavailable: 'AI 직원 공간이 아직 준비되지 않았어요. 켜 달라고 요청했으니 잠시 뒤 다시 시도해 주세요',
+    network: auth.NETWORK_COPY,
+    failed: '설정을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요'
+  };
+  const OWNER_ONLY_COPY = '프로젝트 소유자만 바꿀 수 있어요';
+  const CHANGE_COPY = {
+    owner: OWNER_ONLY_COPY,
+    slow: '시간이 오래 걸려 바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요',
+    unavailable: 'AI 직원 공간이 아직 준비되지 않았어요. 잠시 뒤 다시 시도해 주세요',
+    network: auth.NETWORK_COPY,
+    failed: '설정을 바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요'
+  };
+
   const state = {
     user: null,
     workspaces: [],
@@ -135,7 +194,10 @@
     // page, that provider's card is marked and brought into view. It never
     // starts a connection by itself.
     requestedProvider: readRequestedProvider(),
-    returnedCode: readReturnedCode()
+    returnedCode: readReturnedCode(),
+    // The project's 실행 설정 (see "AI 직원 실행 설정" below): which read this is, what it came to and what the controls
+    // may do. Nothing in it outlives a project change; every answer is checked against the read that asked for it.
+    agent: { run: 0, phase: 'idle', settings: null, tools: null, busy: false, readOnly: false, wokeFor: '', wokeAt: 0 }
   };
 
   const $ = (id) => document.getElementById(id);
@@ -381,8 +443,11 @@
   }
 
   function hideProjectSteps() {
-    ['workspace-step', 'handoff-step', 'connections-step', 'execution-step', 'connect-step', 'providers-step'].forEach((id) => { $(id).hidden = true; });
+    ['workspace-step', 'handoff-step', 'connections-step', 'execution-step', 'connect-step', 'providers-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
     $('connection-list').replaceChildren();
+    // What the last person's settings drew goes with them, not only out of sight.
+    $('agent-settings-body').replaceChildren();
+    setStatus('agent-settings-status', '', false);
     showNext(null);
   }
 
@@ -509,6 +574,9 @@
     $('connection-list').replaceChildren();
     state.connections = [];
     $('providers-step').hidden = true;
+    $('agent-settings-step').hidden = true;
+    $('agent-settings-body').replaceChildren();
+    setStatus('agent-settings-status', '', false);
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
     showNext(null);
@@ -553,6 +621,7 @@
     renderConnections();
     renderProviders();
     renderHandoffOffer();
+    loadAgentSettings();
   }
 
   async function reloadConnections() {
@@ -760,15 +829,17 @@
     smoothScroll($('connect-step'));
   }
 
+  function stopFlow(flow) {
+    flow.stopped = true;
+    if (flow.timer) clearTimeout(flow.timer);
+  }
+
   function closeFlow() {
-    const flow = state.flow;
-    if (flow) {
-      flow.stopped = true;
-      if (flow.timer) clearTimeout(flow.timer);
-    }
+    if (state.flow) stopFlow(state.flow);
     state.flow = null;
     $('connect-step').hidden = true;
     $('connect-body').replaceChildren();
+    $('connect-cancel').textContent = '취소';
     setStatus('connect-status', '', false);
   }
 
@@ -776,15 +847,85 @@
     return Boolean(flow) && !flow.stopped && state.flow === flow;
   }
 
+  // ---- Back to the app -----------------------------------------------------------------------------
+  //
+  // The app opens this page in the device browser (?in_app=1) and refreshes its AI connections when it is brought back to
+  // the front, so the way back only has to bring the app forward. It is a button that navigates, never a link:
+  // /app-mode.js un-links every anchor that is not http(s) or mailto, so a link to the app's scheme would be dead.
+  function inApp() {
+    return document.documentElement.classList.contains('in-app');
+  }
+
+  function appReturnAddress(providerId) {
+    const connected = typeof providerId === 'string' && PROVIDER_ID.test(providerId)
+      && state.catalog.some((provider) => provider.id === providerId);
+    return connected ? `${APP_RETURN_URL}?provider=${providerId}&status=connected` : APP_RETURN_URL;
+  }
+
+  function returnToApp(providerId) {
+    try {
+      window.SidekickWebAnalytics?.track('web_to_app_started', {
+        transition_id: window.crypto.randomUUID(), from_surface: 'web_oauth',
+        to_surface: /android/i.test(navigator.userAgent) ? 'android_app' : 'ios_app',
+        reason: 'connect_ai_engine', return_expected: false, destination_type: 'app'
+      });
+    } catch (_) { /* a measurement never stands in the way of the way back */ }
+    window.location.assign(appReturnAddress(providerId));
+  }
+
+  // ---- The finished state --------------------------------------------------------------------------
+
+  function subjectOf(provider) {
+    return `${provider.name}${SUBJECT_WITH_I.includes(provider.id) ? '이' : '가'}`;
+  }
+
+  function connectAnother() {
+    closeFlow();
+    smoothScroll($('providers-step'));
+  }
+
+  // The panel of a connection that ended well stays, and says so. A connection saved as needs_reconnect is not finished:
+  // it keeps the warning the page has always shown, with no check mark and no way back to the app.
+  function showConnected(provider, reconnect) {
+    $('connect-heading').textContent = `${provider.name} 연결`;
+    $('connect-cancel').textContent = '닫기';
+    $('connect-step').hidden = false;
+    setStatus('connect-status', '', false);
+    if (reconnect) {
+      fill($('connect-body'), [el('div', { className: 'connect-done is-warn', 'aria-live': 'polite' }, [
+        el('p', { text: `${provider.name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.` })
+      ])]);
+      return;
+    }
+    const back = inApp() ? el('button', {
+      className: 'ai-button', type: 'button', text: '사이드킥 앱으로 돌아가기', onClick: () => returnToApp(provider.id)
+    }) : null;
+    const another = el('button', { className: 'ai-button secondary', type: 'button', text: '다른 AI 연결하기', onClick: connectAnother });
+    const first = back || another;
+    first.setAttribute('aria-describedby', 'connect-done-title connect-done-line');
+    fill($('connect-body'), [el('div', { className: 'connect-done', 'aria-live': 'polite' }, [
+      el('span', { className: 'connected-mark', 'aria-hidden': 'true' }),
+      el('h3', { id: 'connect-done-title', text: `${subjectOf(provider)} 연결됐어요` }),
+      el('p', { id: 'connect-done-line', text: '이 프로젝트의 새 업무부터 이 AI로 일해요.' }),
+      el('div', { className: 'connect-actions' }, [back, another]),
+      back ? el('p', { className: 'ai-note', text: RETURN_HINT }) : null
+    ])]);
+    first.focus({ preventScroll: true });
+  }
+
   async function finishFlow(flow, connection) {
     const name = flow.provider.name;
-    if (live(flow)) closeFlow();
-    setStatus('connections-status', connection && connection.status === 'needs_reconnect'
+    const reconnect = Boolean(connection && connection.status === 'needs_reconnect');
+    // Only a panel the person is still looking at is kept open; one they closed while the last answer was on its way stays closed.
+    const watching = live(flow);
+    stopFlow(flow);
+    setStatus('connections-status', reconnect
       ? `${name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.`
       : `${name} 연결됐어요. 이 프로젝트의 새 업무부터 이 AI로 일해요.`, false);
+    if (watching) showConnected(flow.provider, reconnect);
     await reloadConnections();
     renderProviders();
-    smoothScroll($('connections-step'));
+    if (watching && state.flow === flow) smoothScroll($('connect-step'));
   }
 
   // Key, free and cloud connections all end in the same POST, which checks the
@@ -937,20 +1078,106 @@
     return flow.method.requirement ? el('p', { className: 'provider-detail', text: flow.method.requirement }) : null;
   }
 
+  // Copy `text` to the clipboard. This is called from a click, and the write BEGINS inside this call, before it returns,
+  // so the click still counts as the person's own action; nothing here waits before it starts. The answer is true when the
+  // text was copied. A browser without the clipboard API (or one that refuses it) is tried once more by selecting the text
+  // in a scratch field, the way every browser has always allowed.
+  function copyCode(text) {
+    let write = null;
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') write = navigator.clipboard.writeText(text);
+    } catch (_) { write = null; }
+    if (!write) return Promise.resolve(copyBySelection(text));
+    return write.then(() => true, () => copyBySelection(text));
+  }
+
+  function copyBySelection(text) {
+    const held = document.activeElement;
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.className = 'copy-scratch';
+    document.body.append(area);
+    let copied = false;
+    try {
+      area.select();
+      area.setSelectionRange(0, text.length);
+      copied = document.execCommand('copy');
+    } catch (_) { copied = false; }
+    area.remove();
+    if (held && typeof held.focus === 'function') held.focus({ preventScroll: true });
+    return copied;
+  }
+
+  // The code as the provider printed it, in groups the eye can hold. The text stays exactly the code (a hyphen is part of
+  // it, and a selected or copied code must paste as the provider wrote it); only the space between groups is drawn.
+  function codeGroups(code) {
+    const hyphen = code.includes('-');
+    const pieces = hyphen ? code.split('-') : code.length >= 8 ? code.match(/.{1,4}/g) : [code];
+    const nodes = [];
+    pieces.forEach((piece, index) => {
+      if (index && hyphen) nodes.push(document.createTextNode('-'));
+      nodes.push(el('span', { className: 'code-group', text: piece }));
+    });
+    return nodes;
+  }
+
+  // A code to type is the hard part of this login: the person leaves for the provider's page, is sent a six-digit number by
+  // SMS or mail, copies it, and the code is gone from the clipboard. So the first button copies and opens in one click, the
+  // second copies again at any time, and coming back to this tab says so and points at it. (A web page cannot put anything
+  // into the keyboard's suggestion bar, and it cannot see what another app put on the clipboard.)
   function showDeviceCode(flow, started) {
     const code = cleanText(started.user_code, 64);
-    const copy = code ? el('button', { className: 'ai-button secondary', type: 'button', text: '코드 복사' }) : null;
-    if (copy) copy.addEventListener('click', () => auth.copyText(code, copy));
+    const name = flow.provider.name;
+    // Two lines a screen reader hears when they fill; they stay empty until there is something to say.
+    const copied = el('p', { className: 'ai-note', 'aria-live': 'polite' });
+    const hint = el('p', { className: 'ai-note', 'aria-live': 'polite' });
+    const tell = (done) => {
+      copied.textContent = done
+        ? `코드를 복사했어요. ${name} 화면의 코드 칸을 길게 눌러 '붙여넣기'를 눌러 주세요.`
+        : '코드를 직접 복사해 주세요.';
+    };
+    const shown = code ? el('output', { className: 'device-code-value', 'aria-label': '로그인 코드' }, codeGroups(code)) : null;
+    const copyAndOpen = code ? el('button', { className: 'ai-button wrap', type: 'button', text: `코드 복사하고 ${name} 열기` }) : null;
+    const recopy = code ? el('button', { className: 'ai-button secondary wrap', type: 'button', text: '코드 다시 복사' }) : null;
+    const actions = el('div', { className: 'connect-actions' }, code ? [copyAndOpen, recopy] : [openLoginPageButton(flow)]);
+    if (code) {
+      // One click does both, and nothing is awaited between them: the copy is started first (the clipboard write begins in
+      // that very call), then the provider's page opens from the same click, so no pop-up blocker stands in the way, and
+      // noopener keeps that page from reaching back into this one. What the copy came to is told afterwards.
+      copyAndOpen.addEventListener('click', () => {
+        const pending = copyCode(code);
+        window.open(flow.authorizationUrl, '_blank', 'noopener');
+        pending.then(tell);
+      });
+      recopy.addEventListener('click', () => {
+        recopy.classList.remove('is-emphasis');
+        copyCode(code).then(tell);
+      });
+      // Back from the provider's page while the login is still waited for.
+      flow.onReturn = () => {
+        hint.textContent = `${name}의 코드 칸이 비어 있으면 '코드 다시 복사'를 누르고 붙여넣어 주세요.`;
+        recopy.classList.add('is-emphasis');
+      };
+    }
+    // The code ran out: what was shown can no longer be used, and a new one is one press away (the same login, again).
+    flow.onExpire = () => {
+      Array.from(actions.querySelectorAll('button')).forEach((button) => { button.disabled = true; });
+      if (shown) shown.classList.add('is-expired');
+      actions.append(el('button', {
+        className: 'ai-button', type: 'button', text: '새 코드 받기', onClick: () => openFlow(flow.provider, flow.method)
+      }));
+    };
     fill($('connect-body'), [
       el('p', { className: 'ai-note', text: code
-        ? `${flow.provider.name} 로그인 페이지를 열어 아래 코드를 입력하면 연결돼요.`
-        : `${flow.provider.name} 로그인 페이지에서 로그인하고 연결을 허용해 주세요.` }),
-      code ? el('div', { className: 'device-code' }, [
-        el('output', { className: 'device-code-value', 'aria-label': '로그인 코드', text: code }),
-        copy
-      ]) : null,
-      el('div', { className: 'connect-actions' }, [openLoginPageButton(flow)]),
+        ? `${name} 로그인 페이지를 열어 아래 코드를 입력하면 연결돼요.`
+        : `${name} 로그인 페이지에서 로그인하고 연결을 허용해 주세요.` }),
+      shown ? el('div', { className: 'device-code' }, [shown]) : null,
+      actions,
+      code ? copied : null,
+      code ? hint : null,
       requirementNote(flow),
+      code ? el('p', { className: 'ai-note', text: CODE_TIP }) : null,
       el('p', { className: 'ai-note', text: '로그인을 마치고 이 페이지로 돌아오면 바로 확인해요. 연결을 확인할 때 실제 테스트 답변을 한 번 받아 봐서 최대 3분까지 걸릴 수 있어요.' })
     ]);
     setStatus('connect-status', '로그인을 기다리고 있어요.', false);
@@ -968,8 +1195,9 @@
   async function pollAccount(flow) {
     if (!live(flow) || flow.inFlight) return;
     if (Date.now() > flow.expiresAt) {
-      flow.stopped = true;
+      stopFlow(flow);
       setStatus('connect-status', CODE_COPY.AI_ENGINE_ACCOUNT_CONNECTION_EXPIRED, true);
+      if (flow.onExpire) flow.onExpire();
       return;
     }
     flow.inFlight = true;
@@ -989,8 +1217,10 @@
     if (!live(flow)) return;
     // A dropped connection is worth another try; any other failure ends this login.
     if (failure && !(failure.network && !failure.aborted)) {
-      flow.stopped = true;
+      stopFlow(flow);
       showFailure(failure, 'connect-status');
+      // The server says the code ran out: the same way on as a code that ran out here.
+      if ((failure.status === 410 || failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_EXPIRED') && flow.onExpire) flow.onExpire();
       return;
     }
     schedulePoll(flow, flow.interval);
@@ -1001,6 +1231,7 @@
   document.addEventListener('visibilitychange', () => {
     const flow = state.flow;
     if (document.visibilityState !== 'visible' || !live(flow) || !flow.interval) return;
+    if (flow.onReturn) flow.onReturn();
     if (flow.timer) clearTimeout(flow.timer);
     pollAccount(flow);
   });
@@ -1159,13 +1390,383 @@
     setBusy(false, controls);
     dropHandoff('', false);
     const connection = result && result.connection;
-    setStatus('connections-status', connection && connection.status === 'needs_reconnect'
+    const reconnect = Boolean(connection && connection.status === 'needs_reconnect');
+    setStatus('connections-status', reconnect
       ? 'ChatGPT 연결을 저장했지만 다시 연결이 필요해요. 아래에서 한 번 더 연결해 주세요.'
       : 'ChatGPT 연결됐어요. 이 프로젝트의 새 업무부터 이 AI로 일해요.', false);
     if (!state.user || workspaceId !== state.workspaceId) return;
+    // The same finished state as every other way of connecting; a login being made in the panel is over.
+    closeFlow();
+    showConnected(handoffProvider(connection), reconnect);
     await reloadConnections();
     renderProviders();
-    smoothScroll($('connections-step'));
+    smoothScroll($('connect-step'));
+  }
+
+  // The provider a claimed ChatGPT account connected: the connection's own id when it names one the page can use,
+  // ChatGPT otherwise.
+  function handoffProvider(connection) {
+    const id = connection && PROVIDER_ID.test(String(connection.provider || '')) ? String(connection.provider) : 'openai';
+    return state.catalog.find((provider) => provider.id === id)
+      || { id, name: providerName(id), featured: false, endpointRequired: false, methods: [] };
+  }
+
+  // ---- AI 직원 실행 설정 ----------------------------------------------------------------------------
+  //
+  // Shown under the provider cards for the chosen, ready project. Two groups, both read from the person's own server and
+  // written back to it, each control one real setting:
+  //   실행 방식 -- GET/PUT /hermes-agent/settings (anyone in the project reads; only the owner writes), and
+  //   도구 -- the Hermes toolsets the nine names in TOOLSETS stand for, through the owner-only relay.
+  // The rules this section keeps: it is drawn only when everything it shows has been read (one sentence and a retry
+  // instead while it is read, slow, refused or unreachable); a change locks the controls, asks the server, and then draws
+  // what the SERVER says -- the tools list is read again after every switch -- so a switch never shows a state the server
+  // does not have; a change that fails puts the old value back with one short sentence; and the server's own sentences are
+  // never shown.
+
+  function malformed() {
+    return Object.assign(new Error('malformed'), { status: 0, network: false });
+  }
+
+  // Every read or change is one ticket, checked when its answer arrives: an answer for another project, an earlier read
+  // or a page that has since signed out paints nothing.
+  function agentTicket() {
+    return { run: ++state.agent.run, seq: state.seq, user: state.user, workspaceId: state.workspaceId };
+  }
+
+  function agentCurrent(ticket) {
+    return ticket.run === state.agent.run && ticket.seq === state.seq && ticket.user === state.user
+      && ticket.workspaceId === state.workspaceId;
+  }
+
+  async function agentCall(path, options, ms) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+      return await api(path, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function toolsetPath(name) {
+    const tool = TOOLSETS.find((item) => item.name === name);
+    return tool ? `${TOOLSETS_PATH}/${tool.name}` : '';
+  }
+
+  // The two requests this page sends through the relay, and no others: the list of toolsets, and one switch of one tool on
+  // the page's own list. (Not /api/env, not /api/config/raw, not any other write.)
+  async function relayToolsets(name, body, ms) {
+    const reading = name === undefined;
+    const path = reading ? TOOLSETS_PATH : toolsetPath(name);
+    if (!path) throw malformed();
+    const answer = await agentCall('/hermes-agent/native/request', {
+      method: 'POST',
+      body: JSON.stringify({ ...scope(), method: reading ? 'GET' : 'PUT', path, body: reading ? null : body, query: {} })
+    }, ms);
+    const status = answer && Number.isInteger(answer.status) ? answer.status : 0;
+    if (status < 200 || status >= 300) throw Object.assign(new Error('relay_refused'), { status: 0, network: false, relay: status });
+    return answer.data;
+  }
+
+  function sanitizeAgentSettings(value) {
+    const raw = value && typeof value === 'object' && value.settings && typeof value.settings === 'object' ? value.settings : null;
+    if (!raw) return null;
+    return {
+      reasoning: typeof raw.reasoning_level === 'string' ? raw.reasoning_level : '',
+      runtime: Number.isInteger(raw.max_runtime_minutes) ? raw.max_runtime_minutes : 0,
+      approval: typeof raw.approval_policy === 'string' ? raw.approval_policy : '',
+      paused: value.paused === true,
+      canPause: value.canPause !== false
+    };
+  }
+
+  // The server's list, cut down to the nine tools this page knows: in the page's order, by the page's own names. A name
+  // that is not on the page's list is dropped here, so nothing the server sends can become a row or a request path.
+  function sanitizeToolsets(value) {
+    if (!Array.isArray(value)) return null;
+    const listed = new Map();
+    value.forEach((row) => {
+      if (row && typeof row === 'object' && typeof row.name === 'string' && !listed.has(row.name)) listed.set(row.name, row);
+    });
+    return TOOLSETS.filter((tool) => listed.has(tool.name)).map((tool) => ({
+      ...tool, enabled: listed.get(tool.name).enabled === true, configured: listed.get(tool.name).configured !== false
+    }));
+  }
+
+  async function readAgentSettings() {
+    const settings = sanitizeAgentSettings(await agentCall(`/hermes-agent/settings?${scopeQuery()}`, { method: 'GET' }, SETTINGS_READ_MS));
+    if (!settings) throw malformed();
+    return settings;
+  }
+
+  async function readToolsets() {
+    const tools = sanitizeToolsets(await relayToolsets(undefined, undefined, SETTINGS_READ_MS));
+    if (!tools) throw malformed();
+    return tools;
+  }
+
+  // What a failed request means to the person. The server's code only picks the sentence.
+  function agentFailure(error) {
+    if (error && error.status === 401) return 'signed-out';
+    if (error && error.aborted) return 'slow';
+    if (error && error.network) return 'network';
+    if (error && error.status === 403) return 'owner';
+    if (error && error.status === 503) return 'unavailable';
+    return 'failed';
+  }
+
+  // The person's own server may be asleep. Asking it to wake is what the app does too (POST /hermes-agent/runtime-wake);
+  // here it is asked once per window for a project, and the answer is not waited for.
+  function wakeRuntime() {
+    const agent = state.agent;
+    const now = Date.now();
+    if (agent.wokeFor === state.workspaceId && now - agent.wokeAt < WAKE_WINDOW_MS) return;
+    agent.wokeFor = state.workspaceId;
+    agent.wokeAt = now;
+    api('/hermes-agent/runtime-wake', { method: 'POST', body: JSON.stringify(scope()) }).catch(() => {});
+  }
+
+  // How the two reads of one load came out, as the one state the section draws.
+  function agentReadKind(settings, tools) {
+    const kinds = [settings, tools].filter((result) => result.status === 'rejected').map((result) => agentFailure(result.reason));
+    for (const kind of ['signed-out', 'slow', 'unavailable', 'network']) {
+      if (kinds.includes(kind)) return kind;
+    }
+    if (settings.status === 'rejected') return 'failed';
+    if (tools.status === 'rejected') return kinds[0] === 'owner' ? 'owner' : 'failed';
+    return 'ready';
+  }
+
+  async function loadAgentSettings() {
+    const agent = state.agent;
+    const ticket = agentTicket();
+    Object.assign(agent, { phase: 'loading', settings: null, tools: null, busy: false, readOnly: false });
+    setStatus('agent-settings-status', '', false);
+    $('agent-settings-step').hidden = false;
+    drawAgent();
+    const [settings, tools] = await Promise.allSettled([readAgentSettings(), readToolsets()]);
+    if (!agentCurrent(ticket)) return;
+    const kind = agentReadKind(settings, tools);
+    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
+    if (kind === 'ready' || kind === 'owner') {
+      // An owner-only refusal of the tools still shows the settings, read-only, with the tools group saying why.
+      Object.assign(agent, { phase: 'ready', settings: settings.value, tools: kind === 'owner' ? 'owner' : tools.value, readOnly: kind === 'owner' });
+    } else {
+      agent.phase = kind;
+      if (kind === 'unavailable') wakeRuntime();
+    }
+    drawAgent();
+  }
+
+  function drawAgent(keep) {
+    const agent = state.agent;
+    const body = $('agent-settings-body');
+    body.setAttribute('aria-busy', agent.phase === 'loading' ? 'true' : 'false');
+    if (agent.phase === 'ready') {
+      fill(body, [agentRunGroup(), agentToolsGroup()]);
+    } else {
+      fill(body, [
+        el('p', { className: 'settings-state', text: AGENT_STATE_COPY[agent.phase] || AGENT_STATE_COPY.failed }),
+        agent.phase === 'loading' ? null : el('button', { className: 'ai-button secondary', type: 'button', text: '다시 시도', onClick: () => loadAgentSettings() })
+      ]);
+    }
+    if (keep) focusAgentControl(keep);
+  }
+
+  // A redraw replaces the controls; the one the person was using gets the focus back, unless it has gone somewhere else.
+  function focusAgentControl(key) {
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    const nodes = Array.from($('agent-settings-body').querySelectorAll('[data-control]')).filter((node) => node.getAttribute('data-control') === key);
+    const target = nodes.find((node) => node.checked) || nodes[0];
+    if (target && !target.disabled) target.focus({ preventScroll: true });
+  }
+
+  function lockAgentControls() {
+    Array.from($('agent-settings-body').querySelectorAll('[data-control]')).forEach((control) => { control.disabled = true; });
+  }
+
+  function switchRow(spec) {
+    const input = el('input', {
+      className: 'switch', type: 'checkbox', role: 'switch', disabled: spec.disabled, 'data-control': spec.control,
+      'data-tool': spec.tool || false, 'aria-label': spec.title, 'aria-describedby': `${spec.id}-line`
+    });
+    input.checked = spec.checked;
+    input.addEventListener('change', () => spec.onChange(input.checked));
+    return el('label', { className: 'switch-row' }, [
+      el('span', { className: 'switch-text' }, [
+        el('strong', { text: spec.title }),
+        el('span', { className: 'switch-line', id: `${spec.id}-line`, text: spec.line }),
+        spec.need ? el('span', { className: 'switch-need', text: spec.need }) : null
+      ]),
+      input
+    ]);
+  }
+
+  function segmentField(spec) {
+    return el('fieldset', { className: 'setting' }, [
+      el('legend', { text: spec.legend }),
+      el('div', { className: 'segments' }, spec.options.map((option) => {
+        const input = el('input', { type: 'radio', name: `agent-${spec.control}`, value: String(option.id), disabled: spec.disabled, 'data-control': spec.control });
+        input.checked = option.id === spec.value;
+        input.addEventListener('change', () => spec.onSelect(option.id));
+        return el('label', { className: 'segment' }, [input, el('span', { text: option.label })]);
+      })),
+      el('p', { className: 'ai-note', text: spec.line })
+    ]);
+  }
+
+  function agentRunGroup() {
+    const agent = state.agent;
+    const settings = agent.settings;
+    const locked = agent.busy || agent.readOnly;
+    const approval = APPROVAL_OPTIONS.find((option) => option.id === settings.approval);
+    const depth = REASONING_OPTIONS.find((option) => option.id === settings.reasoning);
+    return el('section', { className: 'settings-group' }, [
+      el('h3', { text: '실행 방식' }),
+      switchRow({
+        id: 'agent-intake', control: 'paused', title: '새 작업 받기', checked: !settings.paused, disabled: locked || !settings.canPause,
+        line: settings.paused ? '지금은 새 작업을 받지 않아요. 켜면 바로 다시 받아요' : '끄면 진행 중인 일은 끝까지 하고, 새 작업만 잠시 쉬어요',
+        need: settings.canPause ? '' : '지금은 바꿀 수 없어요',
+        onChange: (on) => changeSettings({ paused: !on }, 'paused')
+      }),
+      segmentField({
+        control: 'reasoning_level', legend: '생각 깊이', options: REASONING_OPTIONS, value: settings.reasoning, disabled: locked,
+        line: depth ? depth.line : `현재 설정: ${NATIVE_REASONING.get(settings.reasoning) || '확인 필요'}`,
+        onSelect: (id) => changeSettings({ settings: { reasoning_level: id } }, 'reasoning_level')
+      }),
+      segmentField({
+        control: 'max_runtime_minutes', legend: '한 작업에 쓰는 최대 시간', options: RUNTIME_OPTIONS, value: settings.runtime, disabled: locked,
+        line: '이 시간을 넘기면 작업을 멈추고 거기까지의 결과를 알려줘요',
+        onSelect: (id) => changeSettings({ settings: { max_runtime_minutes: id } }, 'max_runtime_minutes')
+      }),
+      segmentField({
+        control: 'approval_policy', legend: '확인 요청 기준', options: APPROVAL_OPTIONS, value: settings.approval, disabled: locked,
+        line: approval ? approval.line : '현재 설정: 확인 필요',
+        onSelect: (id) => changeSettings({ settings: { approval_policy: id } }, 'approval_policy')
+      })
+    ]);
+  }
+
+  function agentToolsGroup() {
+    const agent = state.agent;
+    if (agent.tools === 'owner') {
+      return el('section', { className: 'settings-group' }, [
+        el('h3', { text: '도구' }),
+        el('p', { className: 'settings-state', text: OWNER_ONLY_COPY })
+      ]);
+    }
+    const locked = agent.busy || agent.readOnly;
+    const rows = agent.tools.map((tool) => switchRow({
+      id: `agent-tool-${tool.name.split('_').join('-')}`, control: `tool-${tool.name}`, tool: tool.name, title: tool.title, line: tool.line,
+      need: tool.configured ? '' : '추가 설정이 필요해요', checked: tool.enabled, disabled: locked,
+      onChange: (on) => changeTool(tool, on)
+    }));
+    return el('section', { className: 'settings-group' }, [
+      el('h3', { text: '도구' }),
+      rows.length ? el('p', { className: 'ai-note', text: '켜 둔 도구만 AI 직원이 써요.' }) : el('p', { className: 'settings-state', text: '지금 바꿀 수 있는 도구가 없어요.' }),
+      ...rows
+    ]);
+  }
+
+  const SETTING_FIELDS = { reasoning_level: 'reasoning', max_runtime_minutes: 'runtime', approval_policy: 'approval' };
+  const KEPT_COPY = '바뀌지 않았어요. 지금 상태를 그대로 보여 드려요.';
+
+  function settingsMatch(change, settings) {
+    if (typeof change.paused === 'boolean' && settings.paused !== change.paused) return false;
+    return Object.entries(change.settings || {}).every(([key, value]) => settings[SETTING_FIELDS[key]] === value);
+  }
+
+  // A change that did not go through: the controls come back with the values they had, and one short sentence says so.
+  function agentChangeFailed(kind, control) {
+    const agent = state.agent;
+    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
+    agent.busy = false;
+    if (kind === 'owner') agent.readOnly = true;
+    if (kind === 'unavailable') wakeRuntime();
+    drawAgent(control);
+    setStatus('agent-settings-status', CHANGE_COPY[kind] || CHANGE_COPY.failed, true);
+  }
+
+  // A change that went through but whose result could not be read back: nothing is drawn that is not known.
+  function agentUnconfirmed(kind) {
+    const agent = state.agent;
+    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
+    agent.busy = false;
+    agent.phase = AGENT_STATE_COPY[kind] ? kind : 'failed';
+    setStatus('agent-settings-status', '', false);
+    if (agent.phase === 'unavailable') wakeRuntime();
+    drawAgent();
+  }
+
+  async function changeSettings(change, control) {
+    const agent = state.agent;
+    if (agent.phase !== 'ready' || agent.busy || agent.readOnly) { drawAgent(control); return; }
+    const ticket = agentTicket();
+    agent.busy = true;
+    lockAgentControls();
+    setStatus('agent-settings-status', '저장하고 있어요…', false);
+    let answer = null;
+    try {
+      answer = await agentCall('/hermes-agent/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ ...scope(), settings: change.settings || {}, ...(typeof change.paused === 'boolean' ? { paused: change.paused } : {}) })
+      }, SETTINGS_WRITE_MS);
+    } catch (error) {
+      if (agentCurrent(ticket)) agentChangeFailed(agentFailure(error), control);
+      return;
+    }
+    if (!agentCurrent(ticket)) return;
+    // The server answers a change with the settings as they now are; that, not what was asked, is what is drawn.
+    let settings = sanitizeAgentSettings(answer);
+    if (!settings) {
+      try {
+        settings = await readAgentSettings();
+      } catch (error) {
+        if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error));
+        return;
+      }
+      if (!agentCurrent(ticket)) return;
+    }
+    agent.busy = false;
+    agent.settings = settings;
+    drawAgent(control);
+    const kept = settingsMatch(change, settings);
+    setStatus('agent-settings-status', kept ? '' : KEPT_COPY, !kept);
+  }
+
+  async function changeTool(tool, enabled) {
+    const agent = state.agent;
+    const control = `tool-${tool.name}`;
+    if (agent.phase !== 'ready' || agent.busy || agent.readOnly || !Array.isArray(agent.tools)) { drawAgent(control); return; }
+    const ticket = agentTicket();
+    agent.busy = true;
+    lockAgentControls();
+    setStatus('agent-settings-status', '바꾸고 있어요…', false);
+    let answer = null;
+    try {
+      answer = await relayToolsets(tool.name, { enabled }, SETTINGS_WRITE_MS);
+    } catch (error) {
+      if (agentCurrent(ticket)) agentChangeFailed(agentFailure(error), control);
+      return;
+    }
+    if (!agentCurrent(ticket)) return;
+    // The page does not take its own word for it: the list is read again, and the switch shows what the server says now.
+    let tools;
+    try {
+      tools = await readToolsets();
+    } catch (error) {
+      if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error));
+      return;
+    }
+    if (!agentCurrent(ticket)) return;
+    agent.busy = false;
+    agent.tools = tools;
+    drawAgent(control);
+    const now = tools.find((item) => item.name === tool.name);
+    if (!now || now.enabled !== enabled) setStatus('agent-settings-status', KEPT_COPY, true);
+    else if (enabled && answer && answer.post_setup_started) setStatus('agent-settings-status', '켰어요. 준비에 몇 분 걸릴 수 있어요.', false);
+    else setStatus('agent-settings-status', '', false);
   }
 
   // ---- Wiring ----------------------------------------------------------------------
@@ -1176,6 +1777,7 @@
     loadWorkspaceData();
   });
   $('connect-cancel').addEventListener('click', closeFlow);
+  $('return-top').addEventListener('click', () => returnToApp());
   $('open-signin').addEventListener('click', () => auth.open());
   $('handoff-connect').addEventListener('click', claimHandoff);
   $('handoff-dismiss').addEventListener('click', () => dropHandoff('', false));

@@ -93,10 +93,44 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 .connect-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
 .connect-form > .ai-button { align-self: flex-start; }
 .connect-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.device-code { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; padding: 14px 16px;
+/* The code the person has to get into the provider's page: large, in groups, and one tap selects all of it. The groups are
+ * spans around the same text, so a selected or copied code is exactly the code (the spacing is only drawn here). */
+.device-code { display: flex; justify-content: center; margin-top: 12px; padding: 18px 16px;
   border: 1px dashed var(--accent-border); border-radius: 14px; background: var(--accent-soft); }
-.device-code-value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 24px; font-weight: 700;
-  letter-spacing: .12em; color: var(--ink); }
+.device-code-value { display: block; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(22px, 8.2vw, 34px);
+  font-weight: 700; line-height: 1.2; letter-spacing: .08em; text-align: center; color: var(--ink);
+  -webkit-user-select: all; user-select: all; }
+.device-code-value .code-group + .code-group { margin-left: .12em; }
+.device-code-value.is-expired { color: var(--soft); text-decoration: line-through; }
+/* Buttons whose words depend on the provider's name may take a second line instead of running out of the panel. */
+.ai-button.wrap { white-space: normal; text-align: center; line-height: 1.35; padding-top: 8px; padding-bottom: 8px; max-width: 100%; }
+/* The re-copy button once the person is back from the provider's page: the code may have been replaced on the clipboard
+ * (a number sent by SMS or mail is copied the same way), so the button that puts it back is the one to see. */
+.ai-button.is-emphasis, .ai-button.secondary.is-emphasis:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-border); }
+/* The scratch field the fallback copy selects from; it has a real box (a hidden field cannot be selected), 16px type (the
+ * phone's browser does not zoom into it) and no pointer. */
+.copy-scratch { position: fixed; top: 0; left: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0;
+  font-size: 16px; pointer-events: none; }
+
+/* The way back to the app: drawn only in the app's mode, from the first paint (the class is on <html> before the body). */
+.return-top { display: none; }
+html.in-app .return-top { display: inline-flex; align-items: center; min-height: var(--control-h); margin-left: -8px; padding: 0 var(--space-3) 0 var(--space-2);
+  border: 0; border-radius: var(--radius-sm); background: none; color: var(--ink); font-size: 14px; font-weight: 700;
+  white-space: nowrap; cursor: pointer; }
+html.in-app .return-top:hover { background: var(--sunken); }
+
+/* A connection that is finished: the panel stays and says so, with the way back to the app. The check mark is drawn here. */
+.connect-done { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-3);
+  padding: var(--space-4); border: 1px solid var(--line-soft); border-radius: var(--radius-md); background: var(--bg); }
+.connect-done.is-warn { background: var(--warning-bg); border-color: var(--line); }
+.connect-done h3 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+.connect-done p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+.connect-done .ai-note { color: var(--muted); font-size: 13px; }
+.connect-done .connect-actions { margin-top: var(--space-1); }
+.connected-mark { position: relative; flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--positive-bg); }
+.connected-mark::after { content: ''; position: absolute; left: 18px; top: 10px; width: 12px; height: 22px; border: solid var(--positive);
+  border-width: 0 4px 4px 0; border-radius: 1px; transform: rotate(45deg); }
 
 .provider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .provider-card { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line-soft);
@@ -117,6 +151,43 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 .provider-more summary { min-height: 44px; display: flex; align-items: center; color: var(--ink-soft);
   font-size: 14px; font-weight: 700; cursor: pointer; }
 
+/* AI 직원 실행 설정: two groups, each control one real setting. Every control is a native radio or checkbox, so the keyboard
+ * and the screen reader work without help; the look is drawn around them. */
+.settings-body { margin-top: var(--space-3); }
+.settings-group + .settings-group { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--line-soft); }
+.settings-group h3 { margin: 0 0 var(--space-2); font-size: 16px; letter-spacing: -.02em; }
+.settings-state { margin: 0 0 var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md); background: var(--bg); color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+fieldset.setting { min-width: 0; margin: 0; padding: var(--space-2) 0 var(--space-3); border: 0; border-bottom: 1px solid var(--hairline); }
+fieldset.setting legend { padding: 0; margin: 0 0 var(--space-2); color: var(--ink); font-size: 14px; font-weight: 700; }
+.segments { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: var(--space-2); }
+.segment { position: relative; display: flex; min-width: 0; }
+.segment input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.segment span { display: flex; flex: 1; align-items: center; justify-content: center; min-height: var(--control-h); padding: 0 var(--space-3);
+  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); color: var(--ink-soft);
+  font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; }
+.segment input:checked + span { border-color: var(--ink); background: var(--ink); color: var(--card); }
+.segment input:focus-visible + span { outline: 3px solid var(--accent-border); outline-offset: 2px; }
+.segment input:disabled { cursor: not-allowed; }
+.segment input:disabled + span { opacity: .55; }
+.setting .ai-note { margin-top: var(--space-2); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: var(--control-h);
+  padding: var(--space-3) 0; border-bottom: 1px solid var(--hairline); cursor: pointer; }
+.switch-row:last-child { border-bottom: 0; }
+.switch-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.switch-text strong { font-size: 14px; }
+.switch-line { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.switch-need { color: var(--warning); font-size: 12.5px; font-weight: 700; }
+.switch { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 52px; height: 32px; margin: 0;
+  border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--sunken); cursor: pointer; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--card);
+  box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-out); }
+.switch:checked { border-color: var(--ink); background: var(--ink); }
+.switch:checked::after { transform: translateX(20px); }
+.switch:focus-visible { outline: 3px solid var(--accent-border); outline-offset: 2px; }
+.switch:disabled { cursor: not-allowed; opacity: .55; }
+@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+
 .ai-shell .footer { margin-top: 40px; }
 
 @media (max-width: 700px) {
@@ -131,6 +202,5 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
   .ai-step { padding: 18px 16px; border-radius: 18px; }
   .connection-actions { grid-template-columns: minmax(0, 1fr) auto; }
   .connection-actions .ai-select { grid-column: 1 / -1; }
-  .device-code-value { font-size: 20px; }
 }
 

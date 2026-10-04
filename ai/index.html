@@ -73,6 +73,10 @@
 </head>
 <body>
   <header class="site-header">
+    <!-- The way back to the app: only in the app's mode (html.in-app, set by /app-mode.js before the first paint; /ai/ai.css
+         shows it from then). A button, never a link: /app-mode.js un-links every anchor that is not http(s) or mailto, and
+         /ai/ai.js navigates to the app's address when it is pressed. -->
+    <button class="return-top" id="return-top" type="button">← 앱으로 돌아가기</button>
     <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
     <nav class="nav" aria-label="주요 메뉴">
       <a href="/support/">도움말</a>
@@ -145,6 +149,13 @@
         <div class="provider-grid" id="provider-rest"></div>
       </details>
       <p class="ai-status" id="providers-status" aria-live="polite"></p>
+    </section>
+
+    <section class="ai-step" id="agent-settings-step" aria-labelledby="agent-settings-heading" hidden>
+      <h2 id="agent-settings-heading">AI 직원 실행 설정</h2>
+      <p class="ai-note">이 프로젝트의 AI 직원이 일하는 방식이에요. 앱의 운영 설정과 같은 값이고, 바꾸면 새 업무부터 적용돼요.</p>
+      <div class="settings-body" id="agent-settings-body"></div>
+      <p class="ai-status" id="agent-settings-status" aria-live="polite"></p>
     </section>
 
     <footer class="footer">
