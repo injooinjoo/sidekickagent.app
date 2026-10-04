@@ -283,8 +283,8 @@
   //   signedIn(method, answer)  what becomes of a sign-in answer. The sheet and
   //                             the web page keep it as this browser's session
   //                             (adoptSignIn); the app hand-off keeps it in the
-  //                             page's memory only, as a candidate the person must
-  //                             still confirm.
+  //                             page's memory only, as a candidate: verified, then
+  //                             handed straight to the app (takeDoorAnswer).
   // Declared before the hand-off is routed: that path never builds the page's
   // session, so nothing the doors use may reach for it.
   const door = { method: 'email', challengeId: null, busy: false, sending: false, verifying: false,
@@ -297,15 +297,18 @@
   // Turnstile in front of the email/phone code.
   //
   // Cloudflare Turnstile (owner 2026-10-04): a bot check before 인증번호 sends a
-  // mail or a text. Off while TURNSTILE_SITE_KEY is empty: no script is loaded,
-  // no field is sent and the sheet is exactly what it was. To turn it on, create
-  // the widget in the Cloudflare dashboard for sidekickagent.app, put its site
-  // key here (public, not a secret), and have the backend verify
-  // `turnstile_token` with the widget's secret key (siteverify) on POST
-  // /auth/start. Every page that can show a code form allows
-  // https://challenges.cloudflare.com in script-src and frame-src -- the pages
-  // with the sheet, and /login/ -- so the key is the only thing to change.
-  const TURNSTILE_SITE_KEY = '';
+  // mail or a text. On: the value below is the public Site Key of the widget
+  // `sidekick-web-signin` (allowed hostnames sidekickagent.app and
+  // www.sidekickagent.app). A Site Key is public -- it is meant to ship in the
+  // page -- and it is the only Turnstile key that may ever be written here: the
+  // Secret Key (the longer one, about 35 characters) stays in Secret Manager,
+  // where only the backend reads it to verify `turnstile_token` (siteverify) on
+  // POST /auth/start. An empty value turns the check off: no script is loaded,
+  // no field is sent and the sheet is exactly what it was. Every page that can
+  // show a code form allows https://challenges.cloudflare.com in script-src and
+  // frame-src -- the pages with the sheet, and /login/ -- so this value is the
+  // only thing to change.
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAFNOuJ0YGYEeKx0Q';
   const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   const TURNSTILE_RETRY_MS = 5000;
   const TURNSTILE_FAILED_COPY = '보안 확인을 하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
@@ -331,7 +334,6 @@
     const status = el('handoff-status');
     const choices = el('handoff-choices');
     const existing = el('handoff-existing');
-    const confirm = el('handoff-confirm');
     const back = el('handoff-return');
     const cancel = el('handoff-cancel');
     // Which account this browser's own sign-in is, said beside the button that would
@@ -339,14 +341,20 @@
     const accountNote = el('handoff-account');
     const who = el('handoff-who');
     const other = el('handoff-other');
-    // What each door says once its account is held, ready to be confirmed.
-    const DOOR_READY = { chatgpt: 'ChatGPT', phone: '전화번호', email: '이메일' };
+    // A custom-scheme navigation made without a tap can be ignored outside the system sign-in
+    // sheet. If this page is still in front this long after the app was asked for, the link
+    // below it is the way back -- the only retry; the page never navigates to the app twice.
+    const RETURN_LINK_DELAY_MS = 1500;
     let pending = null;
     let candidate = null; // bearer lives only in this page's memory
     let browser = null;
     let stopped = false;
     let busy = false;
+    let completing = false; // the one completion this attempt may make
+    let handedOff = false; // the app has been asked for; its link may still be offered
+    let returnWindowOver = false; // the app had RETURN_LINK_DELAY_MS to take over
     let expiryTimer = null;
+    let returnTimer = null;
     let callbackExpiresAt = 0;
 
     function say(message, failed = false) {
@@ -368,11 +376,13 @@
 
     function stop(message) {
       stopped = true;
+      handedOff = false;
+      returnWindowOver = false;
       clearTimeout(expiryTimer);
+      clearTimeout(returnTimer);
       clearAttempt();
       releaseDoors();
       choices.hidden = true;
-      confirm.hidden = true;
       back.hidden = true;
       back.removeAttribute('href');
       cancel.hidden = true;
@@ -513,29 +523,23 @@
       await checkBrowser();
       candidate = checkedCandidate(answer);
       await verifyCandidate(candidate);
-      pending.oauth = null;
-      pending.selected_user_id = candidate.id;
-      pending.phase = 'confirmed';
-      persist();
-      confirm.hidden = false;
-      say(SUPABASE_PROVIDERS[pending.provider] + '에서 선택한 계정으로 앱에 로그인할 준비가 됐어요.');
+      // The person has just chosen this account at the provider: no second question.
+      await returnToApp();
     }
 
+    // "이 계정으로 계속하기" is the one explicit tap this page still asks for: the person's own
+    // choice of the account this browser already holds. It is the action itself -- the account
+    // is checked and the app is asked for at once, with no second confirm.
     async function selectExisting() {
       if (busy || stopped || !browser) return;
       busy = true;
       choices.hidden = true;
+      say('계정을 확인하고 있어요.');
       try {
         await checkBrowser();
         candidate = { token: browser.token, id: pending.browser_user_id, expiresAt: browser.expiresAt };
         await verifyCandidate(candidate);
-        pending.selected_user_id = candidate.id;
-        pending.phase = 'confirmed';
-        pending.oauth = null;
-        persist();
-        releaseDoors();
-        confirm.hidden = false;
-        say('이 브라우저에서 확인한 계정으로 앱에 로그인할 준비가 됐어요.');
+        await returnToApp();
       } catch (error) { fail(error); }
       finally { busy = false; }
     }
@@ -543,28 +547,26 @@
     // ChatGPT, and the phone or email code, answer in this page rather than by a redirect.
     // They run the shared door functions; what comes back is held here as a candidate, the
     // same way as the account a provider returns -- in memory, never as this browser's
-    // session, and handed to the app only after the person confirms it.
+    // session. Once it checks out, the person -- who has just signed in on purpose -- goes
+    // straight back to the app.
     async function doorRequest(path, body) {
       try { return await request(API_ORIGIN + path, '', body); }
       catch (error) { throw error && typeof error.status === 'number' ? error : { status: 0, network: true }; }
     }
 
+    // `method` is the door's name (the seam's contract); the answer is handled the same for all.
+    // A second answer that arrives while one is being taken is dropped, never completed.
     async function takeDoorAnswer(method, answer) {
       if (busy || stopped) return;
       busy = true;
+      choices.hidden = true;
+      say('계정을 확인하고 있어요.');
       try {
         await checkBrowser();
         const person = checkedCandidate(answer);
         await verifyCandidate(person);
         candidate = person;
-        pending.oauth = null;
-        pending.selected_user_id = candidate.id;
-        pending.phase = 'confirmed';
-        persist();
-        releaseDoors();
-        choices.hidden = true;
-        confirm.hidden = false;
-        say(DOOR_READY[method] + '로 확인한 계정으로 앱에 로그인할 준비가 됐어요.');
+        await returnToApp();
       } catch (error) { fail(error); }
       finally { busy = false; }
     }
@@ -602,33 +604,46 @@
       return { url: url.toString(), expiry };
     }
 
-    async function complete() {
-      if (busy || stopped || !candidate || pending.phase !== 'confirmed') return;
-      busy = true;
-      confirm.hidden = true;
-      try {
-        await checkBrowser();
-        await verifyCandidate(candidate);
-        pending.phase = 'completing';
-        persist();
-        say('앱으로 돌아갈 준비를 하고 있어요.');
-        const answer = await request(API_ORIGIN + '/auth/app-handoff/complete', candidate.token,
-          { attempt_id: pending.id, state: pending.state, workspace_id: null });
-        await checkBrowser();
-        const returned = callbackUrl(answer);
-        stopped = true;
-        clearTimeout(expiryTimer);
-        clearAttempt();
-        cancel.hidden = true;
-        back.href = returned.url;
-        callbackExpiresAt = returned.expiry;
-        back.hidden = false;
-        say('계정을 확인했어요. 앱으로 돌아가 로그인을 마쳐 주세요.');
-        expiryTimer = setTimeout(() => stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.'),
-          Math.max(0, returned.expiry * 1000 - Date.now()));
-        window.location.assign(returned.url);
-      } catch (error) { fail(error); }
-      finally { busy = false; }
+    // The candidate is held and verified (a valid session, the account fence, /auth/session), so
+    // the app is asked for now: one POST /auth/app-handoff/complete, its callback_url checked
+    // exactly as ever, then one replace navigation to it (the page does not stay in history).
+    // Every way here holds `busy`, and `completing` lets this run once per attempt however it
+    // is reached. A failure ends the attempt with its sentence (fail); nothing retries by itself.
+    async function returnToApp() {
+      if (completing || stopped || !candidate) return;
+      completing = true;
+      await checkBrowser();
+      pending.oauth = null;
+      pending.selected_user_id = candidate.id;
+      pending.phase = 'completing';
+      persist(); // A lost response or reload must start a fresh attempt.
+      releaseDoors();
+      choices.hidden = true;
+      cancel.hidden = true;
+      say('로그인했어요. 앱으로 돌아가는 중이에요…');
+      const answer = await request(API_ORIGIN + '/auth/app-handoff/complete', candidate.token,
+        { attempt_id: pending.id, state: pending.state, workspace_id: null });
+      await checkBrowser();
+      const returned = callbackUrl(answer);
+      stopped = true;
+      handedOff = true;
+      clearTimeout(expiryTimer);
+      clearAttempt();
+      back.href = returned.url;
+      callbackExpiresAt = returned.expiry;
+      expiryTimer = setTimeout(() => stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.'),
+        Math.max(0, returned.expiry * 1000 - Date.now()));
+      window.location.replace(returned.url);
+      returnTimer = setTimeout(() => { returnWindowOver = true; showReturnLink(); }, RETURN_LINK_DELAY_MS);
+    }
+
+    // The link is offered only once the app has had its chance and this page is still in front;
+    // it is a real link, so its tap is the person's own navigation -- the only retry there is.
+    function showReturnLink() {
+      if (!handedOff || !returnWindowOver || document.visibilityState !== 'visible'
+          || callbackExpiresAt <= nowSeconds()) return;
+      back.hidden = false;
+      say('계정을 확인했어요. 앱으로 돌아가 로그인을 마쳐 주세요.');
     }
 
     cancel.addEventListener('click', () => stop('로그인을 취소했어요. 이 창을 닫고 앱에서 다시 시작해 주세요.'));
@@ -638,7 +653,6 @@
         stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.');
       }
     });
-    confirm.addEventListener('click', complete);
     existing.addEventListener('click', selectExisting);
     el('handoff-google').addEventListener('click', () => startProvider('google'));
     el('handoff-apple').addEventListener('click', () => startProvider('apple'));
@@ -662,7 +676,10 @@
       if (event.persisted && !stopped) fail({ status: 409 });
     });
     document.addEventListener('visibilitychange', () => {
-      if (stopped || document.visibilityState !== 'visible') return;
+      if (document.visibilityState !== 'visible') return;
+      // Back at a page the app did not take over: the link is there to tap.
+      if (handedOff) { showReturnLink(); return; }
+      if (stopped) return;
       checkBrowser().catch(fail);
       // Coming back from ChatGPT's approval tab is when its answer is ready.
       resumeChatGptPoll();
@@ -721,8 +738,10 @@
       }
       expiryTimer = setTimeout(() => fail({ status: 410 }), Math.max(0, pending.expires_at * 1000 - Date.now()));
       cancel.hidden = false;
-      if (input.provider) await receiveProvider(input.provider);
-      else {
+      if (input.provider) {
+        busy = true;
+        try { await receiveProvider(input.provider); } finally { busy = false; }
+      } else {
         choices.hidden = false;
         say(browser ? '이 브라우저의 계정으로 계속하거나, 같은 계정으로 로그인해 주세요.'
           : '로그인 방법을 골라 주세요. 마치면 앱으로 돌아가요.');
@@ -1479,10 +1498,8 @@
     if (!LOGIN_RECEIVER) return;
     const node = document.getElementById('handoff-status');
     if (node) { node.textContent = message; node.setAttribute('role', failed ? 'alert' : 'status'); }
-    for (const id of ['handoff-confirm', 'handoff-return']) {
-      const item = $(id);
-      if (item) { item.hidden = true; if (id === 'handoff-return') item.removeAttribute('href'); }
-    }
+    const back = document.getElementById('handoff-return');
+    if (back) { back.hidden = true; back.removeAttribute('href'); }
     const choices = document.getElementById('handoff-choices');
     if (choices) choices.hidden = !failed;
   }
