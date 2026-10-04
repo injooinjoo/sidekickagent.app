@@ -22,6 +22,27 @@ button, input, select, textarea { font: inherit; }
 .ai-status { min-height: 0; margin: 10px 0 0 !important; color: var(--muted); font-size: 13px; }
 .ai-status:empty { display: none; }
 .ai-status.is-error { color: var(--accent); }
+/* The app opened this page with its own login (the first script in <head> sets this class, and /auth.js or a five-second
+ * timer takes it off): until that is answered the page does not offer its sign-in button, only the sentence that says
+ * what is happening. */
+html.ai-receiving #signin-line, html.ai-receiving #open-signin { display: none; }
+/* The one toast this page ever shows is /auth.js's sentence for a different account already signed in here (the page
+ * below is that account's, so the sentence has to be seen): at the top under the header, where the analytics consent
+ * bar at the bottom of the screen cannot cover it. */
+.auth-toast { top: calc(var(--header-h) + 12px); bottom: auto; }
+/* After the app's login was taken over (/auth.js, receiveAppLogin): which account this browser now is, under the header, with
+ * the way to say it is not. It lines up with the page's column and stays under the sticky header while the page scrolls (the
+ * page scrolls to the provider the app asked for, which would otherwise leave it out of sight); what the page scrolls into
+ * view lands below it, by the height /auth.js measures. */
+.app-login-notice { position: sticky; top: calc(var(--header-h) + 8px); z-index: 19; width: min(816px, calc(100% - 44px));
+  margin: 8px auto 0; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  border: 1px solid var(--accent-border); border-radius: 14px; background: var(--accent-soft); box-shadow: var(--shadow-sm); }
+html.has-app-login-notice { scroll-padding-top: var(--app-login-notice-h, 0px); }
+.app-login-notice p { flex: 1 1 220px; margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.5; }
+.app-login-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-login-notice button { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  color: var(--ink); font-size: 14px; font-weight: 700; cursor: pointer; }
+.app-login-notice button.app-login-undo { border-color: var(--accent-border); color: var(--accent); }
 .ai-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .ai-hint { margin: 4px 0 0; color: var(--soft); font-size: 12px; }
 .ai-label { display: block; margin: 0 0 6px; color: var(--ink-soft); font-size: 13px; font-weight: 700; }
@@ -84,6 +105,11 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 .provider-card.is-requested { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
 .provider-head { display: flex; align-items: center; gap: 8px; }
 .provider-head strong { font-size: 16px; }
+/* The provider's official mark (/assets/ai/<id>.png, the artwork the app shows), drawn as the provider made it: no plate,
+ * border, radius, padding or background of ours. The 40px box is fixed (ai.js gives the img the same width and height),
+ * so the card does not move when the file arrives, and it never shrinks when the name is long. */
+.provider-logo { flex: none; display: block; width: var(--space-10); height: var(--space-10); margin: 0 var(--space-1) 0 0;
+  padding: 0; border: 0; border-radius: 0; background: none; object-fit: contain; }
 .provider-badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .provider-detail { margin: 0; color: var(--warning); font-size: 12.5px; }
 .provider-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
@@ -99,6 +125,7 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 
 @media (max-width: 560px) {
   .ai-shell { padding: 28px 16px 46px; }
+  .app-login-notice { width: calc(100% - 32px); }
   .ai-intro h1 { font-size: 28px; }
   .ai-intro > p { font-size: 14px; }
   .ai-step { padding: 18px 16px; border-radius: 18px; }

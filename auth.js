@@ -80,6 +80,19 @@
   const EXPIRED_COPY = '로그인이 만료돼 로그아웃했어요. 다시 로그인해 주세요.';
   const DELETION_PENDING_COPY = '계정 삭제가 진행 중이라 로그인할 수 없어요. 30일 안에는 앱에서 되돌릴 수 있어요.';
   const CHECK_FAILED_COPY = '계정을 확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  // What /ai/ says while it takes over the login the app opened it with, and when that fails (receiveAppLogin).
+  const APP_LOGIN_WORKING_COPY = '앱 계정으로 이어 가는 중이에요…';
+  const APP_LOGIN_CONFLICT_COPY = '이 브라우저에는 다른 계정이 로그인돼 있어요. 그 계정을 쓰거나 로그아웃한 뒤 앱에서 다시 열어 주세요.';
+  const APP_LOGIN_FAILED_COPY = '앱에서 로그인을 이어 오지 못했어요. 아래에서 로그인해 주세요.';
+  // The most the page waits for that exchange (the first script in /ai/'s <head> gives up on its side at the same time).
+  const APP_LOGIN_WAIT_MS = 5000;
+  // After the takeover the page says which account this browser now is (GET /account, read for at most this long) and lets
+  // the person say it is not theirs. Without a name, in general words.
+  const APP_LOGIN_IDENTITY_MS = 3000;
+  const APP_LOGIN_KNOWN_COPY = '앱에서 쓰던 계정으로 이어졌어요.';
+  // The grammar of what the app puts in /ai/'s fragment: an attempt id and three 43-character proofs.
+  const APP_LOGIN_ATTEMPT = /^ah_[A-Za-z0-9_-]{32}$/;
+  const APP_LOGIN_PROOF = /^[A-Za-z0-9_-]{43}$/;
   // Every way in the app offers, so a purchase or a connection is attached to
   // the account the person already has instead of minting a second one.
   const AUTH_METHODS = {
@@ -769,6 +782,11 @@
 
   const LOGIN_RECEIVER = window.location.pathname === '/login/';
   const loginInput = window.__sidekickLoginInput;
+  // The login the app opened /ai/ with, left by the first script in that page's <head>: taken out of its window property
+  // here, once, so nothing else can reach it (see "App→Web in the device browser").
+  let appLoginInput = LOGIN_RECEIVER ? null : takeAppLoginInput();
+  // The notice under /ai/'s header that says which account the app's login became, once it has (see showAppLoginNotice).
+  let appLoginNotice = null;
   // App handoff never subscribes or adopts this browser's shared account.
   if (LOGIN_RECEIVER && loginInput && (loginInput.mode === 'app'
       || (!loginInput.invalid && loginInput.mode === 'none'
@@ -906,6 +924,7 @@
   // this tab's own session. Another tab may have signed in again in the
   // meantime; its newer session is not this tab's to delete.
   function clearLocalSession() {
+    removeAppLoginNotice();
     invalidateWebLogin();
     retireWebHandoff();
     stopChatGpt();
@@ -1113,7 +1132,7 @@
     else showToast(message, isError);
   }
 
-  function showToast(message, isError) {
+  function showToast(message, isError, milliseconds = 6000) {
     if (!message || !document.body) return;
     let toast = $('auth-toast');
     if (!toast) {
@@ -1128,7 +1147,7 @@
     toast.classList.toggle('is-error', Boolean(isError));
     toast.hidden = false;
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.hidden = true; }, 6000);
+    toastTimer = setTimeout(() => { toast.hidden = true; }, milliseconds);
   }
 
   function showSocialStatus(message, isError) {
@@ -1855,6 +1874,45 @@
     });
   }
 
+  // The redemption both receivers make: POST /auth/web-handoff/exchange with the 60-second single-use code the app
+  // minted and the verifier that goes with it, then every check an answer must pass before it becomes this browser's
+  // session. `proof` is {attempt, state, code, verifier}, spent the moment the request body is built. `fence` is the
+  // session this page had when it asked ({before: its token, generation}): an answer that finds it moved is dropped.
+  // `scoped` is whether the answer must name the project the app chose (the in-app /connections/ page needs one; /ai/
+  // picks its own, and the server may leave it empty). Resolves {ok: true, user, receipt} once the answer is this
+  // browser's session, else {ok: false, error}: the api() error when the request itself failed, null when the answer
+  // was refused here. The bearer api() sends is the session already kept here, so the server can refuse another account.
+  async function redeemWebHandoff(proof, fence, scoped, signal) {
+    const body = JSON.stringify({ attempt_id: proof.attempt, state: proof.state, code: proof.code, code_verifier: proof.verifier });
+    proof.state = proof.code = proof.verifier = '';
+    let answer = null;
+    try {
+      answer = await api('/auth/web-handoff/exchange', {
+        method: 'POST',
+        body,
+        cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error',
+        ...(signal ? { signal } : {})
+      });
+    } catch (error) {
+      return { ok: false, error };
+    }
+    const token = String((answer && answer.access_token) || '').trim();
+    const user = answer && answer.user && typeof answer.user === 'object' ? answer.user : null;
+    const receipt = answer && answer.handoff;
+    const project = receipt ? receipt.workspace_id : null;
+    const named = typeof project === 'string' && SAFE_ID.test(project);
+    if (!isSidekickToken(token) || !user || !SAFE_ID.test(String(user.id || '')) || session.token !== fence.before
+      || session.handoffGeneration !== fence.generation || !receipt || receipt.attempt_id !== proof.attempt
+      || receipt.user_id !== user.id || !(named || (!scoped && (project === null || project === undefined)))) {
+      return { ok: false, error: null };
+    }
+    if (fence.before && session.user && String(session.user.id || '') !== String(user.id)) return { ok: false, error: null };
+    setToken(token, user, expiryOf(token, answer));
+    // The server resolved the account and its deletion lock to mint this.
+    session.checked = true;
+    return { ok: true, user, receipt };
+  }
+
   async function appWebHandoff() {
     if (!appWebHandoffAvailable()) return false;
     if (appWebPending) return appWebPending;
@@ -1870,31 +1928,151 @@
       }));
       const reply = await replied;
       if (!reply || session.token !== before || session.handoffGeneration !== generation) return false;
-      let answer = null;
-      try {
-        answer = await api('/auth/web-handoff/exchange', {
-          method: 'POST',
-          body: JSON.stringify({ attempt_id: reply.attempt, state, code: reply.code, code_verifier: verifier }),
-          cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error'
-        });
-      } catch (_) {
-        return false;
-      }
-      const token = String((answer && answer.access_token) || '').trim();
-      const user = answer && answer.user && typeof answer.user === 'object' ? answer.user : null;
-      const receipt = answer && answer.handoff;
-      if (!isSidekickToken(token) || !user || !SAFE_ID.test(String(user.id || '')) || session.token !== before
-        || session.handoffGeneration !== generation || !receipt || receipt.attempt_id !== reply.attempt
-        || receipt.user_id !== user.id || typeof receipt.workspace_id !== 'string' || !SAFE_ID.test(receipt.workspace_id)) return false;
-      if (before && session.user && String(session.user.id || '') !== String(user.id)) return false;
-      setToken(token, user, expiryOf(token, answer));
-      session.webHandoff = { required: true, attemptId: reply.attempt, userId: user.id, workspaceId: receipt.workspace_id,
-        token: session.token, generation: session.handoffGeneration };
-      // The server resolved the account and its deletion lock to mint this.
-      session.checked = true;
+      const redeemed = await redeemWebHandoff({ attempt: reply.attempt, state, code: reply.code, verifier },
+        { before, generation }, true);
+      if (!redeemed.ok) return false;
+      session.webHandoff = { required: true, attemptId: reply.attempt, userId: redeemed.user.id,
+        workspaceId: redeemed.receipt.workspace_id, token: session.token, generation: session.handoffGeneration };
       return true;
     })().finally(() => { appWebPending = null; });
     return appWebPending;
+  }
+
+  // ---- App→Web in the device browser: the AI page the app opened already holding a login ----
+  // On iOS the app's AI information page opens /ai/?provider=<id>&in_app=1 in the device browser. The signed-in app has
+  // asked the server for a 60-second single-use code and carries it, with the verifier that redeems it, in the
+  // address's fragment (#web_handoff=<attempt>&state=<state>&code=<code>&verifier=<verifier>): it keeps nothing, and no
+  // app token reaches the page. The first script in /ai/'s <head> reads that fragment before any other script can see
+  // the address, takes it out of the address bar, and leaves the four values on a window property for
+  // takeAppLoginInput; whatever else the fragment held is dropped there, unread. For those sixty seconds the fragment
+  // is a bearer, so the values go nowhere but into the body of the one POST below -- never logged, stored or shown.
+  //
+  // receiveAppLogin runs once per page load, after the session kept here was checked. The server compares that
+  // account with the code's and refuses another one (409 account_conflict): the account here stays, and the page says
+  // so. Otherwise the answer becomes the ordinary 30-day web session, exactly as after any other sign-in, and the
+  // page that called init() goes on as signed in.
+  function takeAppLoginInput() {
+    let held = null;
+    try { held = window.__sidekickAiHandoff || null; } catch (_) { held = null; }
+    try { delete window.__sidekickAiHandoff; } catch (_) { /* nothing more to do about it */ }
+    if (!held) return null;
+    const input = { attempt: String(held.attempt || ''), state: String(held.state || ''),
+      code: String(held.code || ''), verifier: String(held.verifier || '') };
+    const valid = window.location.pathname === '/ai/' && APP_LOGIN_ATTEMPT.test(input.attempt)
+      && [input.state, input.code, input.verifier].every((value) => APP_LOGIN_PROOF.test(value));
+    if (valid) return input;
+    endAppLoginWait();
+    return null;
+  }
+
+  // The class the first script in /ai/'s <head> put on <html> while it waits: /ai/ai.css hides the sign-in button then.
+  function endAppLoginWait() {
+    try { document.documentElement.classList.remove('ai-receiving'); } catch (_) { /* nothing was waiting */ }
+  }
+
+  // After a takeover the page says which account this browser now is, and lets the person undo it. The code in the fragment
+  // is a bearer that anyone with an app session can mint and send on, so a link can sign a visitor in as the person who made
+  // it (login CSRF); this notice is what makes that visible. It names the account only in masked form (the first and last
+  // letter of an address, a number as the server masked it), stays until it is dismissed or the session ends, and lives for
+  // this page load only. "내 계정이 아니에요" is the ordinary 로그아웃: the session here is revoked and cleared and the page
+  // goes back to its signed-out state.
+  // The notice stays in view under the sticky header while the page scrolls (the page scrolls to the provider the app asked
+  // for, and a notice left behind at the top would be out of sight at once). Whatever the page scrolls into view then lands
+  // below the notice as well: html.has-app-login-notice adds the notice's height to the scroll offset (see /ai/ai.css).
+  function measureAppLoginNotice() {
+    try {
+      if (appLoginNotice) document.documentElement.style.setProperty('--app-login-notice-h', `${appLoginNotice.offsetHeight + 8}px`);
+    } catch (_) { /* the page still works, only the offset is missing */ }
+  }
+
+  function removeAppLoginNotice() {
+    const notice = appLoginNotice;
+    appLoginNotice = null;
+    if (!notice) return;
+    try { notice.remove(); } catch (_) { /* already gone */ }
+    try {
+      window.removeEventListener('resize', measureAppLoginNotice);
+      document.documentElement.classList.remove('has-app-login-notice');
+      document.documentElement.style.removeProperty('--app-login-notice-h');
+    } catch (_) { /* nothing was set */ }
+  }
+
+  async function readAppLoginIdentity() {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), APP_LOGIN_IDENTITY_MS) : null;
+    try {
+      const info = await api('/account', { method: 'GET', cache: 'no-store', credentials: 'omit',
+        ...(controller ? { signal: controller.signal } : {}) });
+      return info && typeof info === 'object' ? maskedEmail(info.email) || maskedPhone(info.phone_masked) : '';
+    } catch (_) {
+      return '';
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function showAppLoginNotice(token) {
+    try {
+      const label = await readAppLoginIdentity();
+      // Only while this is still the session that was taken over.
+      if (session.token !== token || appLoginNotice) return;
+      const notice = document.createElement('div');
+      notice.id = 'app-login-notice';
+      notice.className = 'app-login-notice';
+      notice.setAttribute('role', 'status');
+      notice.setAttribute('aria-live', 'polite');
+      const words = document.createElement('p');
+      words.textContent = label ? `${label} 계정으로 이어졌어요.` : APP_LOGIN_KNOWN_COPY;
+      const actions = document.createElement('div');
+      actions.className = 'app-login-actions';
+      const keep = document.createElement('button');
+      keep.type = 'button';
+      keep.textContent = '확인';
+      keep.addEventListener('click', removeAppLoginNotice);
+      const undo = document.createElement('button');
+      undo.type = 'button';
+      undo.className = 'app-login-undo';
+      undo.textContent = '내 계정이 아니에요';
+      undo.addEventListener('click', () => { removeAppLoginNotice(); signOut(); });
+      actions.append(keep, undo);
+      notice.append(words, actions);
+      const header = document.querySelector('.site-header');
+      if (header && typeof header.after === 'function') header.after(notice);
+      else document.body.prepend(notice);
+      appLoginNotice = notice;
+      document.documentElement.classList.add('has-app-login-notice');
+      measureAppLoginNotice();
+      window.addEventListener('resize', measureAppLoginNotice);
+    } catch (_) { /* no notice is better than a broken page */ }
+  }
+
+  async function receiveAppLogin() {
+    const input = appLoginInput;
+    appLoginInput = null;
+    if (!input) return false;
+    notify(APP_LOGIN_WORKING_COPY, false);
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), APP_LOGIN_WAIT_MS) : null;
+    let redeemed = null;
+    try {
+      redeemed = await redeemWebHandoff(input, { before: session.token, generation: session.handoffGeneration }, false,
+        controller ? controller.signal : undefined);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (redeemed.ok) {
+      notify('', false);
+      // Not waited for: the page goes on as the app's account at once, and the notice follows as soon as the name is known.
+      showAppLoginNotice(session.token);
+    } else if (redeemed.error && redeemed.error.status === 409 && redeemed.error.code === 'account_conflict') {
+      // The person is signed in here as somebody else, so the page below is that account's: say it where it is seen.
+      notify(APP_LOGIN_CONFLICT_COPY, true);
+      showToast(APP_LOGIN_CONFLICT_COPY, true, 12000);
+    } else {
+      notify(APP_LOGIN_FAILED_COPY, true);
+    }
+    endAppLoginWait();
+    return redeemed.ok;
   }
 
   // ---- ChatGPT: a device code the person approves in another tab ------------
@@ -2392,6 +2570,8 @@
     // builds it the first time someone asks to sign in.
     if ($('signin-sheet')) ensureSheet();
     discardSessionFragment();
+    // The app's login is being received (receiveAppLogin): say so at once, before the stored session is even checked.
+    if (appLoginInput) notify(APP_LOGIN_WORKING_COPY, false);
     initialized = Promise.resolve().then(async () => {
       const legacy = loaded.exchange;
       loaded.exchange = '';
@@ -2407,6 +2587,7 @@
         notify(notice, true);
       }
       await validateSession();
+      await receiveAppLogin();
       scheduleExpiry();
       renderHeader();
       return Boolean(session.token);

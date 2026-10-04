@@ -2,8 +2,33 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-3uZXpFn4Usr5EAfduptbriE79XX8MFfXHtp4CLdM+hk=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
   <meta name="referrer" content="no-referrer" />
+  <script>(() => {
+  'use strict';
+  // The app opens this page in the device browser with a one-time login in the address's fragment:
+  //   #web_handoff=<attempt>&state=<state>&code=<code>&verifier=<verifier>
+  // exactly those four, once each, in this order. This is the first script the page runs, so the fragment is read and
+  // taken out of the address bar before /app-mode.js, the analytics scripts or anything else can see the address.
+  // It acts only on /ai/ with ?in_app=1. What matches the grammar is left for /auth.js on a window property that is
+  // not enumerable (/auth.js deletes it as soon as it has read it); any other fragment is dropped unread.
+  const here = window.location;
+  let asked = false;
+  try { asked = here.pathname === '/ai/' && new URLSearchParams(here.search).get('in_app') === '1'; } catch (_) {}
+  if (!asked || !here.hash) return;
+  const found = /^#web_handoff=(ah_[A-Za-z0-9_-]{32})&state=([A-Za-z0-9_-]{43})&code=([A-Za-z0-9_-]{43})&verifier=([A-Za-z0-9_-]{43})$/.exec(here.hash);
+  let cleared = false;
+  try { history.replaceState(null, '', here.pathname + here.search); cleared = true; } catch (_) {}
+  if (!found || !cleared) return;
+  const held = Object.create(null);
+  ['attempt', 'state', 'code', 'verifier'].forEach((name, index) => Object.defineProperty(held, name, { value: found[index + 1] }));
+  Object.defineProperty(window, '__sidekickAiHandoff', { value: Object.freeze(held), configurable: true });
+  // Until /auth.js has answered (it gives up after five seconds, and so does this) the page does not offer its own
+  // sign-in button: /ai/ai.css hides it while this class is on.
+  const root = document.documentElement;
+  root.classList.add('ai-receiving');
+  setTimeout(() => root.classList.remove('ai-receiving'), 5000);
+})();</script>
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <!-- 위 CSP: 이 페이지가 부르는 곳은 사이드킥 API와 명시적 동의 뒤의 PostHog뿐이다.
        Google·Apple 로그인은 Supabase로 "이동"할 뿐 이 페이지가 Supabase를 부르지 않고,

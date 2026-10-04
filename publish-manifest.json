@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "94e9bd2cef192b157678a62eb5dfe09d15acb8cfc8e6cf44fbd3483fd278992a",
+  "export_rules_sha256": "5ff849eb0cca23d78374e807c979b347d0f4b749321110670a1aac71ad36dd1e",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -26,16 +26,16 @@
       "sha256": "5cc67e73bb7b430e1a22965640c1ca20904fc34f0db10f1c43fd23e2a160e3c8"
     },
     "ai/ai.css": {
-      "bytes": 7036,
-      "sha256": "719d0325de71544f3a61e7a83b04bee136ce92d8c200de833c50f1d5a6668199"
+      "bytes": 9725,
+      "sha256": "dca572a42a17ac11cec9355f688dcf67ea9a5abbe2f1266027dad754e9734ddc"
     },
     "ai/ai.js": {
-      "bytes": 55861,
-      "sha256": "f1bd9a6b5a86645bc83070fc46d2149cd8a57f7b25934ef501d5d26982ea62a6"
+      "bytes": 57211,
+      "sha256": "613bf5eeb19d9c75f11cc4035bf2d700d0618d47995c6a8d8b3c955d6c892623"
     },
     "ai/index.html": {
-      "bytes": 11428,
-      "sha256": "73ede681f3ec105cfa4972b218748eee597d3e97cab32de51086059f3203ae63"
+      "bytes": 13282,
+      "sha256": "585fba5cd47a8b46df92a60bd2c14b3fd536ba5a191ad2faff023957d1e71adf"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -60,6 +60,46 @@
     "app-mode.js": {
       "bytes": 5210,
       "sha256": "a2bb6dadb809eb1601278767fdbdcd09e6e2e139ddf10c8dffd59d2a9d7a4144"
+    },
+    "assets/ai/anthropic.png": {
+      "bytes": 23088,
+      "sha256": "e378bef46f6e58696b77bc40afcfe4322ab20b79db20f19e4c0e419214876c8f"
+    },
+    "assets/ai/copilot.png": {
+      "bytes": 7266,
+      "sha256": "66047b707404c958999fe2cbb0eb25bc425117fda4f1e8268456e2e2f8b8e97c"
+    },
+    "assets/ai/deepseek.png": {
+      "bytes": 14002,
+      "sha256": "d83027617569c9e0cddb1bbab1acc3f90cb72754c6cc72a99570c20ac3814fa0"
+    },
+    "assets/ai/gemini.png": {
+      "bytes": 19712,
+      "sha256": "2691cc39ae4753ba53452e59f64b590f06cce8daea663ba17c3b3416f044f170"
+    },
+    "assets/ai/minimax.png": {
+      "bytes": 10014,
+      "sha256": "1c1f4c7487d709910fe2696ddf0ce70ae69a23f69d502d0cbbe458013212e3ef"
+    },
+    "assets/ai/nous.png": {
+      "bytes": 14807,
+      "sha256": "8c00552600650e5e9f8db000e42eeaf83616b1a49196a85f22f295c93f7a9439"
+    },
+    "assets/ai/openai.png": {
+      "bytes": 10724,
+      "sha256": "e4f1fdf9facd1eccfa3604cd291953eb012108295eea8bdf97a016d2cf4a38b2"
+    },
+    "assets/ai/openrouter.png": {
+      "bytes": 6812,
+      "sha256": "ce5a34b9d89bbf8893225132814bbe204b7301633c648109c27919d64598530d"
+    },
+    "assets/ai/qwen.png": {
+      "bytes": 8842,
+      "sha256": "006687e72a13be16079e7888b0d9473e4b5d4d0a07b1070d32aad4329a718020"
+    },
+    "assets/ai/xai.png": {
+      "bytes": 6770,
+      "sha256": "942c10d1535ca60df908dfbeedeb098f4701a3155c5539f58ddeb0a381c933fc"
     },
     "assets/apple-touch-icon.png": {
       "bytes": 8293,
@@ -146,8 +186,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 111996,
-      "sha256": "f29edc478dbf4dde396102234fe07cc72bcf772ef3db49ae77ff6223660bcf01"
+      "bytes": 123016,
+      "sha256": "5d131b00be16f7c75c310fe574cb3dc08464b97fa86c91d7aaa042a5fd46df73"
     },
     "connections/connections.css": {
       "bytes": 3208,
@@ -272,5 +312,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "5dd21bd833712799c388741ad6296e1aad8c5728"
+  "source_sha": "87ae3e37c325cb91d2bc70b4a8a7d1f6a28c8f1d"
 }
