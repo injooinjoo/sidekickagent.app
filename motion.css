@@ -64,3 +64,7 @@ html.js [data-reveal].in { opacity: 1; transform: none; }
   * { animation: none !important; transition: none !important; }
   html.js [data-reveal], .week-grid.js .week-dot, .team-row.pending, .fade { opacity: 1 !important; transform: none !important; }
 }
+
+/* The homepage remains readable in full-page capture, keyboard jumps and slow
+   devices. Movement is a small position cue, never a content visibility gate. */
+html.js .product-story [data-reveal] { opacity: 1; transform: none; }
