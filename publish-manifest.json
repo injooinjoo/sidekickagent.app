@@ -198,12 +198,12 @@
       "sha256": "a2d48edb6b42d4a7d4af2c22780ea20a6150511e9bbdcb7e9bd8bf94597a333c"
     },
     "assets/product-story/companion.png": {
-      "bytes": 947892,
-      "sha256": "cc4cf8ebd70b6effe0ec402be3eb06fd2ca7765bd37bba21792205965e878d86"
+      "bytes": 921032,
+      "sha256": "f0ef08e34b9c667bd24d633371e20df580839f847be943051e2c7ee6607586b5"
     },
     "assets/product-story/team.png": {
-      "bytes": 1321395,
-      "sha256": "12852f0268ce64241a2ca6742db5488d2d0c54d3e6f0abf66e5c060ac689c7bc"
+      "bytes": 1295091,
+      "sha256": "a8e8847ca11c42b5fc8ca4cf131061bce622229f404fc9e6640d37c0f01fba9b"
     },
     "assets/sidekick-mark.svg": {
       "bytes": 481,
@@ -340,5 +340,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "7b496a3703d4c0dca2890defacdb7d174c1e61bd"
+  "source_sha": "ef6fa21a751ca19c952f37c78fec6995fc62261d"
 }
