@@ -102,7 +102,10 @@
     var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
     if (!targets.length || REDUCED || !('IntersectionObserver' in window)) { targets.forEach(function (t) { t.classList.add('in'); }); return; }
     Array.prototype.forEach.call(document.querySelectorAll('[data-reveal-group]'), function (group) {
-      Array.prototype.forEach.call(group.querySelectorAll('[data-reveal]'), function (child, i) { child.style.setProperty('--reveal-delay', (i * 70) + 'ms'); });
+      Array.prototype.forEach.call(group.querySelectorAll('[data-reveal]'), function (child, i) {
+        var delay = document.body.classList.contains('product-story') ? Math.min(i * 70, 210) : i * 70;
+        child.style.setProperty('--reveal-delay', delay + 'ms');
+      });
     });
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -111,6 +114,36 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     targets.forEach(function (t) { io.observe(t); });
+  })();
+
+  // Homepage depth follows native scroll. No perpetual frame loop or hidden
+  // content; CSS provides the complete static scene when motion is unavailable.
+  (function () {
+    if (!document.body.classList.contains('product-story') || !window.matchMedia) return;
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var desktop = window.matchMedia('(min-width: 701px)');
+    var scenes = Array.prototype.slice.call(document.querySelectorAll('.team-stage, .work-stage, .approval-stage'));
+    var queued = false;
+    function draw() {
+      queued = false;
+      if (document.hidden) return;
+      var enabled = !motion.matches && desktop.matches;
+      // Read all geometry before writing styles to avoid interleaved layout.
+      var values = scenes.map(function (scene) {
+        var box = scene.getBoundingClientRect();
+        return enabled ? Math.max(-1, Math.min(1, (window.innerHeight / 2 - box.top - box.height / 2) / (window.innerHeight / 2 + box.height / 2))) : 0;
+      });
+      scenes.forEach(function (scene, i) { scene.style.setProperty('--scene-progress', values[i].toFixed(4)); });
+    }
+    function schedule() {
+      if (!queued) { queued = true; raf(draw); }
+    }
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    window.addEventListener('pageshow', schedule);
+    document.addEventListener('visibilitychange', schedule);
+    if (motion.addEventListener) motion.addEventListener('change', schedule);
+    schedule();
   })();
 
   // The homepage sample is local editorial content, never a real work request.
