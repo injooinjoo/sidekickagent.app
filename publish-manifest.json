@@ -286,8 +286,8 @@
       "sha256": "3af3bf5471212c1301df216eb02b14abf42884984423f8e091348fae4e3eb277"
     },
     "styles.css": {
-      "bytes": 61442,
-      "sha256": "8bed45bcf9adbc012e69abc86c83080a855079c7d962fd196e402ba5d0583ac5"
+      "bytes": 68077,
+      "sha256": "b4046a4c28d37890c6839bfe990826a791c0eeee03097a881db57158c4f6d2f5"
     },
     "support/index.html": {
       "bytes": 8533,
@@ -340,5 +340,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "63e137f477118aa0c647793b62f68097b6a69a1a"
+  "source_sha": "7b496a3703d4c0dca2890defacdb7d174c1e61bd"
 }
