@@ -113,6 +113,46 @@
     targets.forEach(function (t) { io.observe(t); });
   })();
 
+  // The homepage sample is local editorial content, never a real work request.
+  (function () {
+    var content = document.getElementById('sample-content');
+    if (!content) return;
+    var controls = document.querySelector('.sample-controls');
+    var buttons = Array.prototype.slice.call(controls.querySelectorAll('[data-sample]'));
+    var revise = document.getElementById('revise-sample');
+    var selected = 'script', shortened = false;
+    var samples = {
+      script: {
+        title: '첫 캠핑, 이 5가지만 준비하세요', label: '도입', outlineLabel: '장면 구성',
+        intro: '첫 캠핑을 앞두고 장바구니만 가득 찼나요? 오늘은 꼭 필요한 장비 다섯 가지와, 나중에 사도 되는 물건을 정리해볼게요.',
+        short: '첫 캠핑, 뭘 챙길지 막막하죠? 꼭 필요한 장비 다섯 가지만 알아볼게요.',
+        outline: ['잠자리를 편하게: 텐트와 침낭', '오래 앉아도 편하게: 의자와 테이블', '해가 진 뒤에도 밝게: 랜턴']
+      },
+      blog: {
+        title: '첫 캠핑 준비물, 가볍게 시작하는 법', label: '첫 문단', outlineLabel: '글 구성',
+        intro: '처음부터 모든 장비를 살 필요는 없어요. 하룻밤을 편하게 보낼 수 있는 기본 장비부터 챙기고, 내 캠핑 방식에 맞춰 하나씩 더해보세요.',
+        short: '첫 캠핑은 기본 장비부터. 필요한 물건은 경험하면서 하나씩 더해도 충분해요.',
+        outline: ['꼭 필요한 준비물 다섯 가지', '빌리거나 나중에 사도 되는 물건', '떠나기 전 마지막 확인 목록']
+      }
+    };
+    function render() {
+      var sample = samples[selected];
+      document.getElementById('sample-title').textContent = sample.title;
+      document.getElementById('sample-label').textContent = sample.label;
+      document.getElementById('sample-intro').textContent = shortened ? sample.short : sample.intro;
+      document.getElementById('sample-outline-label').textContent = sample.outlineLabel;
+      var outline = document.getElementById('sample-outline');
+      outline.replaceChildren();
+      sample.outline.forEach(function (text) { var item = document.createElement('li'); item.textContent = text; outline.appendChild(item); });
+      buttons.forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.sample === selected)); });
+      revise.setAttribute('aria-pressed', String(shortened));
+      revise.textContent = shortened ? '원래 도입부로 돌아가기 ↶' : '도입부를 더 짧게 바꿔줘 ↗';
+    }
+    buttons.forEach(function (button) { button.addEventListener('click', function () { selected = button.dataset.sample; shortened = false; render(); }); });
+    revise.addEventListener('click', function () { shortened = !shortened; render(); });
+    controls.hidden = false;
+  })();
+
   // ---- Scenario renderer (the hero demo and the /use/ story phone) -----------
   // `role` is one goal from roles.json: its lead, team and helpers name who is
   // doing what, so the phone shows a team at work rather than a model at work.
@@ -300,7 +340,7 @@
         loops = again ? loops + 1 : 0;
         playing = role;
         if (demoGoal) demoGoal.textContent = role.goal;
-        if (REDUCED) { threadHead(demoHead, role); renderFinished(demoScreen, role.messages, role); return; }
+        if (REDUCED || document.body.classList.contains('product-story')) { threadHead(demoHead, role); renderFinished(demoScreen, role.messages, role); return; }
         phone.classList.add('fade');
         swapTimer = setTimeout(function () {
           threadHead(demoHead, role);

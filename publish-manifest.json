@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "24aef67cd3197b90dea48acf2bc641c3ebfe974534f06c08aa54d7ad949bdd52",
+  "export_rules_sha256": "c4e862f32e21137a62f5452e4f1bccde4d1c6562c73752b479ad38778cd6c04a",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -197,6 +197,14 @@
       "bytes": 51213,
       "sha256": "a2d48edb6b42d4a7d4af2c22780ea20a6150511e9bbdcb7e9bd8bf94597a333c"
     },
+    "assets/product-story/companion.png": {
+      "bytes": 947892,
+      "sha256": "cc4cf8ebd70b6effe0ec402be3eb06fd2ca7765bd37bba21792205965e878d86"
+    },
+    "assets/product-story/team.png": {
+      "bytes": 1321395,
+      "sha256": "12852f0268ce64241a2ca6742db5488d2d0c54d3e6f0abf66e5c060ac689c7bc"
+    },
     "assets/sidekick-mark.svg": {
       "bytes": 481,
       "sha256": "5aded62574c4181f3d5d8cd9d1ee7c5ea4925137fd6ab1594581f3a1635dcfe8"
@@ -230,12 +238,12 @@
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "index.html": {
-      "bytes": 27677,
-      "sha256": "71a240ab5846740c1d8191ad123e1c5f3ffbe0ffc2dbccf976e3064a9f744e7e"
+      "bytes": 28398,
+      "sha256": "c4462caeed8b9f6c3ce87d68f8a09912f6db94a22e496c08ca59903e13f0ca73"
     },
     "landing.js": {
-      "bytes": 18980,
-      "sha256": "1caa19992c1014c4a7a49d934a0329271572529a4caec6baeaac83c459c9e512"
+      "bytes": 21931,
+      "sha256": "c6f16d7b7b72ac4773807a5adf6288c5737eb8ab9c8818ba4208191f3f5b7cf9"
     },
     "login/index.html": {
       "bytes": 12638,
@@ -258,8 +266,8 @@
       "sha256": "526c346756b5402775905c6b99b2b54c27925dea5b1385be641eda15d0150c99"
     },
     "motion.css": {
-      "bytes": 4659,
-      "sha256": "bc11a525e72b495e321d604cc2a0d7167581280d4361b9c1648699b2355eaa8d"
+      "bytes": 4891,
+      "sha256": "a017772cba2d99c49f17c64a848ea9cb9197453ae9f0bcd01a70d51862053619"
     },
     "privacy/index.html": {
       "bytes": 25541,
@@ -278,8 +286,8 @@
       "sha256": "3af3bf5471212c1301df216eb02b14abf42884984423f8e091348fae4e3eb277"
     },
     "styles.css": {
-      "bytes": 47786,
-      "sha256": "5707b9e8b86816756de8631f25b8fe67a30aa8537fb951f8f73e553ff55aa16c"
+      "bytes": 61442,
+      "sha256": "8bed45bcf9adbc012e69abc86c83080a855079c7d962fd196e402ba5d0583ac5"
     },
     "support/index.html": {
       "bytes": 8533,
@@ -332,5 +340,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "1a16312210279297b05fc2ec8647b1a1c1af7ecb"
+  "source_sha": "777bbd7188416543803069bbc2c6fb3fb016b94e"
 }

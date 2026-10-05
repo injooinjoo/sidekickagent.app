@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="motion.css" />
   <script src="/auth.js" defer></script>
 </head>
-<body class="landing">
+<body class="landing product-story">
 <header class="site-header">
   <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
   <nav class="nav" aria-label="주요 메뉴">
@@ -53,15 +53,16 @@
   <section class="hero" id="hero" aria-labelledby="hero-h">
     <div class="hero-grid">
       <div class="hero-copy">
-        <h1 id="hero-h"><img class="h1-mark" src="/assets/sidekick-mark.svg" width="64" height="64" alt="">시작하고 싶은 일을 고르면, AI 팀이 움직여요</h1>
-        <p class="lead">유튜브, 블로그처럼 해보고 싶던 일을 고르세요. 사이드킥이 팀을 꾸려 첫 결과까지 가져와요.</p>
+        <h1 id="hero-h"><img class="h1-mark" src="/assets/sidekick-mark.svg" width="64" height="64" alt="">하고 싶던 일,<br>이제 내 AI 팀과.</h1>
+        <p class="lead">유튜브부터 블로그까지. 시작할 일을 고르면,<br>사이드킥이 필요한 것만 묻고 첫 결과를 준비해요.</p>
         <div class="goal-picker" id="goals" role="group" aria-labelledby="goals-label">
-          <p class="goal-label" id="goals-label">무엇을 시작할까요?</p>
+          <p class="goal-label story-sr-only" id="goals-label">무엇을 시작할까요?</p>
           <!-- goals:start -->
           <div class="goal-tiles">
             <a class="goal-tile" href="/use/youtube/" data-goal="youtube" data-source="landing_hero"><span class="goal-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.5" width="12.4" height="9" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 6.1v3.8L10 8Z" fill="currentColor"/></svg></span><span class="goal-text"><b class="vt-goal-youtube">유튜브 시작하기</b><small>주제부터 대본까지, 첫 영상을 준비해요</small></span><span class="goal-go"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
             <a class="goal-tile" href="/use/blog/" data-goal="blog" data-source="landing_hero"><span class="goal-ico"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13h2.6l7.2-7.2a1.8 1.8 0 0 0-2.6-2.6L3 10.4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.4 4.6l2 2" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="goal-text"><b class="vt-goal-blog">블로그 시작하기</b><small>글감 조사부터 올리기 직전 원고까지 준비해요</small></span><span class="goal-go"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
           </div>
+          <details class="more-goals"><summary>다른 일 둘러보기 <span aria-hidden="true">+</span></summary>
           <ul class="goal-chips" aria-label="다른 일">
             <li><a class="goal-chip" href="/use/instagram/" data-goal="instagram" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.6" cy="4.4" r="0.9" fill="currentColor"/></svg><span class="vt-goal-instagram">인스타 콘텐츠 만들기</span></a></li>
             <li><a class="goal-chip" href="/use/store-cs/" data-goal="store-cs" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7.5H8.5L5.5 13.5V11h-3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.7h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-store-cs">스토어 문의 정리하기</span></a></li>
@@ -69,11 +70,14 @@
             <li><a class="goal-chip" href="/use/price-watch/" data-goal="price-watch" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 8.2l2.6 2.4L14 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.6 4.6H14V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="vt-goal-price-watch">가격 변동 지켜보기</span></a></li>
             <li><a class="goal-chip" href="/use/real-estate/" data-goal="real-estate" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.4 8 2.8l5.5 4.6V13.5h-11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 13.5V10h3v3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="vt-goal-real-estate">임장 자료 정리하기</span></a></li>
             <li><a class="goal-chip" href="/use/tax/" data-goal="tax" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.8h9v12.4l-1.8-1.1-1.8 1.1-1.9-1.1-1.8 1.1-1.7-1.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 5.4h4.4M5.8 8h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-tax">경비 정리하기</span></a></li>
-          </ul>
+          </ul></details>
           <!-- goals:end -->
-          <a class="text-link goal-all" href="/use/">모든 일 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+
         </div>
       </div>
+      <p class="availability">앱은 출시 준비 중이에요. 먼저 일하는 모습을 살펴보세요.</p>
+      <div class="team-stage">
+        <img class="team-art" src="/assets/product-story/team.png" width="1448" height="1086" alt="" fetchpriority="high" decoding="async">
       <div class="hero-demo" id="demo" role="img" aria-label="예시 화면: 고른 일을 맡은 AI 직원이 필요한 것만 묻고, 첫 작업을 진행하고, 확인을 받은 뒤 결과를 보내는 모습">
         <!-- demo:start -->
         <p class="demo-cap"><span class="badge idle">예시</span><span><span id="demo-goal">유튜브 시작하기</span>를 고르면</span></p>
@@ -85,6 +89,7 @@
         <!-- demo:end -->
       </div>
     </div>
+    </div>
   </section>
 
   <!-- 2. How it works, in the order the person lives it. No setup step. -->
@@ -92,46 +97,55 @@
     <div class="wrap-wide">
       <div class="sec-head" data-reveal>
         <h2 class="section-h" id="how-h">고르면, 나머지는 팀이 해요</h2>
-        <p class="section-p"><b>설정부터 하지 않아요.</b> 필요한 건 일하면서 그때 물어봐요.</p>
+        <p class="section-p">하고 싶은 일을 말해주세요. 함께 고르고, 다듬고, 첫 결과를 받아보세요.</p>
       </div>
+      <div class="work-layout">
       <ol class="how-steps" data-reveal-group>
-        <li class="how-step" data-reveal>
-          <span class="step-no">1</span>
-          <h3>팀이 꾸려져요</h3>
-          <p>고른 일에 맞는 AI 팀이 꾸려져요. 매니저가 팀을 이끌고, 리서처·작가 같은 팀원이 일을 나눠 맡아요.</p>
-          <div class="how-ui" aria-hidden="true">
-            <div class="team-card"><div class="kicker">유튜브 팀이 꾸려졌어요</div><div class="team-row"><span class="avatar">채</span><span class="team-who"><b>채널 매니저</b><small>유튜브 운영 총괄</small></span><span class="badge work">맡았어요</span></div><div class="team-row"><span class="avatar light">+5</span><span class="team-who"><b>팀원 5명</b><small>리서처 · 작가 · 크리에이티브 · 프로듀서 · 그로스</small></span><span class="badge idle">함께해요</span></div></div>
-          </div>
-        </li>
-        <li class="how-step" data-reveal>
-          <span class="step-no">2</span>
-          <h3>필요한 것만 묻고 바로 시작해요</h3>
-          <p>어떤 채널을 만들지처럼 꼭 필요한 것만 묻고 첫 작업에 들어가요. 누가 무엇을 하는지 바로 보여요.</p>
-          <div class="how-ui" aria-hidden="true">
-            <div class="prog"><div class="lbl"><span>첫 영상 준비</span></div><div><span>요즘 반응 좋은 주제 조사<small>리서처</small></span><span class="badge done">완료</span></div><div><span>첫 영상 후보 3개<small>작가</small></span><span class="badge work">진행 중</span></div><div><span>썸네일 문구<small>크리에이티브</small></span><span class="badge idle">대기</span></div></div>
-          </div>
-        </li>
-        <li class="how-step" data-reveal>
-          <span class="step-no">3</span>
-          <h3>확인할 때만 부르고, 결과를 가져와요</h3>
-          <p>올리기·보내기 전에는 꼭 확인을 받아요. 버튼 한 번이면 되고, 결과는 바로 쓸 수 있는 모습으로 와요.</p>
-          <div class="how-ui" aria-hidden="true">
-            <div class="appr"><div class="top"><h5>첫 영상 고르기</h5><span class="badge wait">확인 필요</span></div><p>1번 '캠핑 초보 장비 5가지'로 갈까요?</p><div class="btn-row"><span class="ink">1번으로</span><span class="line">다른 후보</span></div></div><div class="res"><div class="kicker">보고 도착</div><h5>첫 영상 대본과 썸네일 문구 준비 완료</h5></div>
-          </div>
-        </li>
+        <li class="how-step" data-reveal><span class="step-no">01</span><div><h3>팀이 꾸려져요</h3><p>하고 싶은 일을 고르면, 매니저와 팀원이 일을 나눠 맡아요.</p></div></li>
+        <li class="how-step" data-reveal><span class="step-no">02</span><div><h3>필요한 것만 묻고 바로 시작해요</h3><p>어떤 채널을 만들고 싶은지, 누구에게 전할 글인지. 필요한 것만 알려주세요.</p></div></li>
+        <li class="how-step" data-reveal><span class="step-no">03</span><div><h3>확인할 때만 부르고, 결과를 가져와요</h3><p>초안을 보고 방향을 정해요. 대본부터 썸네일 문구까지, 다음 일을 이어가요.</p></div></li>
       </ol>
+      <div class="work-stage" data-reveal>
+        <div class="sample-paper" id="sample-paper">
+          <p class="sample-caption">결과 예시 · 실제 작업이 아닌 샘플이에요</p>
+          <div class="sample-content" id="sample-content" aria-live="polite">
+            <h3 id="sample-title">첫 캠핑, 이 5가지만 준비하세요</h3>
+            <h4 id="sample-label">도입</h4>
+            <p id="sample-intro">첫 캠핑을 앞두고 장바구니만 가득 찼나요? 오늘은 꼭 필요한 장비 다섯 가지와, 나중에 사도 되는 물건을 정리해볼게요.</p>
+            <h4 id="sample-outline-label">장면 구성</h4>
+            <ol id="sample-outline"><li>잠자리를 편하게: 텐트와 침낭</li><li>오래 앉아도 편하게: 의자와 테이블</li><li>해가 진 뒤에도 밝게: 랜턴</li></ol>
+          </div>
+        </div>
+        <div class="sample-controls" hidden>
+          <div class="sample-switch" role="group" aria-label="결과 예시 종류"><button type="button" data-sample="script" aria-pressed="true" aria-controls="sample-content">대본</button><button type="button" data-sample="blog" aria-pressed="false" aria-controls="sample-content">블로그 원고</button></div>
+          <button type="button" class="revise-sample" id="revise-sample" aria-pressed="false" aria-controls="sample-intro">도입부를 더 짧게 바꿔줘 ↗</button>
+        </div>
+      </div>
+      </div>
     </div>
   </section>
 
   <!-- 3. Why it is safe to hand over. Plain words, no infrastructure. -->
   <section class="trust" id="trust" aria-labelledby="trust-h">
-    <div class="wrap">
-      <h2 class="section-h" id="trust-h" data-reveal>맡겨도 괜찮아요</h2>
+    <div class="wrap trust-layout">
+      <div class="approval-stage" data-reveal>
+        <img class="companion-art" src="/assets/product-story/companion.png" width="1024" height="1024" alt="" loading="lazy" decoding="async">
+        <div class="approval-paper">
+          <p class="sample-caption">확인 과정 예시</p>
+          <h3>보내기 전에, 확인해주세요</h3>
+          <p>준비한 글을 확인하고 다음 단계를 정해요.</p>
+          <blockquote>안녕하세요.<br>요청하신 자료를 정리했어요.<br><br>첨부한 내용을 확인하고, 더 필요한 내용이 있으면 알려주세요.</blockquote>
+          <p class="approval-note">내용을 살핀 뒤, 확인하거나 수정을 요청해요.</p>
+        </div>
+      </div>
+      <div class="trust-copy">
+      <h2 class="section-h" id="trust-h" data-reveal>맡기는 건 가볍게.<br>결정은 내 손에.</h2>
       <ul class="trust-list" data-reveal-group>
         <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>되돌리기 어려운 일은 먼저 물어봐요</b><p>올리기, 보내기, 결제, 삭제는 확인을 받은 뒤에만 해요.</p></div></li>
         <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><div><b>내 자료는 내 공간에만</b><p>사용자마다 따로 나뉜 공간에서 일하고, 다른 사람의 자료와 섞이지 않아요.</p></div></li>
         <li data-reveal><span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M6.5 9.5 9.5 6.5M7 4.5l1-1a3 3 0 0 1 4.2 4.2l-1 1M9 11.5l-1 1a3 3 0 0 1-4.2-4.2l1-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><div><b>연결은 필요할 때만</b><p>서비스 연결은 일하다 필요할 때 물어보고, 언제든 끊을 수 있어요.</p></div></li>
       </ul>
+      </div>
     </div>
   </section>
 
@@ -141,7 +155,7 @@
   <section class="pricing" id="pricing" aria-labelledby="pricing-h">
     <div class="wrap">
       <div class="pricing-head" data-reveal>
-        <h2 class="section-h" id="pricing-h">7일 무료로 시작해요</h2>
+        <h2 class="section-h" id="pricing-h">첫 업무부터, 7일 무료로.</h2>
         <p class="section-p">앱에서 첫 업무를 시작하면 <b>7일 무료 체험</b>이 결제수단 없이 바로 켜져요. 그다음 동시에 맡길 일의 수에 맞춰 고르세요.</p>
       </div>
       <ul class="plan-rows" id="plans" data-reveal>
@@ -159,9 +173,9 @@
   <!-- 5. Questions people ask before trusting it with work. -->
   <section class="faq" id="faq" aria-labelledby="faq-h">
     <div class="wrap">
-      <h2 class="section-h" id="faq-h" data-reveal>자주 묻는 질문</h2>
+      <h2 class="section-h" id="faq-h" data-reveal>궁금한 점이 있나요?</h2>
       <div data-reveal-group>
-        <details open data-reveal>
+        <details data-reveal>
           <summary>AI 비서 앱과 뭐가 다른가요?</summary>
           <p>답만 주는 게 아니라 고른 일을 끝까지 진행해요. 확인이 필요한 일만 진행하기 전에 물어봐요.</p>
         </details>
@@ -199,7 +213,7 @@
 
   <!-- 6. Closing: the same one action as the hero. -->
   <section class="start" id="start" aria-labelledby="start-h">
-    <h2 class="section-h" id="start-h" data-reveal>무엇부터 시작할까요?</h2>
+    <h2 class="section-h" id="start-h" data-reveal>하고 싶던 일,<br>함께 시작해요.</h2>
     <div data-reveal>
       <!-- closing-goals:start -->
       <ul class="goal-chips centered" aria-label="시작할 수 있는 일">
