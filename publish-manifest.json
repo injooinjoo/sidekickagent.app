@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "c4e862f32e21137a62f5452e4f1bccde4d1c6562c73752b479ad38778cd6c04a",
+  "export_rules_sha256": "ec8df98160d82f8e54508b1443b079b8df7a1b3a510ff4197084590c3703be8e",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -197,13 +197,77 @@
       "bytes": 51213,
       "sha256": "a2d48edb6b42d4a7d4af2c22780ea20a6150511e9bbdcb7e9bd8bf94597a333c"
     },
-    "assets/product-story/companion.png": {
-      "bytes": 921032,
-      "sha256": "f0ef08e34b9c667bd24d633371e20df580839f847be943051e2c7ee6607586b5"
+    "assets/product-story/01-idea.jpg": {
+      "bytes": 7784,
+      "sha256": "dcca20a1818673d89e2c1e2834b272571708539da2454b12ccc2144533ea6c1c"
     },
-    "assets/product-story/team.png": {
-      "bytes": 1295091,
-      "sha256": "a8e8847ca11c42b5fc8ca4cf131061bce622229f404fc9e6640d37c0f01fba9b"
+    "assets/product-story/01-idea.mp4": {
+      "bytes": 71232,
+      "sha256": "f43cdd3674bfbaa2ffe62df5a03cbae036fb8d06600aedb715810d534e2e433c"
+    },
+    "assets/product-story/02-plan.jpg": {
+      "bytes": 9693,
+      "sha256": "a7553b38302505861af76986d1cfa01f7ef1b3cdee52cb98c869254b246eb5ec"
+    },
+    "assets/product-story/02-plan.mp4": {
+      "bytes": 89930,
+      "sha256": "050b16212734b7c03b469b552cabb72a01c62fc23def92dbc19d328880226c9c"
+    },
+    "assets/product-story/03-record.jpg": {
+      "bytes": 9219,
+      "sha256": "907f738cf3de2727a09b6b4d38cf449e4b1b0ad6063cdd1c8f268b41f0ae1d4e"
+    },
+    "assets/product-story/03-record.mp4": {
+      "bytes": 82962,
+      "sha256": "412f43bfab4652f66c08e5ee0241a3f00d0e01f4d75d02e73f52e723fcaf0e13"
+    },
+    "assets/product-story/04-organize.jpg": {
+      "bytes": 9382,
+      "sha256": "cb9137ca914ba1934542de277fa4d6cd5ad57d28690074407901c2ebabe9406b"
+    },
+    "assets/product-story/04-organize.mp4": {
+      "bytes": 79813,
+      "sha256": "2aa289fe834d8ad6b8502e2df644eb7545e7d26de293748aea3ade3e8dd88846"
+    },
+    "assets/product-story/05-cheer.jpg": {
+      "bytes": 9554,
+      "sha256": "b48651d31d1ca46bb8c96e21dc230a4695721738db04a9f02e8668fbd372bd3a"
+    },
+    "assets/product-story/05-cheer.mp4": {
+      "bytes": 81192,
+      "sha256": "623d44481c4be736e7fe08c656b8df371b5c8929283dc0469c392be3cbc663bf"
+    },
+    "assets/product-story/06-inspire.jpg": {
+      "bytes": 9000,
+      "sha256": "24a4e2bd6e781fe2f4489dda9c2e7cd5074d89cbaf8bc8f00e28805f000e4f9e"
+    },
+    "assets/product-story/06-inspire.mp4": {
+      "bytes": 81230,
+      "sha256": "d0efcf846b191f859a2426308336d5db7daa26fc8b0cd5cef651831ab7f6f4f5"
+    },
+    "assets/product-story/07-focus.jpg": {
+      "bytes": 8811,
+      "sha256": "ea6524f2ff8f81962951bf161dea860544752d7ef70049d5c77ae9ff93899a6b"
+    },
+    "assets/product-story/07-focus.mp4": {
+      "bytes": 94034,
+      "sha256": "4c66d07cb0bc5299503a61a64646095b0e5d33ff3647a5e355347c278275edfd"
+    },
+    "assets/product-story/08-explore.jpg": {
+      "bytes": 10523,
+      "sha256": "07269a2c85ba315e0ddb4d91112bef92aac34d6d5fda74f2f3f6f5939547c9e3"
+    },
+    "assets/product-story/08-explore.mp4": {
+      "bytes": 79099,
+      "sha256": "8022263268d7a1543899922f7e932c815ba564767d05a786aeb306cc46587f02"
+    },
+    "assets/product-story/09-remind.jpg": {
+      "bytes": 9745,
+      "sha256": "94662b0b6cef752147e8ef60f60fd60e6725da0a926a010c5eb353ba384174bf"
+    },
+    "assets/product-story/09-remind.mp4": {
+      "bytes": 77287,
+      "sha256": "47ca21a91e2c04b32e5b0afab739e1b5dac1997fbf16dc7969ebdecf52fe16d7"
     },
     "assets/sidekick-mark.svg": {
       "bytes": 481,
@@ -238,12 +302,12 @@
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "index.html": {
-      "bytes": 28398,
-      "sha256": "c4462caeed8b9f6c3ce87d68f8a09912f6db94a22e496c08ca59903e13f0ca73"
+      "bytes": 32052,
+      "sha256": "e6070797aff5250329cfa4aa87d7a52ddc5dd4be0a7aef681df5f509816f3adb"
     },
     "landing.js": {
-      "bytes": 23590,
-      "sha256": "a5147240092ce1c993c5f8126b2d245816ce30eb2e76af3df892a1519f29b613"
+      "bytes": 25630,
+      "sha256": "fb6892310be863172a9059ffc6b33e36bb3eaaafe3142df778ef74e52d7a6c97"
     },
     "login/index.html": {
       "bytes": 12638,
@@ -286,8 +350,8 @@
       "sha256": "3af3bf5471212c1301df216eb02b14abf42884984423f8e091348fae4e3eb277"
     },
     "styles.css": {
-      "bytes": 68077,
-      "sha256": "b4046a4c28d37890c6839bfe990826a791c0eeee03097a881db57158c4f6d2f5"
+      "bytes": 68731,
+      "sha256": "3cfc67a55740ff6be1ad2774c8bfcdb607e3aaec251dcbe88f2a01a768954adc"
     },
     "support/index.html": {
       "bytes": 8533,
@@ -340,5 +404,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "ef6fa21a751ca19c952f37c78fec6995fc62261d"
+  "source_sha": "32a1fbd1c5a13d12dd60d54f74e6afeec85d5066"
 }

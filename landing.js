@@ -11,6 +11,45 @@
   var API_ORIGIN = 'https://api.sidekickagent.app';
   var REDUCED = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   if (!REDUCED) document.documentElement.classList.add('js');
+
+  // The supplied character loops share the page's existing motion preference.
+  // Posters stay visible until playback succeeds, including without JavaScript.
+  var characterPreference = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  var characterPlayers = [];
+  document.querySelectorAll('video[data-character-motion]').forEach(function (video) {
+    var visible = false;
+    var failed = false;
+    var frame = video.parentElement;
+    var update = function () {
+      if (!visible || document.hidden || (characterPreference && characterPreference.matches) || failed) {
+        video.pause();
+        if (characterPreference && characterPreference.matches) frame.classList.remove('is-ready');
+        return;
+      }
+      if (!video.hasAttribute('src')) video.src = video.getAttribute('data-src');
+      video.muted = true;
+      var playing = video.play();
+      if (playing && playing.catch) playing.catch(function () { frame.classList.remove('is-ready'); });
+    };
+    video.addEventListener('playing', function () {
+      if (visible && !document.hidden && !(characterPreference && characterPreference.matches)) frame.classList.add('is-ready');
+      else update();
+    });
+    video.addEventListener('error', function () { failed = true; video.pause(); frame.classList.remove('is-ready'); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        visible = entries[0].isIntersecting && entries[0].intersectionRatio >= 0.2;
+        update();
+      }, { threshold: [0, 0.2] }).observe(video);
+    }
+    characterPlayers.push(update);
+  });
+  var updateCharacters = function () { characterPlayers.forEach(function (update) { update(); }); };
+  document.addEventListener('visibilitychange', updateCharacters);
+  if (characterPreference) {
+    if (characterPreference.addEventListener) characterPreference.addEventListener('change', updateCharacters);
+    else if (characterPreference.addListener) characterPreference.addListener(updateCharacters);
+  }
   var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function el(tag, className, text) {

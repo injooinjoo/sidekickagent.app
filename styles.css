@@ -803,6 +803,7 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 ::view-transition-group(*) { animation-duration: var(--dur-slow); animation-timing-function: var(--ease-out); }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-base); }
 @media (prefers-reduced-motion: reduce) {
+  .product-story .character-media video[data-character-motion] { display: none; }
   @view-transition { navigation: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
@@ -856,7 +857,13 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story .more-goals .goal-chips { justify-content: center; }
 .product-story .availability { text-align: center; margin: 14px 0 24px; font-size: 13px; color: var(--story-muted); }
 .product-story .team-stage { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; background: var(--story-stage); border-radius: 28px; overflow: hidden; padding: 28px; gap: 28px; }
-.product-story .team-art { width: 100%; height: auto; display: block; mix-blend-mode: darken; mask-image: radial-gradient(ellipse closest-side, #000 72%, transparent 100%); }
+.product-story .team-characters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 8px; padding: 4px 0; }
+.product-story .team-characters figure { margin: 0; min-width: 0; text-align: center; }
+.product-story .team-characters figcaption { font-size: 12px; color: var(--story-muted); line-height: 1.5; margin-top: -8px; }
+.product-story .character-media { position: relative; aspect-ratio: 1; width: 100%; mix-blend-mode: darken; mask-image: radial-gradient(ellipse closest-side, #000 84%, transparent 100%); }
+.product-story .character-media img, .product-story .character-media video { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.product-story .character-media video { opacity: 0; pointer-events: none; }
+.product-story .character-media.is-ready video { opacity: 1; }
 .product-story .hero-demo { background: #fff; border-radius: 22px; padding: 22px; gap: 12px; box-shadow: 0 8px 28px #14151806; min-width: 0; }
 .product-story .demo-cap { width: 100%; justify-content: space-between; flex-direction: row-reverse; font-size: 13px; }
 .product-story .role-phone.demo-phone { width: 100%; max-width: none; height: 330px; border: 0; border-radius: 0; padding: 0; background: #fff; box-shadow: none; }
@@ -896,9 +903,9 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story .sample-switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
 .product-story .revise-sample { position: absolute; right: 18px; top: -20px; color: #fff; background: var(--story-accent); border-bottom-right-radius: 6px; }
 .product-story .trust-layout { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 72px; }
-.product-story .approval-stage { position: relative; min-height: 540px; display: flex; align-items: center; background: var(--story-stage); border-radius: 24px; padding: 36px 28px 36px 70px; isolation: isolate; }
-.product-story .companion-art { mask-image: radial-gradient(ellipse closest-side, #000 60%, transparent 100%); position: absolute; width: 195px; height: 195px; object-fit: contain; left: -12px; bottom: 0; mix-blend-mode: darken; z-index: -1; }
-.product-story .approval-paper { margin-bottom: 60px; padding: 28px; background: #fff; border-radius: 18px; box-shadow: 0 6px 22px #14151805; }
+.product-story .approval-stage { position: relative; min-height: 540px; display: flex; align-items: center; background: var(--story-stage); border-radius: 24px; padding: 36px 28px 190px 70px; isolation: isolate; }
+.product-story .companion-art { position: absolute; width: 180px; height: 180px; left: 18px; bottom: 4px; }
+.product-story .approval-paper { margin-bottom: 0; padding: 28px; background: #fff; border-radius: 18px; box-shadow: 0 6px 22px #14151805; }
 .product-story .approval-paper h3 { margin: 0 0 12px; font-size: 22px; letter-spacing: -.04em; }
 .product-story .approval-paper p { font-size: 14px; line-height: 1.65; color: var(--story-muted); }
 .product-story .approval-paper blockquote { margin: 24px 0 18px; padding: 18px; background: var(--story-stage); border-radius: 12px; font-size: 13px; line-height: 1.85; color: var(--ink-soft); }
@@ -941,7 +948,7 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .hero-demo { padding: 16px; }
   .product-story .plan-row-name { gap: 20px; }
   .product-story .plan-row-name b { min-width: 110px; }
-  .product-story .approval-stage { padding: 24px; }
+  .product-story .approval-stage { padding: 24px 24px 190px; }
 }
 /* Mobile product story: one reading axis, compact steps and full-width output.
    Keep these rules inside the existing homepage breakpoint; shared pages and
@@ -967,7 +974,8 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .more-goals .goal-chips { gap: 8px; }
   .product-story .availability { font-size: 12px; max-width: 29em; margin: 4px auto 20px; line-height: 1.6; }
   .product-story .team-stage { grid-template-columns: 1fr; width: calc(100% + 16px); margin-left: -8px; padding: 0 16px 16px; gap: 0; border-radius: 26px; }
-  .product-story .team-art { width: calc(100% + 32px); max-width: 460px; max-height: 280px; object-fit: contain; margin: 0 -16px; }
+  .product-story .team-characters { padding: 20px 0 24px; gap: 12px 4px; }
+  .product-story .team-characters figcaption { font-size: 11px; margin-top: -6px; }
   .product-story .hero-demo { position: relative; padding: 16px; margin-top: -14px; border-radius: 20px; box-shadow: 0 12px 32px #14151808; }
   .product-story .demo-cap { font-size: 12px; }
   .product-story .role-phone.demo-phone { height: auto; min-height: 0; }
@@ -1006,11 +1014,11 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .trust-ico { width: 24px; height: 24px; flex-basis: 24px; }
   .product-story .trust-list b { font-size: 17px; line-height: 1.5; word-break: keep-all; }
   .product-story .trust-list p { font-size: 14px; line-height: 1.7; word-break: keep-all; margin-top: 6px; }
-  .product-story .approval-stage { min-height: 0; width: calc(100% + 16px); margin-left: -8px; padding: 16px 16px 102px; }
+  .product-story .approval-stage { min-height: 0; width: calc(100% + 16px); margin-left: -8px; padding: 16px 16px 164px; }
   .product-story .approval-paper { margin: 0; padding: 24px 20px; width: 100%; }
   .product-story .approval-paper h3 { font-size: 23px; line-height: 1.35; word-break: keep-all; }
   .product-story .approval-paper blockquote { padding: 16px; margin: 20px 0; font-size: 13px; line-height: 1.8; }
-  .product-story .companion-art { width: 160px; height: 160px; left: auto; right: 0; bottom: -16px; }
+  .product-story .companion-art { width: 160px; height: 160px; left: auto; right: 12px; bottom: 0; }
   .product-story .pricing-head .section-p { margin: 18px 0 28px; }
   .product-story .plan-rows { margin-top: 28px; }
   .product-story .plan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 14px; column-gap: 10px; row-gap: 10px; padding: 24px 0; }
