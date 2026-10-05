@@ -65,6 +65,38 @@ html.js [data-reveal].in { opacity: 1; transform: none; }
   html.js [data-reveal], .week-grid.js .week-dot, .team-row.pending, .fade { opacity: 1 !important; transform: none !important; }
 }
 
-/* The homepage remains readable in full-page capture, keyboard jumps and slow
-   devices. Movement is a small position cue, never a content visibility gate. */
+/* A reveal is an enhancement, never a visibility gate. Unobserved content,
+   keyboard jumps, full-page capture and failed scripts remain readable. */
 html.js .product-story [data-reveal] { opacity: 1; transform: none; }
+
+@keyframes story-arrive {
+  from { opacity: .45; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes story-stage-arrive {
+  from { transform: translateY(30px) scale(.97); }
+  to { transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.js .product-story .hero h1 { animation: story-arrive .85s var(--ease) both; }
+  html.js .product-story .hero .lead { animation: story-arrive .85s .09s var(--ease) both; }
+  html.js .product-story .goal-picker { animation: story-arrive .85s .18s var(--ease) both; }
+  html.js .product-story .team-stage { animation: story-stage-arrive 1.1s .22s var(--ease) both; }
+  html.js .product-story [data-reveal].in { animation: story-arrive .8s var(--ease) both; animation-delay: var(--reveal-delay, 0s); }
+  .product-story .goal-tile, .product-story .goal-chip,
+  .product-story .sample-switch button, .product-story .revise-sample {
+    transition: transform .25s var(--ease), box-shadow .25s var(--ease), background .2s;
+  }
+  .product-story .sample-switch button:active, .product-story .revise-sample:active { transform: scale(.97); }
+  @media (hover: hover) {
+    .product-story .goal-tile:hover, .product-story .goal-chip:hover,
+    .product-story .revise-sample:hover { transform: translateY(-3px); box-shadow: 0 8px 20px #14151812; }
+  }
+  @media (min-width: 701px) {
+    .product-story .team-art { transform: translateY(calc(var(--scene-progress, 0) * -34px)) rotate(calc(var(--scene-progress, 0) * -2deg)); }
+    .product-story .hero-demo { transform: translateY(calc(var(--scene-progress, 0) * 22px)); }
+    .product-story .sample-paper { transform: translateY(calc(var(--scene-progress, 0) * -18px)) rotate(calc(var(--scene-progress, 0) * 1.5deg)); }
+    .product-story .approval-paper { transform: translateY(calc(var(--scene-progress, 0) * -20px)); }
+    .product-story .companion-art { transform: translateY(calc(var(--scene-progress, 0) * 14px)) rotate(calc(var(--scene-progress, 0) * 3deg)); }
+  }
+}
