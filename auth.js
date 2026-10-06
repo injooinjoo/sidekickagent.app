@@ -34,6 +34,17 @@
   // is never taken: anyone can put their own session in a link (login CSRF), so
   // a page only takes it out of the address bar (discardSessionFragment).
   const API_ORIGIN = 'https://api.sidekickagent.app';
+  // Every fetch below goes out through /maintenance.js when the page loads it:
+  // a read that meets a release's maintenance window waits and is sent again, a
+  // write is answered as it came (window.SidekickMaintenance). Without it, the
+  // page's own fetch, looked up at call time.
+  const fetch = (url, init) => {
+    const send = window.SidekickMaintenance ? window.SidekickMaintenance.fetch : globalThis.fetch;
+    return send(url, init);
+  };
+  // A failed call made while the notice is up (a write, or a held read aborted):
+  // error.maintenance lets a page word its own line for it.
+  const inMaintenance = () => Boolean(window.SidekickMaintenance && window.SidekickMaintenance.active());
   const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
   const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
   // Where a Google/Apple sign-in ends after /login/. A page on this list goes
@@ -74,7 +85,10 @@
   // 32 random bytes are 43 base64url characters: inside the server's
   // ^[A-Za-z0-9_-]{32,128}$ for a ChatGPT sign-in's app_state.
   const APP_STATE_BYTES = 32;
-  const NETWORK_COPY = '서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+  // No request got an answer: the person's connection, or Sidekick briefly away
+  // (a release answers 503 without the headers a browser needs to read it). Both
+  // read the same to the page, so the sentence names neither a server nor blame.
+  const NETWORK_COPY = '사이드킥에 연결하지 못했어요. 인터넷 연결을 확인하거나 잠시 뒤 다시 시도해 주세요.';
   const SOCIAL_FAILED_COPY = '로그인이 완료되지 않았어요. 다시 시도해 주세요.';
   const EXCHANGE_FAILED_COPY = '로그인은 됐지만 계정을 확인하지 못했어요. 다시 시도해 주세요.';
   const EXPIRED_COPY = '로그인이 만료돼 로그아웃했어요. 다시 로그인해 주세요.';
@@ -131,9 +145,7 @@
     '<svg viewBox="0 0 24 24" aria-hidden="true" data-icon="close"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     '</button>',
     '<div class="signin-body">',
-    '<span class="signin-mark" aria-hidden="true">',
-    '<svg viewBox="0 0 24 24" data-icon="flash"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>',
-    '</span>',
+    '<img class="signin-mark" src="/assets/sidekick-mark.svg" width="56" height="56" alt="" decoding="async" />',
     '<h2>사이드킥 로그인</h2>',
     '<div class="doors">',
     '<button class="door" type="button" id="google-button">Google로 로그인</button>',
@@ -1043,6 +1055,7 @@
       error.aborted = Boolean(cause && cause.name === 'AbortError');
       error.detail = '';
       error.code = '';
+      error.maintenance = inMaintenance();
       throw error;
     }
     let data = {};
@@ -1055,6 +1068,7 @@
       const detail = data ? data.detail : null;
       error.detail = typeof detail === 'string' ? detail : '';
       error.code = detail && typeof detail === 'object' && typeof detail.code === 'string' ? detail.code : error.detail;
+      error.maintenance = inMaintenance();
       throw error;
     }
     return data;
@@ -1337,6 +1351,18 @@
     const first = sheet.querySelector('.door');
     if (first) first.focus({ preventScroll: true });
     prepareTurnstile();
+  }
+
+  // A page that is only for a signed-in person (/account/, /ai/, /connections/)
+  // opens the sheet at once when nobody is signed in, instead of first showing a
+  // page that asks for it (owner request 2026-10-06). The page's own sign-in
+  // panel stays behind the sheet for whoever closes it. Never in the app's viewer
+  // (in-app mode, /app-mode.js): there the app hands its account over instead.
+  function requireSignIn() {
+    if (session.token || LOGIN_RECEIVER) return false;
+    if (document.documentElement.classList.contains('in-app')) return false;
+    open();
+    return true;
   }
 
   function close() {
@@ -2606,6 +2632,7 @@
     api,
     whoami,
     open,
+    requireSignIn,
     close,
     signOut,
     copyText,

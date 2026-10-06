@@ -34,13 +34,13 @@
   <meta name="theme-color" content="#f7f8fa" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="motion.css" />
+  <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>
 </head>
 <body class="landing product-story">
 <header class="site-header">
   <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
   <nav class="nav" aria-label="주요 메뉴">
-    <a href="/membership/">멤버십</a>
     <a href="/support/">도움말</a>
   </nav>
   <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
@@ -72,6 +72,7 @@
             <li><a class="goal-chip" href="/use/tax/" data-goal="tax" data-source="landing_hero"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.8h9v12.4l-1.8-1.1-1.8 1.1-1.9-1.1-1.8 1.1-1.7-1.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 5.4h4.4M5.8 8h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="vt-goal-tax">경비 정리하기</span></a></li>
           </ul></details>
           <!-- goals:end -->
+          <p class="goal-all"><a class="text-link" href="/demo/">가입 없이 먼저 눌러 보기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
 
         </div>
       </div>
@@ -90,12 +91,14 @@
         </div>
       <div class="hero-demo" id="demo" role="img" aria-label="예시 화면: 고른 일을 맡은 AI 직원이 필요한 것만 묻고, 첫 작업을 진행하고, 확인을 받은 뒤 결과를 보내는 모습">
         <!-- demo:start -->
-        <p class="demo-cap"><span class="badge idle">예시</span><span><span id="demo-goal">유튜브 시작하기</span>를 고르면</span></p>
+        <p class="demo-cap"><span class="badge idle">예시</span><span id="demo-cap-text">유튜브 시작하기를 고르면</span></p>
         <div class="role-phone demo-phone" aria-hidden="true">
           <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
           <div class="thread-head" id="demo-head"><span class="avatar">채</span><div><b>채널 매니저</b><small>유튜브 운영 총괄</small></div><span class="badge work">일하는 중</span></div>
           <div class="role-screen" id="demo-screen"><div class="team-card"><div class="kicker">유튜브 팀이 꾸려졌어요</div><div class="team-row"><span class="avatar">채</span><span class="team-who"><b>채널 매니저</b><small>유튜브 운영 총괄</small></span><span class="badge work">맡았어요</span></div><div class="team-row"><span class="avatar light">+5</span><span class="team-who"><b>팀원 5명</b><small>리서처 · 작가 · 크리에이티브 · 프로듀서 · 그로스</small></span><span class="badge idle">함께해요</span></div></div><div class="msg ai"><span class="from">채널 매니저</span>어떤 채널을 만들고 싶으세요? 그것만 알려 주시면 나머지는 팀이 준비할게요.</div><div class="msg me">캠핑 초보를 위한 장비 리뷰요.</div><div class="prog"><div class="lbl"><span>첫 영상 준비</span></div><div><span>요즘 반응 좋은 주제 조사<small>리서처</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div><div><span>첫 영상 후보 3개<small>작가</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div><div><span>썸네일 문구<small>크리에이티브</small></span><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>완료</span></div></div><div class="appr"><div class="top"><h5>첫 영상 고르기</h5><span class="badge done">확인함</span></div><p>후보 3개 중 1번 &#x27;캠핑 초보 장비 5가지&#x27;로 갈까요? 고르면 대본을 이어서 써요.</p><ul class="files"><li><i></i>첫 영상 후보 3개</li><li><i></i>썸네일 문구 3가지</li></ul><div class="btn-row"><span class="ink pressed">1번으로</span><span class="line">다른 후보</span></div></div><div class="res"><div class="kicker">보고 도착</div><h5>첫 영상 대본과 썸네일 문구 준비 완료</h5><dl><dt>대본</dt><dd>6분 분량 · 장면 9개</dd><dt>썸네일 문구</dt><dd>3가지 안</dd></dl></div><p class="note">올리기 전에는 꼭 확인을 받아요.</p></div>
+          <div class="demo-compose" id="demo-compose" hidden></div>
         </div>
+        <p class="story-sr-only" id="demo-live" aria-live="polite"></p>
         <!-- demo:end -->
       </div>
     </div>
@@ -238,6 +241,7 @@
       </ul>
       <!-- closing-goals:end -->
     </div>
+    <p class="start-note" data-reveal>시작하기 전에 <a href="/demo/">직접 눌러 보며 체험</a>해 볼 수도 있어요.</p>
     <p class="start-note" data-reveal>앱은 출시 준비 중이에요. 궁금한 점은 <a href="/support/">도움말</a>에서 확인하세요.</p>
   </section>
 

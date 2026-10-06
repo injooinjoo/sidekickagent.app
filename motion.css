@@ -69,10 +69,18 @@ html.js [data-reveal].in { opacity: 1; transform: none; }
    keyboard jumps, full-page capture and failed scripts remain readable. */
 html.js .product-story [data-reveal] { opacity: 1; transform: none; }
 
+/* A rise starts 24px below its place. landing.js re-arms a block only once it
+   is REARM_GAP (32px) below the window, so the rise can never re-arm itself;
+   raise both together. */
 @keyframes story-arrive {
   from { opacity: .45; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes demo-next {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(183, 71, 27, .38); }
+  60% { box-shadow: 0 0 0 8px rgba(183, 71, 27, 0); }
+}
+@keyframes demo-caret { 50% { opacity: 0; } }
 @keyframes story-stage-arrive {
   from { transform: translateY(30px) scale(.97); }
   to { transform: translateY(0) scale(1); }
@@ -92,9 +100,11 @@ html.js .product-story [data-reveal] { opacity: 1; transform: none; }
     .product-story .goal-tile:hover, .product-story .goal-chip:hover,
     .product-story .revise-sample:hover { transform: translateY(-3px); box-shadow: 0 8px 20px #14151812; }
   }
+  /* The hero phone: the next thing to press glows three times, then rests;
+     a sentence being typed shows a caret. */
+  .product-story .demo-next { animation: demo-next 1.5s var(--ease) .3s 3; }
+  .product-story .demo-input.typing > span:first-child::after { animation: demo-caret 1s steps(1) infinite; }
   @media (min-width: 701px) {
-    .product-story .team-art { transform: translateY(calc(var(--scene-progress, 0) * -34px)) rotate(calc(var(--scene-progress, 0) * -2deg)); }
-    .product-story .hero-demo { transform: translateY(calc(var(--scene-progress, 0) * 22px)); }
     .product-story .sample-paper { transform: translateY(calc(var(--scene-progress, 0) * -18px)) rotate(calc(var(--scene-progress, 0) * 1.5deg)); }
     .product-story .approval-paper { transform: translateY(calc(var(--scene-progress, 0) * -20px)); }
     .product-story .companion-art { transform: translateY(calc(var(--scene-progress, 0) * 14px)) rotate(calc(var(--scene-progress, 0) * 3deg)); }

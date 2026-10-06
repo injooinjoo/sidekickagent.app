@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <link rel="stylesheet" href="/analytics.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="description" content="가입 없이 눌러 보며 사이드킥이 어떻게 일하는지 살펴보세요. 루틴 실행, 팀 꾸리기, AI 연결, 음성 요청을 모두 예시로 체험해요." />
+  <title>직접 눌러 보기 · 사이드킥</title>
+  <link rel="canonical" href="https://sidekickagent.app/demo/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="직접 눌러 보기 · 사이드킥" />
+  <meta property="og:description" content="가입 없이 눌러 보며 AI 팀이 어떻게 일하는지 살펴보세요." />
+  <meta property="og:url" content="https://sidekickagent.app/demo/" />
+  <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="theme-color" content="#f7f8fa" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/motion.css" />
+  <link rel="stylesheet" href="/demo/demo.css" />
+  <script src="/maintenance.js" defer></script>
+  <script src="/auth.js" defer></script>
+</head>
+<body class="landing demo-page">
+<header class="site-header">
+  <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+  <nav class="nav" aria-label="주요 메뉴">
+    <a href="/support/">도움말</a>
+  </nav>
+  <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
+</header>
+<main class="home">
+
+  <!-- 1. What this page is: four sample scenes, nothing sent anywhere. Each scene below is written out in
+       full in the HTML (its finished state); /demo/demo.js only steps it. -->
+  <section class="demo-intro" id="top" aria-labelledby="demo-h">
+    <div class="wrap">
+      <p class="demo-cap"><span class="badge idle">예시</span><span>모두 샘플 내용이에요</span></p>
+      <h1 id="demo-h">가입 없이, 먼저 눌러 보세요</h1>
+      <p class="lead">사이드킥이 어떻게 일하는지 네 장면으로 보여 드려요. 여기서 누르는 것은 어디에도 저장되거나 보내지지 않고, 로그인도 필요 없어요.</p>
+      <div class="dm-tabs" role="tablist" aria-label="체험할 장면" data-tabs hidden>
+        <button class="dm-tab" id="tab-routine" role="tab" type="button" aria-selected="true" aria-controls="routine" data-panel="routine">루틴 실행</button>
+        <button class="dm-tab" id="tab-team" role="tab" type="button" aria-selected="false" aria-controls="team" data-panel="team" tabindex="-1">팀 꾸리기</button>
+        <button class="dm-tab" id="tab-ai" role="tab" type="button" aria-selected="false" aria-controls="ai" data-panel="ai" tabindex="-1">AI 연결</button>
+        <button class="dm-tab" id="tab-voice" role="tab" type="button" aria-selected="false" aria-controls="voice" data-panel="voice" tabindex="-1">음성으로 말하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Routine: employees work one after another, as in the app. -->
+  <section class="dm-panel" id="routine" role="tabpanel" aria-labelledby="routine-h" data-demo="routine">
+    <div class="wrap dm-grid">
+      <div class="dm-copy">
+        <h2 class="section-h" id="routine-h">영상 제작 루틴이 이렇게 돌아가요</h2>
+        <p class="section-p"><b>직원들이 한 명씩 차례로 일해요.</b> 단계마다 결과가 쌓이고, 올리기 전에는 꼭 내게 물어봐요.</p>
+        <div class="dm-controls" role="group" aria-label="루틴 재생" data-controls hidden>
+          <button class="button" type="button" data-action="start">영상 제작 루틴 체험하기</button>
+          <button class="button secondary" type="button" data-action="toggle" hidden>일시정지</button>
+          <button class="button secondary" type="button" data-action="next" hidden>다음 단계</button>
+          <button class="button secondary" type="button" data-action="restart" hidden>처음부터</button>
+        </div>
+        <p class="sr-only" aria-live="polite" data-live></p>
+        <p class="dm-note">예시 화면이에요. 실제 작업이 아니고, 아무것도 올라가지 않아요.</p>
+        <div class="actions"><a class="button" href="/use/youtube/">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      </div>
+      <div class="dm-device">
+        <div class="role-phone dm-phone" role="group" aria-label="예시 화면: 영상 제작 루틴">
+          <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
+          <div class="thread-head"><span class="avatar">채</span><div><b>채널 매니저</b><small>영상 제작 루틴 · 예시</small></div><span class="badge work" data-progress>5/5</span></div>
+          <div class="role-screen" data-thread>
+            <p class="dm-idle" data-idle hidden>위의 버튼을 누르면 직원들이 차례로 일을 시작해요.</p>
+            <ol class="dm-steps">
+              <li class="dm-step" data-step="1">
+                <div class="dm-line"><span class="avatar">리</span><div class="msg ai"><span class="from">리서처</span>1. 주제 조사를 시작할게요</div><span class="badge done dm-state" data-state>완료</span></div>
+                <div class="res dm-result" data-result><div class="kicker">주제 후보 3개</div><ul><li>캠핑 초보 장비 5가지</li><li>1박 2일 첫 캠핑 준비물</li><li>비 오는 날 캠핑 체크리스트</li></ul></div>
+              </li>
+              <li class="dm-step" data-step="2">
+                <div class="dm-line"><span class="avatar">채</span><div class="msg ai"><span class="from">채널 매니저</span>2. 기획을 시작할게요</div><span class="badge done dm-state" data-state>완료</span></div>
+                <div class="res dm-result" data-result><div class="kicker">'캠핑 초보 장비 5가지'로 정했어요</div><ol><li>잠자리: 텐트와 침낭</li><li>앉을 곳: 의자와 테이블</li><li>불빛: 랜턴</li></ol></div>
+              </li>
+              <li class="dm-step" data-step="3">
+                <div class="dm-line"><span class="avatar">작</span><div class="msg ai"><span class="from">작가</span>3. 대본을 시작할게요</div><span class="badge done dm-state" data-state>완료</span></div>
+                <div class="res dm-result" data-result><div class="kicker">대본 첫 부분</div><p class="dm-quote">첫 캠핑을 앞두고 장바구니만 가득 찼나요? 오늘은 꼭 필요한 장비 다섯 가지만 정리해 볼게요.</p></div>
+              </li>
+              <li class="dm-step" data-step="4">
+                <div class="dm-line"><span class="avatar">크</span><div class="msg ai"><span class="from">크리에이티브</span>4. 썸네일을 시작할게요</div><span class="badge done dm-state" data-state>완료</span></div>
+                <div class="res dm-result" data-result><div class="kicker">썸네일 구상 · 글자만 미리 본 모습</div><div class="dm-thumb" aria-hidden="true"><b>첫 캠핑</b><span>장비 5가지만</span></div><p class="dm-quote">큰 글씨 두 줄, 배경은 단순하게.</p></div>
+              </li>
+              <li class="dm-step" data-step="5">
+                <div class="dm-line"><span class="avatar">프</span><div class="msg ai"><span class="from">프로듀서</span>5. 업로드 준비를 시작할게요</div><span class="badge done dm-state" data-state>완료</span></div>
+                <div class="res dm-result" data-result><div class="kicker">업로드 준비 · 확인할 것</div><ul class="dm-checks"><li>제목과 설명글</li><li>썸네일 문구</li><li>공개 범위</li></ul></div>
+                <div class="appr dm-approve" data-approve>
+                  <div class="top"><h5>이대로 올릴까요?</h5><span class="badge wait" data-appr-badge>확인 필요</span></div>
+                  <p>올릴지는 내가 정해요. 내가 확인하기 전에는 아무것도 올라가지 않아요.</p>
+                  <div class="btn-row dm-btns" data-appr-buttons hidden><button type="button" class="ink" data-action="approve">올려도 좋아요</button><button type="button" class="line" data-action="revise">고칠래요</button></div>
+                  <p class="dm-after" data-after hidden></p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Team: add, remove, give a duty. -->
+  <section class="dm-panel" id="team" role="tabpanel" aria-labelledby="team-h" data-demo="team">
+    <div class="wrap dm-grid">
+      <div class="dm-copy">
+        <h2 class="section-h" id="team-h">내 팀, 이렇게 꾸려요</h2>
+        <p class="section-p"><b>직원을 더하고, 빼고, 맡을 일을 바꿔 보세요.</b> 바꾼 대로 아래 설명이 달라져요.</p>
+        <div class="dm-add" data-team-add></div>
+        <p class="dm-limit">팀원은 매니저 말고 1명에서 6명까지예요. 가득 차면 한 명을 먼저 빼야 더할 수 있어요.</p>
+        <p class="dm-explain" aria-live="polite" data-team-note>유튜브 팀은 매니저 한 명과 팀원 다섯 명으로 시작해요.</p>
+        <p class="dm-coverage" data-team-coverage>영상 한 편에 필요한 일을 모두 누군가 맡고 있어요.</p>
+        <p class="dm-note">예시 화면이에요. 바꾼 내용은 저장되지 않고, 새로 고치면 처음으로 돌아가요.</p>
+        <div class="actions"><a class="button" href="/use/youtube/">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      </div>
+      <div class="dm-device">
+        <div class="team-card dm-team" data-team-card>
+          <div class="kicker">유튜브 팀 · 예시</div>
+          <div class="team-row dm-member" data-member="manager"><span class="avatar">채</span><span class="team-who"><b>채널 매니저</b><small>유튜브 운영 총괄</small></span><span class="badge idle">매니저</span></div>
+          <div class="team-row dm-member" data-member="researcher"><span class="avatar">리</span><span class="team-who"><b>리서처</b><small>주제 조사</small></span></div>
+          <div class="team-row dm-member" data-member="writer"><span class="avatar">작</span><span class="team-who"><b>작가</b><small>대본 쓰기</small></span></div>
+          <div class="team-row dm-member" data-member="creative"><span class="avatar">크</span><span class="team-who"><b>크리에이티브</b><small>썸네일 문구</small></span></div>
+          <div class="team-row dm-member" data-member="producer"><span class="avatar">프</span><span class="team-who"><b>프로듀서</b><small>업로드 준비</small></span></div>
+          <div class="team-row dm-member" data-member="growth"><span class="avatar">그</span><span class="team-who"><b>그로스</b><small>반응 살펴보기</small></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. AI connection: pick one, see the same sample answer. -->
+  <section class="dm-panel" id="ai" role="tabpanel" aria-labelledby="ai-h" data-demo="ai">
+    <div class="wrap dm-grid">
+      <div class="dm-copy">
+        <h2 class="section-h" id="ai-h">쓰는 AI 계정을 연결하면, 그걸로 일해요</h2>
+        <p class="section-p"><b>내 AI 계정을 연결하면 직원들이 그 계정으로 일해요.</b> 하나를 골라 보세요.</p>
+        <div class="dm-prov-row" role="group" aria-label="연결할 AI 고르기">
+          <button class="dm-prov" type="button" data-action="pick" data-provider="ChatGPT" aria-pressed="true" disabled><img src="/assets/ai/openai.png" width="28" height="28" alt="" decoding="async"><span>ChatGPT</span></button>
+          <button class="dm-prov" type="button" data-action="pick" data-provider="Claude" aria-pressed="false" disabled><img src="/assets/ai/anthropic.png" width="28" height="28" alt="" decoding="async"><span>Claude</span></button>
+          <button class="dm-prov" type="button" data-action="pick" data-provider="Grok" aria-pressed="false" disabled><img src="/assets/ai/xai.png" width="28" height="28" alt="" decoding="async"><span>Grok</span></button>
+          <button class="dm-prov" type="button" data-action="pick" data-provider="Gemini" aria-pressed="false" disabled><img src="/assets/ai/gemini.png" width="28" height="28" alt="" decoding="async"><span>Gemini</span></button>
+        </div>
+        <p class="sr-only" aria-live="polite" data-live></p>
+        <p class="dm-note">아래 답변은 어떤 AI를 골라도 같은 예시예요. AI끼리 견주는 화면이 아니에요. 실제 연결은 로그인이 필요해서 여기서는 하지 않아요. <a href="/ai/">웹 연결 페이지 보기</a></p>
+        <div class="actions"><a class="button" href="/use/youtube/">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      </div>
+      <div class="dm-device">
+        <div class="role-phone dm-phone" role="group" aria-label="예시 화면: AI 연결">
+          <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
+          <div class="thread-head"><span class="avatar">채</span><div><b>채널 매니저</b><small>유튜브 운영 총괄</small></div><span class="badge done dm-conn" data-conn>ChatGPT 연결됨</span></div>
+          <div class="role-screen" data-thread>
+            <div class="msg ai" data-idle hidden><span class="from">채널 매니저</span>쓰는 AI를 골라 주세요. 고르면 같은 요청을 그 계정으로 해 볼게요.</div>
+            <div data-chat>
+              <div class="msg me">다음 주 영상 주제 세 개 뽑아 줘</div>
+              <div class="res dm-answer"><div class="kicker">이 AI 계정으로 일해요 · <span data-provider-name>ChatGPT</span> · 예시 답변</div><ol><li>캠핑 초보 장비 5가지</li><li>1박 2일 첫 캠핑 준비물</li><li>비 오는 날 캠핑 체크리스트</li></ol></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Voice: a call screen, a scripted line, a request card. No microphone is ever opened. -->
+  <section class="dm-panel" id="voice" role="tabpanel" aria-labelledby="voice-h" data-demo="voice">
+    <div class="wrap dm-grid">
+      <div class="dm-copy">
+        <h2 class="section-h" id="voice-h">말로 시키면, 이렇게 처리돼요</h2>
+        <p class="section-p"><b>통화하듯 말하면 사이드킥이 요청으로 바꿔 팀에 맡겨요.</b> 마이크를 눌러 보세요.</p>
+        <p class="sr-only" aria-live="polite" data-live></p>
+        <p class="dm-note">미리보기예요. 마이크를 켜지 않고 소리도 나지 않아요. 보이는 말은 미리 정해 둔 예시예요.</p>
+        <div class="actions"><a class="button" href="/use/youtube/">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      </div>
+      <div class="dm-device">
+        <div class="role-phone dm-phone dm-call" role="group" aria-label="예시 화면: 음성 통화">
+          <div class="sbar"><span>9:41</span><i></i><b><span></span><span></span><span></span><span></span></b></div>
+          <div class="thread-head"><span class="avatar">사</span><div><b>사이드킥</b><small>음성 통화 · 예시</small></div><span class="badge idle" data-call-state>통화 예시</span></div>
+          <div class="role-screen" data-thread>
+            <div class="dm-wave" data-wave aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <p class="dm-idle" data-idle hidden>아래 마이크를 눌러 말해 보세요.</p>
+            <div class="msg me dm-said" data-said>다음 주 영상 주제 세 개만 뽑아 줘</div>
+            <div class="msg ai" data-guide><span class="from">사이드킥</span>네, 주제 세 개를 뽑도록 팀에 맡길게요.</div>
+            <div class="res dm-request" data-request><div class="kicker">요청이 만들어졌어요</div><h5>다음 주 영상 주제 3개</h5><dl><dt>맡은 직원</dt><dd>리서처</dd><dt>상태</dt><dd>일하는 중</dd></dl></div>
+          </div>
+          <div class="dm-mic-row"><button class="dm-mic" type="button" data-action="mic" aria-label="마이크 누르기 (예시)" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="start dm-start" id="start" aria-labelledby="start-h">
+    <h2 class="section-h" id="start-h">마음에 들면, 진짜로 시작해요</h2>
+    <p class="section-p">시작할 일을 고르면 팀이 꾸려져요. 올리기·보내기 전에는 꼭 확인을 받아요.</p>
+    <div class="actions">
+      <a class="button" href="/use/youtube/">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="button secondary" href="/">처음으로</a>
+    </div>
+    <p class="start-note">앱은 출시 준비 중이에요. 궁금한 점은 <a href="/support/">도움말</a>에서 확인하세요.</p>
+  </section>
+
+  <footer class="footer">
+    <div class="foot-brand">
+      <img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥" decoding="async" />
+      <p>시작하고 싶은 일을 고르면 움직이는 AI 팀.</p>
+      <small>© 2026 Sidekick</small>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h4>제품</h4>
+        <a href="/">홈</a>
+        <a href="/membership/">멤버십</a>
+        <a href="/support/">도움말</a>
+      </div>
+      <div class="foot-col">
+        <h4>정책</h4>
+        <a href="/privacy/">개인정보처리방침</a>
+        <a href="/terms/">이용약관</a>
+        <a href="/delete-account/">계정 및 데이터 삭제</a>
+      </div>
+    </div>
+    <address class="biz">
+      <span>비욘드</span>
+      <span>대표 김인주</span>
+      <span>사업자등록번호 552-20-02389</span>
+      <span>서울특별시 서초구 효령로23길 54-6</span>
+      <span>010-5060-6843</span>
+    </address>
+  </footer>
+</main>
+<script src="/demo/demo.js"></script>
+</body>
+</html>
