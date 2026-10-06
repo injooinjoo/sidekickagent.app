@@ -346,6 +346,7 @@
   auth.init({ onSignedIn: boot, onSignedOut: () => { boot(); notice('로그아웃했어요.'); },
     onNotice: notice }).then(async () => {
     if (inApp()) await auth.appWebHandoff();
-    boot();
+    await boot();
+    auth.requireSignIn();
   });
 })();

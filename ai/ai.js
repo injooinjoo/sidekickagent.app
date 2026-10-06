@@ -58,10 +58,28 @@
       { id: 'region', label: '리전', hint: '예: us-east-1', secret: false, multiline: false }
     ],
     'azure-foundry': [
-      { id: 'endpoint_url', label: '연결 주소', hint: '배포에서 받은 https 주소', secret: false, multiline: false },
-      { id: 'api_key', label: '연결 키', hint: '배포에서 발급받은 키', secret: true, multiline: false }
+      { id: 'endpoint_url', label: '연결 주소', hint: "Azure 포털의 '엔드포인트'나 '대상 URI'를 그대로 붙여넣어요. 예: https://내리소스.openai.azure.com", secret: false, multiline: false },
+      { id: 'api_key', label: '연결 키', hint: "Azure 포털의 '키 1' 또는 '키 2' 값이에요.", secret: true, multiline: false }
     ]
   };
+  // Azure addresses a model by the name its owner gave the deployment. The server's cloud credential has no field for it,
+  // so it travels as the request's `model`, which is what the server stores and shows as this connection's model.
+  const AZURE_DEPLOYMENT_FIELD = { id: 'deployment_name', label: '배포 이름', hint: 'Azure에서 배포에 직접 지어준 이름이에요. 모델 이름과 다를 수 있어요. 예: gpt-4o-prod', secret: false, multiline: false };
+  // The same sentences the server's binding uses (ai_engine_binding.AZURE_INPUT_PROBLEMS), said before anything is sent.
+  const AZURE_PROBLEMS = {
+    endpoint: '연결 주소는 Azure 포털의 https 엔드포인트(예: https://내리소스.openai.azure.com)를 그대로 넣어 주세요.',
+    endpoint_claude: '연결 주소가 Claude(/anthropic) 배포라서 아직 연결할 수 없어요. Azure OpenAI 배포의 주소를 넣어 주세요.',
+    api_key: "연결 키는 Azure 포털의 '키 1' 값을 공백 없이 그대로 붙여넣어 주세요.",
+    deployment_missing: '배포 이름을 입력해 주세요. Azure 포털의 배포 목록에 있는 이름이에요.',
+    deployment_invalid: '배포 이름에는 영문, 숫자, -, _, . 만 쓸 수 있어요.'
+  };
+  // What the server's codes mean for an Azure connection, in the words of its three fields.
+  const AZURE_CODE_COPY = {
+    AI_ENGINE_CONNECTION_VERIFICATION_FAILED: 'Azure 연결 정보를 확인하지 못했어요. 연결 주소, 연결 키, 배포 이름을 Azure 포털에서 다시 복사해 주세요.',
+    AI_ENGINE_CONNECTION_ANSWER_FAILED: 'Azure가 테스트 답변을 하지 못했어요. 배포 이름이 Azure 포털의 배포 이름과 같은지, 연결 키가 같은 리소스의 키인지 확인해 주세요.',
+    AI_ENGINE_CONNECTION_NOT_SUPPORTED: AZURE_PROBLEMS.endpoint_claude
+  };
+  const AZURE_KEY_PREFIX = /^(bearer\s+|api-key(\s*:\s*|\s+))/i;
   // The catalog's way-to-connect entries this page can run end to end.
   const METHOD_KINDS = ['account', 'api_key', 'free', 'cloud'];
   const METHOD_ACTIONS = { account: '계정으로 로그인', api_key: 'API 키 입력', free: '무료로 사용', cloud: '정보 입력' };
@@ -930,7 +948,7 @@
 
   // Key, free and cloud connections all end in the same POST, which checks the
   // credential with one real answer before anything is saved.
-  async function submitConnection(flow, body, controls) {
+  async function submitConnection(flow, body, controls, codeCopy) {
     if (!live(flow) || state.busy) return;
     setBusy(true, controls);
     setStatus('connect-status', PROOF_PROGRESS, false);
@@ -943,7 +961,9 @@
       await finishFlow(flow, connection);
     } catch (error) {
       setBusy(false, controls);
-      if (live(flow)) showFailure(error, 'connect-status');
+      // A provider's own words for a code (Azure names its three fields); anything else as every form says it.
+      const own = codeCopy && error && error.status !== 401 && !error.network && !error.aborted && error.code ? codeCopy[error.code] : '';
+      if (live(flow)) { if (own) setStatus('connect-status', own, true); else showFailure(error, 'connect-status'); }
       if (error.aborted && state.user) await reloadConnections();
     }
   }
@@ -963,7 +983,7 @@
       : null;
     const submit = el('button', { className: 'ai-button', type: 'submit', text: '연결 확인' });
     const form = el('form', { className: 'connect-form' }, [
-      field(`${flow.provider.name} API 키`, key, '발급받은 키 전체를 붙여넣어요. 키는 이 확인 요청에만 실려 서버로 가고, 이 페이지에는 남지 않아요.'),
+      field(`${flow.provider.name} API 키`, key, '발급받은 키 전체를 붙여넣어요. 키는 이 확인 요청에만 실려 사이드킥으로 가고, 이 페이지에는 남지 않아요.'),
       endpoint ? field('연결 주소', endpoint, '운영 중인 AI 연결 주소(https)를 넣어요.') : null,
       el('p', { className: 'ai-note', text: PROOF_NOTE }),
       submit
@@ -995,13 +1015,41 @@
     ]);
   }
 
+  // The obvious mistakes in an Azure form, found before anything is sent, in the order the form asks. The server
+  // normalises every endpoint shape the portal shows; this only refuses what it would refuse. A deployment named in a
+  // pasted Target URI (…/deployments/<name>/…) counts as typed. Returns { problem } or { deployment }.
+  function azureCheck(endpointUrl, apiKey, typedDeployment) {
+    const raw = endpointUrl.replace(/^[<"']+|[>"']+$/g, '');
+    let url = null;
+    try { url = /\s/.test(raw) ? null : new URL(raw.includes('://') ? raw : `https://${raw}`); } catch (_) { url = null; }
+    if (!url || url.protocol !== 'https:' || !url.hostname || url.username || url.password || (url.port && url.port !== '443')) {
+      return { problem: AZURE_PROBLEMS.endpoint };
+    }
+    const segments = url.pathname.split('/').filter(Boolean).map((part) => { try { return decodeURIComponent(part); } catch (_) { return part; } });
+    const lowered = segments.map((part) => part.toLowerCase());
+    if (/\.(openai|services\.ai|cognitiveservices)\.azure\.com$/i.test(url.hostname) && lowered.includes('anthropic')) {
+      return { problem: AZURE_PROBLEMS.endpoint_claude };
+    }
+    const key = apiKey.replace(AZURE_KEY_PREFIX, '').trim();
+    if (key.length < 8 || /[^\x21-\x7e]/.test(key)) return { problem: AZURE_PROBLEMS.api_key };
+    const at = lowered.indexOf('deployments');
+    const deployment = typedDeployment || (at >= 0 && segments[at + 1] ? segments[at + 1].trim() : '');
+    if (!deployment) return { problem: AZURE_PROBLEMS.deployment_missing };
+    if (!SAFE_ID.test(deployment) || deployment.includes('..')) return { problem: AZURE_PROBLEMS.deployment_invalid };
+    return { deployment };
+  }
+
   function cloudForm(flow) {
+    const azure = flow.provider.id === 'azure-foundry';
     const specs = CLOUD_FIELDS[flow.provider.id] || [];
-    const inputs = specs.map((spec) => ({
+    const extra = azure ? [AZURE_DEPLOYMENT_FIELD] : [];
+    const inputs = [...specs, ...extra].map((spec) => ({
       spec,
       input: spec.multiline
         ? el('textarea', { className: 'ai-input', id: `cloud-${spec.id}`, rows: '5', autocomplete: 'off', spellcheck: 'false', required: true })
-        : el('input', { className: 'ai-input', id: `cloud-${spec.id}`, type: spec.secret ? 'password' : 'text', autocomplete: 'off', spellcheck: 'false', required: true })
+        : el('input', { className: 'ai-input', id: `cloud-${spec.id}`, type: spec.secret ? 'password' : 'text', autocomplete: 'off', spellcheck: 'false',
+          // A Target URI already names the deployment, so this one field may stay empty.
+          required: spec !== AZURE_DEPLOYMENT_FIELD })
     }));
     const submit = el('button', { className: 'ai-button', type: 'submit', text: '연결 확인' });
     const form = el('form', { className: 'connect-form' }, [
@@ -1012,12 +1060,22 @@
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       const credential = { kind: flow.provider.id };
+      const typed = {};
       for (const { spec, input } of inputs) {
         const value = input.value.trim();
-        if (!value) { setStatus('connect-status', `${spec.label}을 입력해 주세요.`, true); return; }
+        typed[spec.id] = value;
+        if (spec === AZURE_DEPLOYMENT_FIELD) continue;
+        if (!value) { setStatus('connect-status', azure ? AZURE_PROBLEMS[spec.id === 'api_key' ? 'api_key' : 'endpoint'] : `${spec.label}을 입력해 주세요.`, true); return; }
         credential[spec.id] = value;
       }
-      submitConnection(flow, { auth_method: 'cloud', cloud_credential: credential }, [submit, ...inputs.map(({ input }) => input)]);
+      let model = null;
+      if (azure) {
+        const checked = azureCheck(typed.endpoint_url, typed.api_key, typed.deployment_name);
+        if (checked.problem) { setStatus('connect-status', checked.problem, true); return; }
+        model = checked.deployment;
+      }
+      submitConnection(flow, { auth_method: 'cloud', cloud_credential: credential, ...(model ? { model } : {}) },
+        [submit, ...inputs.map(({ input }) => input)], azure ? AZURE_CODE_COPY : null);
     });
     return form;
   }
@@ -1200,6 +1258,12 @@
       if (flow.onExpire) flow.onExpire();
       return;
     }
+    // Returning to the tab may advance the first check, but never a wait the
+    // authorization service requested after a previous check.
+    if (Date.now() < (flow.nextPollAt || 0)) {
+      schedulePoll(flow, flow.nextPollAt - Date.now());
+      return;
+    }
     flow.inFlight = true;
     let result = null;
     let failure = null;
@@ -1215,15 +1279,21 @@
     }
     if (result && result.status === 'complete') { await finishFlow(flow, result.connection); return; }
     if (!live(flow)) return;
-    // A dropped connection is worth another try; any other failure ends this login.
-    if (failure && !(failure.network && !failure.aborted)) {
+    const temporary = failure && ((failure.network && !failure.aborted)
+      || (failure.status === 503 && failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_UNAVAILABLE'));
+    if (failure && !temporary) {
       stopFlow(flow);
       showFailure(failure, 'connect-status');
       // The server says the code ran out: the same way on as a code that ran out here.
       if ((failure.status === 410 || failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_EXPIRED') && flow.onExpire) flow.onExpire();
       return;
     }
-    schedulePoll(flow, flow.interval);
+    const requested = Number(result && result.poll_interval_seconds);
+    if (result && result.slow_down) flow.interval += 5000;
+    if (Number.isFinite(requested) && requested >= 2) flow.interval = Math.max(flow.interval, requested * 1000);
+    const delay = Math.min(flow.interval, Math.max(1, flow.expiresAt - Date.now() + 1));
+    flow.nextPollAt = Date.now() + delay;
+    schedulePoll(flow, delay);
   }
 
   // Timers in a background tab are throttled, and the moment the person comes
@@ -1793,5 +1863,5 @@
       signOutHere('로그아웃했어요.', false);
     },
     onNotice: (message, isError) => setStatus('signin-status', message, isError)
-  }).then(() => boot());
+  }).then(() => boot()).then(() => auth.requireSignIn());
 })();

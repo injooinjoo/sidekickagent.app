@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-6l58wxeHhojO5Wpj33tVAKfxmVH9WcLKGUhYIv6PTt4='; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-6l58wxeHhojO5Wpj33tVAKfxmVH9WcLKGUhYIv6PTt4='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -49,6 +49,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>시작하기 · Sidekick</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/assets/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <style>
     /* The tokens are /styles.css's own, repeated here because this page may load no stylesheet
        (its policy names this block by hash). test_login_page.py fails when a value drifts. */
@@ -92,6 +96,7 @@
     @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .form-row { grid-template-columns: minmax(0, 1fr); } }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
 </style>
+  <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>
 </head>
 <body>

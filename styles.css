@@ -108,7 +108,7 @@ h1, h2, h3, h4 { text-wrap: balance; }
   display: flex;
   align-items: center;
   gap: 20px;
-  background: rgba(247, 248, 250, 0.86);
+  background: rgba(255, 255, 255, 0.9);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--hairline);
@@ -118,11 +118,11 @@ h1, h2, h3, h4 { text-wrap: balance; }
    "사이드킥" across two lines and doubled the header height. */
 .brand { color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: -0.03em; white-space: nowrap; }
 .brand img { display: block; width: auto; height: 22px; }
-/* Account state is the last thing on a wide header and the first thing worth
-   seeing next to the brand on a narrow one: the same slot, right-aligned, on
-   every page. */
-.account-slot { order: 3; position: relative; flex: 0 0 auto; margin-left: auto; }
-.nav { display: flex; gap: 22px; flex-wrap: wrap; justify-content: flex-start; align-items: center; margin-left: 24px; margin-right: auto; }
+/* One bar on every page (2026-10-06): the brand on the left; 도움말 and the
+   account slot together on the right. Account state is the last thing on the
+   bar. No page family restyles any of it. */
+.account-slot { order: 3; position: relative; flex: 0 0 auto; margin-left: 0; }
+.nav { display: flex; gap: 22px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; margin-left: auto; margin-right: 0; }
 .nav a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; padding: 8px 0; }
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current="page"] { color: var(--ink); }
@@ -313,10 +313,9 @@ li + li { margin-top: 8px; }
   .footer small { margin-left: 0; }
 }
 @media (max-width: 359px) {
-  :root { --header-h: 104px; }
-  .site-header { flex-wrap: wrap; row-gap: 2px; padding-top: 6px; padding-bottom: 6px; }
-  .account-slot { order: 2; margin-left: auto; }
-  .nav { order: 3; width: 100%; margin: 0; }
+  /* The menu is one link, so the bar keeps its one row at any width. */
+  .site-header { gap: 10px; padding-left: 16px; padding-right: 16px; }
+  .account-pill { padding: 0 12px; }
 }
 /* Touch devices only: a 24px-tall text link is a hard target for a thumb, but
    forcing 44px on a mouse would just inflate the header. */
@@ -344,9 +343,8 @@ li + li { margin-top: 8px; }
   background: var(--card); cursor: pointer; }
 .sheet-close svg { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
 .signin-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.signin-mark { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: var(--ink); }
-.signin-mark svg { width: 26px; height: 26px; fill: none; stroke: var(--card); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* The brand mark, as on /login/ and the home headline. */
+.signin-mark { display: block; width: 56px; height: 56px; }
 .signin-body h2 { margin: 22px 0 30px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
 .signin-sheet .doors { width: 100%; display: flex; flex-direction: column; gap: 9px; }
 .signin-sheet .doors > button, .signin-sheet .otp-block > button { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--hairline);
@@ -833,10 +831,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   background: #fff;
   color: #141518;
 }
-.product-story .site-header { background: #fff; border-bottom: 0; max-width: 1320px; margin: auto; padding-inline: 32px; }
-.product-story .nav { margin-left: auto; margin-right: 32px; }
-.product-story .account-slot { margin-left: 0; }
-.product-story .account-pill { background: #151515; color: #fff; border-color: #151515; }
 .product-story .home { max-width: none; }
 .product-story .hero { padding: 40px 32px 0; }
 .product-story .hero-grid { display: block; max-width: 1240px; }
@@ -856,23 +850,55 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story .more-goals summary span { font-size: 20px; }
 .product-story .more-goals .goal-chips { justify-content: center; }
 .product-story .availability { text-align: center; margin: 14px 0 24px; font-size: 13px; color: var(--story-muted); }
-.product-story .team-stage { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; background: var(--story-stage); border-radius: 28px; overflow: hidden; padding: 28px; gap: 28px; }
-.product-story .team-characters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 8px; padding: 4px 0; }
+.product-story .team-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); align-items: center; background: var(--story-stage); border-radius: 28px; overflow: hidden; padding: 28px 44px 28px 28px; gap: 32px; }
+.product-story .team-characters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 8px; padding: 4px 0; width: 100%; max-width: 640px; margin: 0 auto; }
 .product-story .team-characters figure { margin: 0; min-width: 0; text-align: center; }
 .product-story .team-characters figcaption { font-size: 12px; color: var(--story-muted); line-height: 1.5; margin-top: -8px; }
 .product-story .character-media { position: relative; aspect-ratio: 1; width: 100%; mix-blend-mode: darken; mask-image: radial-gradient(ellipse closest-side, #000 84%, transparent 100%); }
 .product-story .character-media img, .product-story .character-media video { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .product-story .character-media video { opacity: 0; pointer-events: none; }
 .product-story .character-media.is-ready video { opacity: 1; }
-.product-story .hero-demo { background: #fff; border-radius: 22px; padding: 22px; gap: 12px; box-shadow: 0 8px 28px #14151806; min-width: 0; }
-.product-story .demo-cap { width: 100%; justify-content: space-between; flex-direction: row-reverse; font-size: 13px; }
-.product-story .role-phone.demo-phone { width: 100%; max-width: none; height: 330px; border: 0; border-radius: 0; padding: 0; background: #fff; box-shadow: none; }
-.product-story .demo-phone .sbar { display: none; }
-.product-story .demo-phone .role-screen { padding: 8px 0; scroll-behavior: auto; }
+/* The hero phone (landing.js heroDemo): the app's first screen, driven by
+   taps. The screen scrolls inside the phone; the composer stays at its foot. */
+.product-story .hero-demo { min-width: 0; gap: 12px; }
+.product-story .demo-cap { justify-content: center; font-size: 13px; }
+.product-story .role-phone.demo-phone { width: 100%; max-width: 360px; height: 660px; border: 10px solid #141518; border-radius: 48px; padding: 10px 12px 0; background: #fff; box-shadow: 0 28px 60px #1415181c; }
+.product-story .demo-phone .sbar { padding: 2px 14px 8px; }
+.product-story .demo-phone .thread-head { min-height: 50px; padding: 2px 4px 10px; gap: 9px; }
+.product-story .demo-phone .role-screen { padding: 2px 2px 14px; overflow-y: auto; scroll-behavior: smooth; scrollbar-width: none; }
+.product-story .demo-phone .role-screen::-webkit-scrollbar { display: none; }
 .product-story .demo-phone .msg { font-size: 13px; }
 .product-story .demo-phone .msg.me { background: var(--story-stage); color: var(--ink); }
 .product-story .demo-phone .avatar { background: var(--story-accent); color: #fff; }
 .product-story .demo-phone .avatar.light { background: var(--story-stage); color: var(--ink); }
+.product-story .demo-back { width: 32px; height: 32px; margin: 0 -4px 0 -6px; border: 0; border-radius: 50%; background: none; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; cursor: pointer; }
+.product-story .demo-back:hover { background: var(--story-stage); }
+.product-story .demo-back svg { width: 16px; height: 16px; }
+.product-story .demo-home { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.product-story .demo-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 7px 13px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.4; text-align: left; text-decoration: none; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.product-story .demo-chip svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.product-story .demo-chip:hover { border-color: var(--ink); }
+.product-story .demo-chip:active { transform: scale(.97); }
+.product-story .demo-home .demo-chip { width: 100%; border-radius: 14px; padding: 8px 12px; }
+.product-story .demo-home .demo-chip.featured { border-color: #d3d7dc; }
+.product-story .demo-chip.answer, .product-story .demo-chip.demo-go { background: var(--story-accent); border-color: var(--story-accent); color: #fff; }
+.product-story .demo-compose { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 2px 14px; border-top: 1px solid var(--line-soft); background: #fff; }
+.product-story .demo-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.product-story .demo-suggest-label { width: 100%; font-size: 10.5px; font-weight: 700; color: var(--story-muted); }
+.product-story .demo-input { display: flex; align-items: flex-end; gap: 8px; min-height: 40px; padding: 5px 5px 5px 14px; border-radius: 20px; background: var(--story-stage); color: var(--story-muted); font-size: 12.5px; line-height: 1.45; }
+.product-story .demo-input > span:first-child { flex: 1; min-width: 0; align-self: center; overflow-wrap: anywhere; }
+.product-story .demo-input.typing > span:first-child { color: var(--ink); }
+.product-story .demo-input.typing > span:first-child::after { content: ""; display: inline-block; width: 1.5px; height: 1.05em; margin-left: 1px; vertical-align: -2px; background: var(--story-accent); }
+.product-story .demo-send { width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%; background: #c9cdd2; color: #fff; display: inline-flex; align-items: center; justify-content: center; transition: background .2s; }
+.product-story .demo-send svg { width: 14px; height: 14px; }
+.product-story .demo-input.typing .demo-send { background: var(--story-accent); }
+.product-story .demo-phone .btn-row button { flex: 1; min-height: 38px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.product-story .demo-phone .btn-row button.ink { border: 0; background: var(--ink); color: #fff; }
+.product-story .demo-phone .btn-row button.ink.pressed { background: var(--positive); }
+.product-story .demo-phone .btn-row button.line { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.product-story .demo-phone .btn-row button.line.pressed { border-color: var(--ink); background: var(--story-stage); }
+.product-story .demo-phone .btn-row button:disabled { cursor: default; }
+.product-story .demo-phone .btn-row button:disabled:not(.pressed) { opacity: .45; }
 .product-story .how, .product-story .trust, .product-story .pricing, .product-story .faq { padding: 120px 32px 0; background: #fff; border: 0; }
 .product-story .wrap, .product-story .wrap-wide { max-width: 1160px; }
 .product-story .section-h { font-size: clamp(32px, 3.65vw, 48px); font-weight: 750; line-height: 1.25; letter-spacing: -.045em; }
@@ -944,8 +970,7 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story button:focus-visible, .product-story summary:focus-visible, .product-story a:focus-visible { outline: 3px solid var(--story-accent); outline-offset: 5px; }
 @media (max-width: 900px) {
   .product-story .work-layout, .product-story .trust-layout { gap: 32px; }
-  .product-story .team-stage { gap: 12px; padding: 20px; }
-  .product-story .hero-demo { padding: 16px; }
+  .product-story .team-stage { gap: 16px; padding: 20px; }
   .product-story .plan-row-name { gap: 20px; }
   .product-story .plan-row-name b { min-width: 110px; }
   .product-story .approval-stage { padding: 24px 24px 190px; }
@@ -954,10 +979,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
    Keep these rules inside the existing homepage breakpoint; shared pages and
    the desktop composition retain their own layout. */
 @media (max-width: 700px) {
-  .product-story .site-header { padding-inline: 20px; gap: 12px; }
-  .product-story .nav { margin-right: 0; gap: 14px; }
-  .product-story .nav a { font-size: 12px; }
-  .product-story .account-pill { padding-inline: 16px; }
   .product-story .hero { padding: 32px 24px 0; }
   .product-story .hero-copy { text-align: left; }
   .product-story .hero h1 { font-size: clamp(36px, 11.8vw, 50px); line-height: 1.16; letter-spacing: -.055em; word-break: keep-all; }
@@ -973,15 +994,14 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .more-goals summary { font-size: 13px; }
   .product-story .more-goals .goal-chips { gap: 8px; }
   .product-story .availability { font-size: 12px; max-width: 29em; margin: 4px auto 20px; line-height: 1.6; }
-  .product-story .team-stage { grid-template-columns: 1fr; width: calc(100% + 16px); margin-left: -8px; padding: 0 16px 16px; gap: 0; border-radius: 26px; }
-  .product-story .team-characters { padding: 20px 0 24px; gap: 12px 4px; }
+  /* The phone comes first, right under the goal buttons; the friends follow. */
+  .product-story .team-stage { grid-template-columns: 1fr; width: calc(100% + 16px); margin-left: -8px; padding: 20px 16px 16px; gap: 0; border-radius: 26px; }
+  .product-story .team-characters { padding: 20px 0 8px; gap: 12px 4px; }
   .product-story .team-characters figcaption { font-size: 11px; margin-top: -6px; }
-  .product-story .hero-demo { position: relative; padding: 16px; margin-top: -14px; border-radius: 20px; box-shadow: 0 12px 32px #14151808; }
+  .product-story .hero-demo { order: -1; }
   .product-story .demo-cap { font-size: 12px; }
-  .product-story .role-phone.demo-phone { height: auto; min-height: 0; }
-  .product-story .demo-phone .role-screen { flex: none; overflow: visible; padding-bottom: 0; }
+  .product-story .role-phone.demo-phone { height: 600px; border-width: 8px; border-radius: 42px; padding: 8px 10px 0; }
   .product-story .demo-phone .msg { font-size: 13px; line-height: 1.6; }
-  .product-story .demo-phone .res h5 { font-size: 16px; }
   .product-story .how, .product-story .trust, .product-story .pricing, .product-story .faq { padding: 72px 24px 0; }
   .product-story .section-h { font-size: 34px; line-height: 1.22; letter-spacing: -.05em; word-break: keep-all; text-wrap: balance; }
   .product-story .sec-head, .product-story .pricing-head { text-align: left; }
@@ -1046,18 +1066,30 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .footer .business-info { font-size: 11px; line-height: 1.8; }
 }
 @media (max-width: 359px) {
-  .product-story .site-header { flex-wrap: nowrap; gap: 10px; padding-inline: 16px; }
-  .product-story .nav { order: 2; width: auto; gap: 10px; margin-left: auto; }
-  .product-story .nav a { font-size: 11px; }
-  .product-story .account-slot { order: 3; margin-left: 0; }
-  .product-story .account-pill { padding-inline: 12px; font-size: 12px; }
   .product-story .hero, .product-story .how, .product-story .trust, .product-story .pricing, .product-story .faq { padding-inline: 20px; }
   .product-story .plan-row-name b { font-size: 19px; }
   .product-story .plan-row-price { max-width: 132px; }
   .product-story .section-h { font-size: 30px; }
 }
 
-.product-story .demo-phone .team-card, .product-story .demo-phone .prog, .product-story .demo-phone .appr, .product-story .demo-phone .note { display: none; }
-.product-story .demo-phone .res { margin-top: 16px; padding: 16px; }
-.product-story .demo-phone .res h5 { font-size: 17px; line-height: 1.45; }
-.product-story .demo-phone .res dl { display: none; }
+/* The hero phone shows the whole run — team, work, confirmation, report — and
+   gives the report a little more weight than the cards before it. */
+.product-story .demo-phone .res { padding: 14px; }
+.product-story .demo-phone .res h5 { font-size: 14.5px; line-height: 1.45; }
+
+/* The release-maintenance notice (/maintenance.js): small, fixed above the
+   bottom edge, over every sheet, built only while the API says maintenance. */
+.maintenance-notice { position: fixed; left: var(--space-4); right: var(--space-4);
+  bottom: max(var(--space-4), env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto;
+  padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--card); color: var(--ink); box-shadow: var(--shadow); font-size: var(--text-sm); line-height: 1.55; }
+.maintenance-notice p { margin: 0; }
+.maintenance-notice-title { font-weight: 700; font-size: var(--text-md); }
+.maintenance-notice-body, .maintenance-notice-meta { color: var(--ink-soft); }
+.maintenance-notice-write { margin-top: 4px; color: var(--warning); font-weight: 600; }
+.maintenance-notice-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2); margin-top: var(--space-2); color: var(--muted); }
+.maintenance-notice-retry { min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--line);
+  border-radius: var(--radius-pill); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.maintenance-notice-retry:disabled { opacity: 0.5; cursor: default; }
+.maintenance-notice[hidden] { display: none; }

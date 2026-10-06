@@ -332,5 +332,5 @@
       if (!auth.token()) showGate(message, isError);
       else setStatus($('account-view').hidden ? 'account-loading' : 'profile-status', message, isError);
     }
-  }).then(() => boot());
+  }).then(() => boot()).then(() => auth.requireSignIn());
 })();

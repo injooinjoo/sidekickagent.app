@@ -1,0 +1,127 @@
+/* /demo/: four sample scenes in the landing's own look. Only what styles.css and motion.css lack lives here.
+ * The markup is each scene's finished state, so nothing is hidden unless /demo/demo.js has marked the page
+ * (html.dm-js). Motion is added only where the visitor allows it. */
+.demo-page .demo-intro { padding: clamp(32px, 6vw, 72px) var(--space-6) var(--space-6); background: var(--card); border-bottom: 1px solid var(--hairline); }
+.demo-page .demo-intro h1 { font-size: clamp(30px, 4.6vw, 46px); line-height: 1.15; letter-spacing: -0.03em; margin: var(--space-4) 0 var(--space-3); }
+.demo-page .demo-intro .lead { margin: 0; color: var(--muted); }
+.demo-page .demo-cap { margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 600; color: var(--ink-soft); }
+
+/* Tabs */
+.dm-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+.dm-tabs[hidden] { display: none; }
+.dm-tab { min-height: var(--control-h); padding: 0 var(--space-5); border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: var(--text-md); font-weight: 600; cursor: pointer; }
+.dm-tab:hover { border-color: #c9cfd6; background: var(--bg); }
+.dm-tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.dm-tab:focus-visible, .dm-prov:focus-visible, .dm-mic:focus-visible, .dm-x:focus-visible, .demo-page select:focus-visible, .dm-btns button:focus-visible { outline: 3px solid rgba(255, 51, 13, 0.35); outline-offset: 3px; }
+
+/* A scene: words on the left, its phone or card on the right; stacked on a narrow screen. */
+.demo-page .dm-panel { padding: clamp(40px, 6vw, 72px) var(--space-6); border-bottom: 1px solid var(--hairline); }
+.demo-page .dm-panel:nth-of-type(even) { background: var(--card); }
+.demo-page .dm-panel[hidden] { display: none; }
+.dm-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: var(--space-10); align-items: start; }
+.dm-copy .section-h { font-size: clamp(24px, 3vw, 30px); }
+.dm-copy .actions { margin-top: var(--space-6); }
+.dm-note { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--muted); line-height: 1.65; }
+.dm-note a { color: var(--ink); font-weight: 600; }
+.dm-device { display: flex; justify-content: center; }
+.dm-phone { width: 100%; max-width: 340px; height: auto; min-height: 480px; }
+.dm-phone .role-screen { overflow: visible; }
+[data-chat] { display: flex; flex-direction: column; }
+.dm-phone .res ul, .dm-phone .res ol { margin: 4px 0 0; padding-left: 18px; }
+.dm-phone .res li { font-size: 12px; color: var(--ink-soft); }
+.dm-phone .res p { margin: 4px 0 0; }
+.dm-quote, .dm-phone .appr p, .dm-phone .dm-after { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+.dm-phone .dm-after { color: var(--positive); font-weight: 600; }
+
+/* Once the script runs the phone is a fixed window that follows the thread. */
+.dm-js [data-demo="routine"] .dm-phone, .dm-js [data-demo="voice"] .dm-phone { height: 560px; }
+.dm-js .dm-phone .role-screen { overflow-y: auto; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { .dm-js .dm-phone .role-screen { scroll-behavior: auto; } }
+
+/* Routine */
+.dm-controls { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+.dm-controls[hidden], .dm-controls [hidden], .dm-step[hidden], .dm-result[hidden], .dm-approve[hidden], .dm-after[hidden], .dm-idle[hidden], .dm-btns[hidden], [data-chat][hidden], .dm-conn[hidden] { display: none !important; }
+.dm-steps { list-style: none; margin: 0; padding: 0; }
+.dm-step { margin-top: 10px; }
+.dm-line { display: flex; align-items: flex-start; gap: 8px; }
+.dm-line .msg { margin: 0; flex: 1; align-self: auto; max-width: none; }
+.dm-state { margin-top: 6px; }
+.dm-state.work::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; }
+@media (prefers-reduced-motion: no-preference) {
+  .dm-state.work::before { animation: spin 1.2s linear infinite; }
+  .dm-js .dm-step:not([hidden]), .dm-js .dm-result:not([hidden]) { animation: pop-in var(--dur-slow) var(--pop) both; }
+}
+.dm-result, .dm-approve { margin-left: 38px; }
+.dm-idle { margin: var(--space-4) 0; text-align: center; color: var(--muted); }
+.dm-btns button { flex: 1; min-height: 44px; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.dm-btns .ink { border: 0; background: var(--ink); color: #fff; }
+.dm-btns .line { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.dm-after { margin-top: 10px; }
+.dm-checks { list-style: none; padding-left: 0 !important; }
+.dm-checks li::before { content: "✓ "; color: var(--positive); font-weight: 700; }
+.dm-thumb { margin-top: 6px; aspect-ratio: 16 / 9; border-radius: 10px; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.dm-thumb b { font-size: 22px; letter-spacing: -0.03em; }
+.dm-thumb span { font-size: 13px; color: var(--dark-muted); }
+
+/* Team */
+.dm-team { width: 100%; max-width: 380px; margin: 0; padding: var(--space-4); }
+.dm-member { flex-wrap: wrap; }
+.dm-duty select, .dm-add select { min-height: 40px; padding: 0 var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); color: var(--ink); font: inherit; font-size: 12.5px; max-width: 150px; }
+.dm-x { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: var(--card); color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; }
+.dm-x:disabled, .dm-add select:disabled, .dm-add .button:disabled, .dm-prov:disabled { opacity: 0.55; cursor: default; }
+.dm-add { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-5); }
+.dm-add:empty { display: none; }
+.dm-add label { font-size: var(--text-sm); font-weight: 600; color: var(--ink-soft); }
+.dm-limit, .dm-coverage { margin: var(--space-3) 0 0; font-size: var(--text-sm); color: var(--muted); line-height: 1.65; }
+.dm-explain { margin: var(--space-4) 0 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--work-bg); color: var(--ink); font-size: var(--text-sm); line-height: 1.65; }
+.dm-coverage { color: var(--ink-soft); }
+
+/* AI */
+.dm-prov-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+.dm-prov { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 48px; padding: 0 var(--space-4) 0 var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--card); color: var(--ink); font: inherit; font-size: var(--text-md); font-weight: 600; cursor: pointer; }
+.dm-prov img { width: 28px; height: 28px; border-radius: 6px; }
+.dm-prov[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.dm-conn { margin-left: auto; }
+.dm-answer .kicker { margin-bottom: 4px; }
+
+/* Voice */
+.dm-call .role-screen { align-items: stretch; }
+.dm-wave { display: flex; align-items: center; justify-content: center; gap: 4px; height: 56px; margin: var(--space-3) 0; }
+.dm-wave i { width: 4px; height: 12px; border-radius: 2px; background: var(--ink); opacity: 0.4; }
+.dm-wave.on i { opacity: 1; }
+.dm-wave i:nth-child(2n) { height: 22px; }
+.dm-wave i:nth-child(3n) { height: 34px; }
+@keyframes dm-bar { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1.25); } }
+@media (prefers-reduced-motion: no-preference) {
+  .dm-wave.on i { animation: dm-bar 0.9s ease-in-out infinite; }
+  .dm-wave.on i:nth-child(2n) { animation-delay: 0.15s; }
+  .dm-wave.on i:nth-child(3n) { animation-delay: 0.3s; }
+}
+.dm-said[hidden], .dm-call [data-guide][hidden], .dm-request[hidden] { display: none !important; }
+.dm-mic-row { display: flex; justify-content: center; padding: var(--space-3) 0 var(--space-4); }
+.dm-mic-row:empty { display: none; }
+.dm-mic { width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.dm-mic svg { width: 28px; height: 28px; }
+.dm-mic:disabled { opacity: 0.55; cursor: default; }
+.dm-mic[hidden] { display: none; }
+
+.dm-start .actions { justify-content: center; }
+
+@media (max-width: 860px) {
+  /* One column: the heading, the controls, then the screen they drive, then the notes and the one action. */
+  .dm-grid { grid-template-columns: 1fr; gap: 0; }
+  .dm-copy { display: contents; }
+  .dm-copy > * { order: 5; }
+  .dm-copy > .section-h { order: 1; }
+  .dm-copy > .section-p { order: 2; }
+  .dm-copy > .dm-controls, .dm-copy > .dm-add, .dm-copy > .dm-prov-row { order: 3; }
+  .dm-device { order: 4; margin-top: var(--space-5); }
+  .dm-copy > .actions { order: 6; }
+}
+@media (max-width: 700px) {
+  .demo-page .demo-intro, .demo-page .dm-panel { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .demo-page .wrap { padding: 0; }
+  .dm-tab { padding: 0 var(--space-4); }
+  .dm-controls .button, .dm-copy .actions .button { flex: 1 1 auto; min-height: var(--control-h-lg); }
+  .dm-js [data-demo="routine"] .dm-phone, .dm-js [data-demo="voice"] .dm-phone { height: 520px; }
+}

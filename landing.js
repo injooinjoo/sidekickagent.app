@@ -1,11 +1,12 @@
-/* sidekickagent.app landing and /use/ pages — the goal demo, the start
+/* sidekickagent.app landing and /use/ pages — the hero phone, the start
  * button, pricing figures, scroll reveal and the shared scenario renderer.
  *
  * No library: CSS transitions and keyframes do the drawing, this file only
  * decides when. Every timeline is cancellable (a token per run) so a quick
- * second choice never overlaps the first, and the demo plays only while it is
- * on screen. Under prefers-reduced-motion the page keeps the static markup —
- * always the finished state of each scene — and plays nothing. */
+ * second choice never overlaps the first, and the hero phone moves only when
+ * the visitor taps it. Under prefers-reduced-motion nothing animates: the
+ * static markup is always the finished state of each scene, and a tap on the
+ * hero phone shows its next state at once. */
 (function () {
   'use strict';
   var API_ORIGIN = 'https://api.sidekickagent.app';
@@ -123,8 +124,12 @@
     var closed = document.getElementById('pricing-closed');
     if (closed) closed.hidden = salesOpen;
   }
+  // Through /maintenance.js when the page has it: during a release the read
+  // waits for the window to end and the prices then fill in by themselves.
   if (window.fetch && planRows.length) {
-    fetch(API_ORIGIN + '/membership/toss/config').then(function (response) {
+    var maintenance = window.SidekickMaintenance;
+    var configUrl = API_ORIGIN + '/membership/toss/config';
+    (maintenance ? maintenance.fetch(configUrl) : fetch(configUrl)).then(function (response) {
       return response.ok ? response.json() : {};
     }).then(function (config) {
       salesOpen = Boolean(config) && config.sales_enabled === true && config.mode === 'live';
@@ -137,6 +142,16 @@
   // Below-the-fold blocks rise in once as they enter the viewport and reset when
   // they leave below, so scrolling back down plays them again. Group children
   // arrive 70ms apart. Nothing above the fold is hidden.
+  //
+  // Arriving and re-arming are two observers with a gap between them. A block
+  // arrives when 12% of it is above the bottom 8% of the window, but its rise
+  // starts lower than it rests (motion.css story-arrive: 24px), and an observer
+  // measures the moved box. With one observer that start pushed a block resting
+  // near the edge back under the line, the block was re-armed, rose again, and
+  // so on every frame: the shiver seen mid-scroll. Now a block is re-armed only
+  // once it is entirely below the window plus REARM_GAP, which its own rise can
+  // never reach.
+  var REARM_GAP = 32; // px, more than the 24px a rise starts below its place
   (function () {
     var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
     if (!targets.length || REDUCED || !('IntersectionObserver' in window)) { targets.forEach(function (t) { t.classList.add('in'); }); return; }
@@ -146,22 +161,26 @@
         child.style.setProperty('--reveal-delay', delay + 'ms');
       });
     });
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) entry.target.classList.add('in');
-        else if (entry.boundingClientRect.top > 0) entry.target.classList.remove('in'); // left below the fold: arm again
-      });
+    var arrive = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { if (entry.isIntersecting) entry.target.classList.add('in'); });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    targets.forEach(function (t) { io.observe(t); });
+    var rearm = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting && entry.boundingClientRect.top > 0) entry.target.classList.remove('in'); // wholly below the fold: arm again
+      });
+    }, { threshold: 0, rootMargin: '0px 0px ' + REARM_GAP + 'px 0px' });
+    targets.forEach(function (t) { arrive.observe(t); rearm.observe(t); });
   })();
 
   // Homepage depth follows native scroll. No perpetual frame loop or hidden
   // content; CSS provides the complete static scene when motion is unavailable.
+  // The hero stage is not a scene: its phone is something to tap, and a target
+  // that drifts while the page scrolls is harder to hit.
   (function () {
     if (!document.body.classList.contains('product-story') || !window.matchMedia) return;
     var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     var desktop = window.matchMedia('(min-width: 701px)');
-    var scenes = Array.prototype.slice.call(document.querySelectorAll('.team-stage, .work-stage, .approval-stage'));
+    var scenes = Array.prototype.slice.call(document.querySelectorAll('.work-stage, .approval-stage'));
     var queued = false;
     function draw() {
       queued = false;
@@ -328,8 +347,7 @@
   }
   // The finished state of a scene, drawn at once (reduced motion, or a page
   // that needs the end of the story without the wait).
-  function renderFinished(screen, messages, role) {
-    screen.replaceChildren();
+  function appendFinished(screen, messages, role) {
     messages.forEach(function (msg) {
       var node = nodeFor(msg, role);
       if (msg.type === 'progress') Array.prototype.forEach.call(node.querySelectorAll('.badge.idle'), function (b) { b.className = 'badge done'; b.innerHTML = CHECK + '완료'; });
@@ -337,6 +355,10 @@
       screen.appendChild(node);
     });
     screen.scrollTop = screen.scrollHeight;
+  }
+  function renderFinished(screen, messages, role) {
+    screen.replaceChildren();
+    appendFinished(screen, messages, role);
   }
 
   // Plays `messages` into `screen`, one at a time. Returns the finish time.
@@ -388,54 +410,226 @@
     head.appendChild(el('span', 'badge work', role.status));
   }
 
-  // ---- Landing hero: the chosen goal's team at work ---------------------------
-  // The phone plays the first featured goal while it is on screen. On a pointer
-  // that hovers, pointing at another goal previews its team; choosing a goal
-  // opens its page either way (the links work without this script).
+  // ---- Landing hero: a phone the visitor drives -------------------------------
+  // Without this script the phone shows the first featured goal's finished run,
+  // as tools/site/build_use_pages.py writes it. With it, the phone becomes the
+  // app's first screen: one example sentence for every goal in roles.json. A
+  // tap sends the sentence, that goal's team forms and asks its one question,
+  // the visitor taps the example answer, the team works, and the visitor
+  // answers the confirmation before the report arrives. Every turn waits for a
+  // tap, so nothing replays by itself. It is all sample text kept in the page:
+  // nothing is typed, sent, stored or measured, and the page's one event is
+  // still a goal link — the one a finished run ends on. Under reduced motion a
+  // tap shows the next state at once.
+  var ARROW = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var BACK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var SEND = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.5M3.8 7.6 8 3.4l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var demo = document.getElementById('demo');
   var demoScreen = document.getElementById('demo-screen');
   var demoHead = document.getElementById('demo-head');
-  var demoGoal = document.getElementById('demo-goal');
-  if (demo && demoScreen && demoHead && window.fetch) {
+  var demoCompose = document.getElementById('demo-compose');
+  if (demo && demoScreen && demoHead && demoCompose && window.fetch) {
     fetch('/roles.json').then(function (response) { return response.ok ? response.json() : null; }).then(function (data) {
-      if (!data || !data.roles || !data.roles.length) return;
-      var goals = {};
-      data.roles.forEach(function (role) { goals[role.slug] = role; });
-      var first = data.roles.filter(function (role) { return role.featured; })[0] || data.roles[0];
-      var timeline = new Timeline();
-      var visible = false, playing = null, loops = 0, loopTimer = null, swapTimer = null, pending = null;
-      var phone = demoScreen.parentNode;
-      var play = function (role, again) {
-        clearTimeout(loopTimer);
-        clearTimeout(swapTimer);
-        timeline.cancel();
-        loops = again ? loops + 1 : 0;
-        playing = role;
-        if (demoGoal) demoGoal.textContent = role.goal;
-        if (REDUCED || document.body.classList.contains('product-story')) { threadHead(demoHead, role); renderFinished(demoScreen, role.messages, role); return; }
-        phone.classList.add('fade');
-        swapTimer = setTimeout(function () {
-          threadHead(demoHead, role);
-          demoScreen.replaceChildren();
-          phone.classList.remove('fade');
-          var end = playMessages(timeline, demoScreen, role.messages, 250, role);
-          // Replay a few times while it is on screen, then rest on the result.
-          if (loops < 2) loopTimer = setTimeout(function () { if (visible && playing === role) play(role, true); }, end + 5000);
-        }, 260);
-      };
-      observe(demo, function () { visible = true; if (!playing) play(first); }, function () { visible = false; }, 0.3);
-      var hover = Boolean(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
-      Array.prototype.forEach.call(document.querySelectorAll('#goals [data-goal]'), function (link) {
-        var preview = function () {
-          var role = goals[link.getAttribute('data-goal')];
-          if (!role || role === playing) return;
-          clearTimeout(pending);
-          pending = setTimeout(function () { play(role); }, 160);
-        };
-        if (hover) link.addEventListener('mouseenter', preview);
-        link.addEventListener('focus', function () { if (hover) preview(); });
-      });
+      if (data && data.roles && data.roles.length) heroDemo(data.roles);
     }).catch(function () { /* the static finished scene stays */ });
+  }
+
+  function heroDemo(roles) {
+    var phone = demoScreen.parentNode;
+    var live = document.getElementById('demo-live');
+    var caption = document.getElementById('demo-cap-text');
+    var flow = new Timeline();   // the team's turn
+    var next = new Timeline();   // what follows a finished turn
+    var typing = new Timeline(); // a sentence typing itself into the composer
+    var keyboard = false, touched = false;
+
+    function stop() { flow.cancel(); next.cancel(); typing.cancel(); }
+    function say(text) { if (live) live.textContent = text; }
+    function sentence(role) { return role.goal.replace(/기$/, '고 싶어요'); }
+    function indexOf(messages, type) {
+      for (var i = 0; i < messages.length; i++) if (messages[i].type === type) return i;
+      return -1;
+    }
+    function add(node) {
+      if (!REDUCED) node.classList.add('pop');
+      demoScreen.appendChild(node);
+      demoScreen.scrollTop = demoScreen.scrollHeight;
+    }
+    // A tap target. Enter and Space click with detail 0, so focus follows the
+    // story to the next target only for someone on a keyboard.
+    function button(className, text, onTap) {
+      var node = el('button', className, text);
+      node.type = 'button';
+      node.addEventListener('click', function (event) {
+        if (node.disabled) return;
+        touched = true;
+        keyboard = !event.detail;
+        onTap();
+      });
+      return node;
+    }
+    function ready(node) {
+      if (!REDUCED) node.classList.add('demo-next');
+      if (keyboard && node.focus) node.focus({ preventScroll: true });
+    }
+
+    // The composer: suggestions above a picture of an input (no field, nothing
+    // to type into). A tapped sentence types itself in and is sent.
+    var input = el('div', 'demo-input');
+    var inputText = el('span');
+    var sendMark = el('span', 'demo-send');
+    input.setAttribute('aria-hidden', 'true');
+    sendMark.innerHTML = SEND;
+    input.appendChild(inputText);
+    input.appendChild(sendMark);
+    function setInput(text, placeholder) {
+      inputText.textContent = text || placeholder || '';
+      input.className = text ? 'demo-input typing' : 'demo-input';
+    }
+    // A taller composer leaves less screen, so the thread is scrolled back to
+    // its newest line each time the composer changes.
+    function compose(label, chips, placeholder) {
+      demoCompose.replaceChildren();
+      if (chips && chips.length) {
+        var box = el('div', 'demo-suggest');
+        box.setAttribute('role', 'group');
+        box.setAttribute('aria-label', label);
+        box.appendChild(el('span', 'demo-suggest-label', label));
+        chips.forEach(function (chip) { box.appendChild(chip); });
+        demoCompose.appendChild(box);
+      }
+      setInput('', placeholder);
+      demoCompose.appendChild(input);
+      demoScreen.scrollTop = demoScreen.scrollHeight;
+    }
+    function send(text, then) {
+      compose('', null, '');
+      if (REDUCED) { add(bubble('me', text)); then(); return; }
+      var per = Math.max(18, Math.min(45, Math.round(800 / text.length)));
+      var steps = [];
+      for (var n = 1; n <= text.length; n++) steps.push([n * per, setInput.bind(null, text.slice(0, n), '')]);
+      steps.push([text.length * per + 280, function () { setInput('', ''); add(bubble('me', text)); then(); }]);
+      typing.run(steps);
+    }
+    // Plays messages nobody answers (the team forming, the question, the work,
+    // the report), then `then`.
+    function turn(role, messages, then) {
+      if (!messages.length) { then(); return; }
+      if (REDUCED) { appendFinished(demoScreen, messages, role); then(); return; }
+      var end = playMessages(flow, demoScreen, messages, 400, role);
+      next.run([[end + 450, then]]);
+    }
+
+    // The first screen: a greeting and one example sentence per goal.
+    function home() {
+      stop();
+      demoHead.replaceChildren(el('span', 'avatar', '사'));
+      var who = el('div');
+      who.appendChild(el('b', '', '사이드킥'));
+      who.appendChild(el('small', '', '새 대화 · 예시'));
+      demoHead.appendChild(who);
+      demoScreen.replaceChildren(bubble('ai', '무엇을 시작할까요? 아래 문장 하나를 눌러 보세요. 그 일을 맡을 팀이 바로 꾸려져요.', '사이드킥'));
+      var list = el('div', 'demo-home');
+      list.setAttribute('role', 'group');
+      list.setAttribute('aria-label', '예시 문장');
+      roles.forEach(function (role) {
+        var chip = button(role.featured ? 'demo-chip featured' : 'demo-chip', '', function () { start(role); });
+        var icon = document.querySelector('#goals [data-goal="' + role.slug + '"] svg');
+        if (icon) chip.appendChild(icon.cloneNode(true));
+        chip.appendChild(el('span', '', sentence(role)));
+        list.appendChild(chip);
+      });
+      demoScreen.appendChild(list);
+      compose('', null, '위 문장을 누르면 여기에 써져요');
+      demoScreen.scrollTop = 0;
+      return list.firstChild;
+    }
+    function backHome() {
+      var first = home();
+      say('처음 화면이에요. 예시 문장을 골라 보세요.');
+      if (keyboard) first.focus({ preventScroll: true });
+    }
+    // A goal's run is its roles.json messages, cut where the visitor answers:
+    // the example answer ("me") and the confirmation ("approval").
+    function start(role) {
+      stop();
+      threadHead(demoHead, role);
+      var back = button('demo-back', '', backHome);
+      back.setAttribute('aria-label', '처음 화면으로');
+      back.innerHTML = BACK;
+      demoHead.insertBefore(back, demoHead.firstChild);
+      demoScreen.replaceChildren();
+      var at = indexOf(role.messages, 'me');
+      say(sentence(role));
+      send(sentence(role), function () {
+        turn(role, role.messages.slice(0, at), function () { ask(role, role.messages[at], role.messages.slice(at + 1)); });
+      });
+    }
+    function ask(role, mine, rest) {
+      say(role.lead.name + ': ' + role.messages[indexOf(role.messages, 'ai')].text);
+      var chip = button('demo-chip answer', mine.text, function () {
+        send(mine.text, function () { work(role, rest); });
+      });
+      compose('예시 답변', [chip], '');
+      ready(chip);
+    }
+    function work(role, rest) {
+      var at = indexOf(rest, 'approval');
+      if (at === -1) { turn(role, rest, function () { done(role, true); }); return; }
+      turn(role, rest.slice(0, at), function () { confirm(role, rest[at], rest.slice(at + 1)); });
+    }
+    // The confirmation card, with buttons that work: the visitor decides.
+    function confirm(role, msg, rest) {
+      var card = approvalCard(msg);
+      var badge = card.querySelector('.badge');
+      var yes = button('ink', msg.approve || '확인', function () { decide(true); });
+      var hold = button('line', msg.hold || '수정 요청', function () { decide(false); });
+      card.querySelector('.btn-row').replaceChildren(yes, hold);
+      function decide(ok) {
+        yes.disabled = true;
+        hold.disabled = true;
+        (ok ? yes : hold).classList.add('pressed');
+        badge.className = ok ? 'badge done' : 'badge work';
+        badge.textContent = ok ? '확인함' : '고치는 중';
+        compose('', null, '');
+        if (ok) { turn(role, rest, function () { done(role, true); }); return; }
+        add(bubble('ai', '알겠어요. 고칠 부분을 말해 주시면 팀이 다시 준비해서 또 확인받을게요.', role.lead.name));
+        done(role, false);
+      }
+      add(card);
+      compose('', null, '확인 카드의 버튼을 눌러 보세요');
+      say('확인 필요: ' + msg.title + '. ' + msg.text);
+      ready(yes);
+    }
+    // The end of a run: this goal's real start, or another try.
+    function done(role, approved) {
+      var result = role.messages[indexOf(role.messages, 'result')];
+      say(approved ? '보고 도착: ' + result.title : role.lead.name + ': 고칠 부분을 말해 주시면 다시 준비해요.');
+      var go = el('a', 'demo-chip demo-go', role.goal);
+      go.href = '/use/' + role.slug + '/';
+      go.setAttribute('data-goal', role.slug);
+      go.setAttribute('data-source', 'landing_demo');
+      go.insertAdjacentHTML('beforeend', ARROW);
+      var again = button('demo-chip', '처음부터 다시', function () { start(role); });
+      var other = button('demo-chip', '다른 일 해 보기', backHome);
+      compose('예시는 여기까지예요', [go, again, other], '');
+      ready(go);
+    }
+
+    demo.setAttribute('role', 'group');
+    demo.setAttribute('aria-label', '직접 눌러 보는 예시 앱 화면. 누른 내용은 어디에도 보내지지 않아요.');
+    phone.removeAttribute('aria-hidden');
+    if (caption) caption.textContent = '직접 눌러 보세요';
+    demoCompose.hidden = false;
+    var first = home();
+    // The first time the phone is well on screen, its first sentence glows to
+    // say it can be pressed — unless somebody already has.
+    var hinted = false;
+    observe(demo, function () {
+      if (hinted || touched || REDUCED) return;
+      hinted = true;
+      first.classList.add('demo-next');
+    }, null, 0.5);
   }
 
   // ---- The start button (/use/ pages) -----------------------------------------
