@@ -194,8 +194,8 @@
       "sha256": "cf2943fff6b793be0a51327c4c18f9fee91dc216ba3ff1e935d0420f01e60f94"
     },
     "assets/og-image.png": {
-      "bytes": 51213,
-      "sha256": "a2d48edb6b42d4a7d4af2c22780ea20a6150511e9bbdcb7e9bd8bf94597a333c"
+      "bytes": 178088,
+      "sha256": "f42dc379fe3181cebe305b99159545de7e35f6b180c603ed9820894fc2589602"
     },
     "assets/product-story/01-idea.jpg": {
       "bytes": 7784,
@@ -420,5 +420,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "7beddd3b35990d62be55f63bc3ceac8d45fd2a74"
+  "source_sha": "05c3e3148c1273478a468913703ad7c821ccf9b8"
 }
