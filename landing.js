@@ -103,6 +103,12 @@
   // No row carries a number. Every figure comes from the KRW catalog the
   // backend serves; an empty catalog prints none rather than a placeholder
   // somebody could mistake for a price. The membership page owns purchase.
+  //
+  // Each row leads with the 내 AI 계정 연결 price, the cheaper basis, and puts
+  // Sidekick AI 포함 second (owner, 2026-10-07). The second line shows only
+  // beside a lead price it is dearer than, and a row without an AI-connected
+  // price shows no figure rather than the included one in the lead place,
+  // where the section copy would call it the AI-connected basis.
   var catalog = {};
   var salesOpen = false;
   function priceOf(plan, funding) {
@@ -113,13 +119,13 @@
   function renderPlans() {
     planRows.forEach(function (row) {
       var plan = row.getAttribute('data-plan');
-      var included = priceOf(plan, 'included');
       var connected = priceOf(plan, 'connected');
-      row.querySelector('[data-role="price"]').textContent = included === null ? '' : '월 ' + money(included);
-      var cheaper = row.querySelector('[data-role="price-connected"]');
-      var known = included !== null && connected !== null && connected < included;
-      cheaper.textContent = known ? '내 AI 계정 연결 시 ' + money(connected) : '';
-      cheaper.hidden = !known;
+      var included = priceOf(plan, 'included');
+      row.querySelector('[data-role="price"]').textContent = connected === null ? '' : '월 ' + money(connected);
+      var second = row.querySelector('[data-role="price-included"]');
+      var known = connected !== null && included !== null && included > connected;
+      second.textContent = known ? 'Sidekick AI 포함 시 ' + money(included) : '';
+      second.hidden = !known;
     });
     var closed = document.getElementById('pricing-closed');
     if (closed) closed.hidden = salesOpen;

@@ -37,8 +37,8 @@
        ?code= 가 실린 주소가 Referer 로 나가지 않게 no-referrer 다. -->
   <!-- The app's AI information page opens this page with ?in_app=1. In that mode
        /app-mode.js takes out the header menu, the account menu and every link
-       further into the site before anything is drawn; sign-in, project choice
-       and the connections below stay. Without it the page is as before. -->
+       further into the site before anything is drawn; sign-in, the connections
+       and the settings below stay. Without it the page is as before. -->
   <script src="/app-mode.js"></script>
   <script src="/analytics.js"></script>
   <script src="/analytics-config.js"></script>
@@ -50,14 +50,14 @@
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 사이드킥 프로젝트에 연결하세요." />
+  <meta name="description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 한 번 연결하면 내 모든 사이드킥 프로젝트에서 써요." />
   <title>AI 연결 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/ai/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
   <meta property="og:title" content="AI 연결 · Sidekick" />
-  <meta property="og:description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 사이드킥 프로젝트에 연결하세요." />
+  <meta property="og:description" content="쓰고 있는 AI 서비스의 계정이나 API 키를 한 번 연결하면 내 모든 사이드킥 프로젝트에서 써요." />
   <meta property="og:url" content="https://sidekickagent.app/ai/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -87,7 +87,7 @@
   <main class="ai-shell">
     <section class="ai-intro" aria-labelledby="page-title">
       <h1 id="page-title">쓰던 AI 계정을 연결해요</h1>
-      <p>쓰고 있는 AI 계정으로 로그인하면, 고른 프로젝트의 팀이 그 AI로 일해요. 연결 정보는 암호화해 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
+      <p>쓰고 있는 AI 계정으로 로그인하면, 내 모든 프로젝트의 팀이 그 AI로 일해요. 연결 정보는 암호화해 보관하고, 이 페이지나 주소창에는 남기지 않아요.</p>
       <p class="ai-who" id="ai-who" hidden></p>
     </section>
 
@@ -98,10 +98,12 @@
       <p class="ai-status" id="signin-status" aria-live="polite"></p>
     </section>
 
+    <!-- No project picker (owner, 2026-10-07): the AI is connected for the person, once, and every project they own
+         uses it -- a project made later too. This step says so, and holds the page's project-wide sentences (loading,
+         no project yet, not prepared yet). -->
     <section class="ai-step" id="workspace-step" aria-labelledby="workspace-heading" hidden>
-      <h2 id="workspace-heading">프로젝트</h2>
-      <label class="ai-label" for="workspace-select">AI를 연결할 프로젝트</label>
-      <select class="ai-select" id="workspace-select"></select>
+      <h2 id="workspace-heading">내 모든 프로젝트에 연결돼요</h2>
+      <p class="ai-note" id="workspace-line">AI는 계정에 한 번만 연결하면 돼요. 내 모든 프로젝트의 AI 직원이 그 AI로 일하고, 새로 만드는 프로젝트도 같은 AI로 시작해요.</p>
       <p class="ai-status" id="workspace-status" aria-live="polite"></p>
       <div class="ai-next" id="workspace-next" hidden></div>
     </section>
@@ -119,8 +121,8 @@
 
     <section class="ai-step" id="connections-step" aria-labelledby="connections-heading" hidden>
       <h2 id="connections-heading">AI 엔진 연결</h2>
-      <p class="ai-note">이 프로젝트의 AI 직원이 사용할 AI 엔진이에요. 파견직 실행 연결과는 별도로 관리해요.</p>
-      <p class="ai-note" id="connections-empty" hidden>이 프로젝트에 연결한 AI가 아직 없어요.</p>
+      <p class="ai-note">내 모든 프로젝트의 AI 직원이 함께 쓰는 AI 엔진이에요. 파견직 실행 연결과는 별도로 관리해요.</p>
+      <p class="ai-note" id="connections-empty" hidden>연결한 AI가 아직 없어요.</p>
       <ul class="connection-list" id="connection-list"></ul>
       <p class="ai-status" id="connections-status" aria-live="polite"></p>
     </section>
@@ -142,7 +144,7 @@
 
     <section class="ai-step" id="providers-step" aria-labelledby="providers-heading" hidden>
       <h2 id="providers-heading">연결할 AI 고르기</h2>
-      <p class="ai-note">계정으로 로그인해 연결해요. 계정 로그인을 지원하지 않는 AI는 고른 뒤에 다른 방법을 안내해요. 연결하면 이 프로젝트의 새 업무부터 그 AI로 일해요.</p>
+      <p class="ai-note">계정으로 로그인해 연결해요. 계정 로그인을 지원하지 않는 AI는 고른 뒤에 다른 방법을 안내해요. 연결하면 내 모든 프로젝트의 새 업무부터 그 AI로 일해요.</p>
       <div class="provider-grid" id="provider-featured"></div>
       <details class="provider-more" id="provider-more" hidden>
         <summary id="provider-more-summary">다른 AI 서비스</summary>
@@ -153,6 +155,9 @@
 
     <section class="ai-step" id="agent-settings-step" aria-labelledby="agent-settings-heading" hidden>
       <h2 id="agent-settings-heading">AI 직원 실행 설정</h2>
+      <!-- The settings are one project's (the AI above is the account's): the project the person came from -- the app's
+           hand-off or /account/'s ?workspace= -- else their most recently active one, named here. /ai/ai.js fills it. -->
+      <p class="ai-project" id="agent-settings-project" hidden></p>
       <p class="ai-note">이 프로젝트의 AI 직원이 일하는 방식이에요. 앱의 운영 설정과 같은 값이고, 바꾸면 새 업무부터 적용돼요.</p>
       <div class="settings-body" id="agent-settings-body"></div>
       <p class="ai-status" id="agent-settings-status" aria-live="polite"></p>

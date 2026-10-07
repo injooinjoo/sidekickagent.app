@@ -49,6 +49,10 @@ html.has-app-login-notice { scroll-padding-top: var(--app-login-notice-h, 0px); 
 .ai-intro > .ai-who { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; margin: 16px 0 0; padding: 8px 12px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink-soft); font-size: 13px; }
 .ai-who strong { color: var(--ink); }
+/* Which project the 실행 설정 belong to: the AI above is the account's, the settings are one project's (owner, 2026-10-07). */
+.ai-step > .ai-project { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; max-width: 100%; margin: 0 0 4px; padding: 6px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink-soft); font-size: 13px; }
+.ai-project strong { color: var(--ink); overflow-wrap: anywhere; }
 .ai-next { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 14px; background: var(--bg); }
 .ai-next p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
 .ai-next p + p { margin-top: 6px; color: var(--muted); font-size: 13px; }

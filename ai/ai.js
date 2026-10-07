@@ -1,25 +1,33 @@
 (() => {
   'use strict';
 
-  // Connect an AI account or key to one project, on the web.
+  // Connect an AI account or key for the person, on the web.
+  //
+  // The AI is the person's, not one project's (owner, 2026-10-07): it is connected once and every project they own
+  // runs on it, a project made later too, so the page has no project picker. The backend keeps one copy per project and
+  // answers every AI-engine route with the account's connection whichever ready project is named
+  // (apps/backend/app/ai_engine_account.py); the page names one (state.workspaceId). The 실행 설정 at the bottom are
+  // one project's: the one the person came from, else their most recently active one, named in a caption
+  // (state.projectId).
   //
   // Sign-in is the shared /auth.js. Everything else is the backend's AI-engine
   // routes, the same ones the app calls: the project list, the provider catalog,
   // the account logins (a device code, a code pasted back, or a redirect that
-  // returns here), the key and cloud forms, and the project's connections with
+  // returns here), the key and cloud forms, and the account's connections with
   // their model choice and disconnect. No secret stays on this page: a key goes
   // out once in a request body, and nothing this page keeps in sessionStorage is
   // a token or a code. After a ChatGPT sign-in it also offers to make that same
-  // ChatGPT account the project's AI (auth.js holds the one-time claim).
+  // ChatGPT account the person's AI (auth.js holds the one-time claim).
   const auth = window.SidekickAuth;
   const { api } = auth;
   // OpenRouter sends the person back here with ?code=. The backend is told this
   // exact address at start and compares it again at complete.
   const CALLBACK_URL = 'https://sidekickagent.app/ai/';
   // What must survive that round trip: which login it is and which project it
-  // is for. Never a token and never a code.
+  // was asked through. Never a token and never a code.
   const FLOW_KEY = 'sidekick_web_ai_pending_flow';
   const FLOW_MAX_AGE_MS = 30 * 60 * 1000;
+  // The project whose 실행 설정 this tab shows, so a reload keeps showing it.
   const WORKSPACE_KEY = 'sidekick_web_ai_workspace';
   // The server proves a connection by getting one real answer through it and
   // allows that up to 180 seconds; the page waits a little longer than that.
@@ -89,7 +97,7 @@
   // Every failure is told in Korean the page chose. The server's code only
   // picks which sentence; its own wording is never shown.
   const CODE_COPY = {
-    AI_ENGINE_PROFILE_NOT_READY: '이 프로젝트는 아직 AI 직원 공간을 준비하고 있어요. 준비가 끝나면 여기서 연결할 수 있어요.',
+    AI_ENGINE_PROFILE_NOT_READY: '프로젝트의 AI 직원 공간을 아직 준비하고 있어요. 준비가 끝나면 여기서 연결할 수 있어요.',
     AI_ENGINE_CONNECTION_NOT_SUPPORTED: '아직 지원하지 않는 AI 연결이에요.',
     AI_ENGINE_ACCOUNT_CONNECTION_NOT_SUPPORTED: '이 AI는 계정 로그인 연결을 지원하지 않아요. API 키로 연결해 주세요.',
     AI_ENGINE_OAUTH_CODE_REQUIRED: '로그인 페이지에서 받은 코드를 붙여넣어 주세요.',
@@ -107,7 +115,7 @@
   const STATUS_COPY = {
     400: '요청을 처리하지 못했어요. 다시 시도해 주세요.',
     401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
-    403: '이 프로젝트에 접근할 수 없어요. 다른 프로젝트를 골라 주세요.',
+    403: '이 프로젝트에 접근할 수 없어요. 이 페이지를 새로고침해 주세요.',
     404: '찾는 프로젝트나 연결이 더 이상 없어요. 이 페이지를 새로고침해서 목록을 다시 확인해 주세요.',
     409: '그사이 상태가 바뀌었어요. 다시 시도해 주세요.',
     410: '로그인 코드가 만료됐어요. 처음부터 다시 연결해 주세요.',
@@ -125,6 +133,9 @@
   const NO_PROJECT_COPY = '연결할 프로젝트가 아직 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기서 AI를 연결할 수 있어요.';
   const NO_PROJECT_HINT = '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.';
   const NOT_READY_HINT = '앱에서 이 프로젝트를 한 번 열면 준비돼요. 그다음 아래 다시 확인을 눌러 주세요.';
+  // The 실행 설정 of a project whose AI employee space is not prepared yet (the account's AI above is connected all the
+  // same): nothing is asked of its server until it is.
+  const SETTINGS_NOT_READY_COPY = '이 프로젝트의 AI 직원 공간을 아직 준비하고 있어요. 준비가 끝나면 여기서 설정을 바꿀 수 있어요.';
   // What ends a ChatGPT sign-in's claim for good (POST /ai-engine/login-handoff/claim):
   // spent, emptied, expired or changed. Anything else leaves the offer up to try again.
   const HANDOFF_SPENT_COPY = {
@@ -195,7 +206,13 @@
   const state = {
     user: null,
     workspaces: [],
+    // The project the AI-engine routes are asked through. The account's AI is the same in every project, so any ready
+    // project answers for it: the settings project below when that one is ready, else the first ready one.
     workspaceId: '',
+    // The project whose 실행 설정 are shown and named in their caption, never chosen on this page: the one /account/
+    // linked here with ?workspace=, else the one this tab was already showing, else the one the server marks `recent`
+    // (the project the app handed the person over from, else their most recently active one). See loadWorkspaces.
+    projectId: '',
     catalog: [],
     connections: [],
     // The one connection being made in the panel: its provider, method and,
@@ -205,7 +222,7 @@
     // Bumped by every reload, so a late answer cannot paint over a newer one.
     seq: 0,
     // /account/ links here as /ai/?workspace=<id>. Read before the address bar
-    // is cleaned below; it only picks which project is selected first.
+    // is cleaned below; it only picks whose 실행 설정 are shown.
     requestedWorkspace: readRequestedWorkspace(),
     // The app's AI information page links here as /ai/?provider=<id>. Read
     // before the address bar is cleaned below; once the providers are on the
@@ -214,7 +231,7 @@
     requestedProvider: readRequestedProvider(),
     returnedCode: readReturnedCode(),
     // The project's 실행 설정 (see "AI 직원 실행 설정" below): which read this is, what it came to and what the controls
-    // may do. Nothing in it outlives a project change; every answer is checked against the read that asked for it.
+    // may do. Nothing in it outlives a reload of the projects; every answer is checked against the read that asked for it.
     agent: { run: 0, phase: 'idle', settings: null, tools: null, busy: false, readOnly: false, wokeFor: '', wokeAt: 0 }
   };
 
@@ -365,7 +382,7 @@
       const id = String(row.id || '');
       if (!SAFE_ID.test(id) || seen.has(id)) return;
       seen.add(id);
-      workspaces.push({ id, name: cleanText(row.name, 120) || '이름 없는 프로젝트', ready: row.ready === true });
+      workspaces.push({ id, name: cleanText(row.name, 120) || '이름 없는 프로젝트', ready: row.ready === true, recent: row.recent === true });
     });
     return workspaces;
   }
@@ -423,12 +440,14 @@
       : [];
   }
 
+  // The account's connections only. An employee's own AI (agent_id) belongs to one project's employee and is managed in
+  // the app; the list here is the AI every project runs on.
   function sanitizeConnections(value) {
     if (!Array.isArray(value)) return [];
     const seen = new Set();
     const connections = [];
     value.forEach((row) => {
-      if (!row || typeof row !== 'object') return;
+      if (!row || typeof row !== 'object' || row.agent_id) return;
       const id = String(row.id || '');
       const provider = String(row.provider || '');
       if (!SAFE_ID.test(id) || !PROVIDER_ID.test(provider) || seen.has(id)) return;
@@ -463,8 +482,10 @@
   function hideProjectSteps() {
     ['workspace-step', 'handoff-step', 'connections-step', 'execution-step', 'connect-step', 'providers-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
     $('connection-list').replaceChildren();
-    // What the last person's settings drew goes with them, not only out of sight.
+    // What the last person's settings drew goes with them, not only out of sight -- the project's name too.
     $('agent-settings-body').replaceChildren();
+    $('agent-settings-project').replaceChildren();
+    $('agent-settings-project').hidden = true;
     setStatus('agent-settings-status', '', false);
     showNext(null);
   }
@@ -475,7 +496,7 @@
     $('signin-step').hidden = false;
   }
 
-  // The next step under the project picker, or nothing.
+  // The next step under the line about the person's projects, or nothing.
   function showNext(parts) {
     const node = $('workspace-next');
     if (!parts) { node.hidden = true; node.replaceChildren(); return; }
@@ -502,6 +523,7 @@
     state.user = null;
     state.workspaces = [];
     state.workspaceId = '';
+    state.projectId = '';
     state.catalog = [];
     state.connections = [];
     showSignedOut();
@@ -555,16 +577,30 @@
     if (!workspaces) { setStatus('workspace-status', WORKSPACES_FAILED_COPY, true); return; }
     state.workspaces = workspaces;
     const pending = readPendingFlow();
-    const wanted = [
-      state.returnedCode && pending ? pending.workspace_id : '',
+    const returning = state.returnedCode && pending ? pending.workspace_id : '';
+    const known = (id) => id && workspaces.some((workspace) => workspace.id === id);
+    // Whose 실행 설정 are shown -- there is no picker. A login coming back from its provider returns to the project it
+    // was started from; then the project the person came from; then the one this tab was showing; then the one the
+    // server marks `recent` (the app's last hand-off, else the most recently active).
+    state.projectId = [
+      returning,
       state.requestedWorkspace,
       readStore(WORKSPACE_KEY),
+      (workspaces.find((workspace) => workspace.recent) || {}).id,
       (workspaces.find((workspace) => workspace.ready) || {}).id,
       (workspaces[0] || {}).id
-    ].find((id) => id && workspaces.some((workspace) => workspace.id === id));
-    state.workspaceId = wanted || '';
+    ].find(known) || '';
     state.requestedWorkspace = '';
-    renderWorkspaces();
+    if (state.projectId) writeStore(WORKSPACE_KEY, state.projectId);
+    // Which project the AI routes are asked through: the settings project when its AI employee space is ready (so the
+    // settings below and the AI above are asked about the same one), else any ready project -- the AI is the account's.
+    const project = settingsProject();
+    state.workspaceId = [
+      returning,
+      project && project.ready ? project.id : '',
+      (workspaces.find((workspace) => workspace.ready) || {}).id,
+      state.projectId
+    ].find(known) || '';
     await loadWorkspaceData();
     if (state.returnedCode || pending) await completeReturnedFlow(pending);
   }
@@ -573,14 +609,17 @@
     return state.workspaces.find((workspace) => workspace.id === state.workspaceId) || null;
   }
 
-  function renderWorkspaces() {
-    const select = $('workspace-select');
-    select.replaceChildren(...state.workspaces.map((workspace) => el('option', {
-      value: workspace.id,
-      text: workspace.ready ? workspace.name : `${workspace.name} · 준비 중`,
-      selected: workspace.id === state.workspaceId
-    })));
-    select.disabled = state.workspaces.length < 2;
+  function settingsProject() {
+    return state.workspaces.find((workspace) => workspace.id === state.projectId) || null;
+  }
+
+  // The caption over the 실행 설정: which project they are. The name is the server's, as sanitizeWorkspaces kept it.
+  function renderProject() {
+    const node = $('agent-settings-project');
+    const project = settingsProject();
+    if (!project) { node.hidden = true; node.replaceChildren(); return; }
+    fill(node, [el('span', { text: '프로젝트' }), el('strong', { text: project.name })]);
+    node.hidden = false;
   }
 
   async function loadWorkspaceData() {
@@ -610,7 +649,7 @@
       ]);
       return;
     }
-    writeStore(WORKSPACE_KEY, workspace.id);
+    // Reached only when none of the person's projects is ready (any ready one answers for the account's AI).
     if (!workspace.ready) {
       setStatus('workspace-status', CODE_COPY.AI_ENGINE_PROFILE_NOT_READY, false);
       showNext([
@@ -725,7 +764,7 @@
         method: 'PUT',
         body: JSON.stringify({ ...scope(), connection_id: connection.id, model })
       });
-      setStatus('connections-status', `${model}로 바꿨어요. 이 프로젝트의 새 업무부터 이 모델을 써요.`, false);
+      setStatus('connections-status', `${model}로 바꿨어요. 내 모든 프로젝트의 새 업무부터 이 모델을 써요.`, false);
     } catch (error) {
       showFailure(error, 'connections-status');
     } finally {
@@ -737,7 +776,7 @@
   async function disconnectConnection(connection, controls) {
     if (state.busy) return;
     const name = connectionProviderName(connection.provider);
-    if (!window.confirm(`${name} 연결을 해제할까요? 이 프로젝트의 새 업무는 이 AI를 쓰지 않아요.`)) return;
+    if (!window.confirm(`${name} 연결을 해제할까요? 내 모든 프로젝트의 새 업무가 이 AI를 쓰지 않아요.`)) return;
     setBusy(true, controls);
     setStatus('connections-status', '연결을 해제하고 있어요.', false);
     try {
@@ -771,7 +810,7 @@
   // /ai/?provider=<id>: the first time the catalog is drawn, the card of that
   // provider is marked, its group opened if it sits under "다른 AI 서비스", and
   // the page scrolls to it with its first button focused. Once only: a later
-  // redraw (a project change, a finished connection) leaves the page alone. A
+  // redraw (a reload of the projects, a finished connection) leaves the page alone. A
   // provider this catalog does not list is ignored.
   function showRequestedProvider() {
     const id = state.requestedProvider;
@@ -924,7 +963,7 @@
     fill($('connect-body'), [el('div', { className: 'connect-done', 'aria-live': 'polite' }, [
       el('span', { className: 'connected-mark', 'aria-hidden': 'true' }),
       el('h3', { id: 'connect-done-title', text: `${subjectOf(provider)} 연결됐어요` }),
-      el('p', { id: 'connect-done-line', text: '이 프로젝트의 새 업무부터 이 AI로 일해요.' }),
+      el('p', { id: 'connect-done-line', text: '내 모든 프로젝트의 새 업무부터 이 AI로 일해요.' }),
       el('div', { className: 'connect-actions' }, [back, another]),
       back ? el('p', { className: 'ai-note', text: RETURN_HINT }) : null
     ])]);
@@ -939,7 +978,7 @@
     stopFlow(flow);
     setStatus('connections-status', reconnect
       ? `${name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.`
-      : `${name} 연결됐어요. 이 프로젝트의 새 업무부터 이 AI로 일해요.`, false);
+      : `${name} 연결됐어요. 내 모든 프로젝트의 새 업무부터 이 AI로 일해요.`, false);
     if (watching) showConnected(flow.provider, reconnect);
     await reloadConnections();
     renderProviders();
@@ -1410,15 +1449,15 @@
 
   // ---- The ChatGPT account the person just signed in with --------------------------
 
-  // Offered for the selected project once it is ready, and only to the account
-  // that signed in (auth.js checks both the tab and the account). The claim
-  // checks the account with one real answer before it is saved, like every
-  // other connection on this page.
+  // Offered as the person's AI once a project of theirs is ready to be asked
+  // through, and only to the account that signed in (auth.js checks both the
+  // tab and the account). The claim checks the account with one real answer
+  // before it is saved, like every other connection on this page.
   function renderHandoffOffer() {
     const workspace = currentWorkspace();
     const offer = state.user && workspace && workspace.ready ? auth.chatGptHandoff() : null;
     if (!offer) { $('handoff-step').hidden = true; return; }
-    $('handoff-note').textContent = `방금 로그인한 ChatGPT 계정을 ‘${workspace.name}’ 프로젝트의 AI로 바로 연결할 수 있어요. ChatGPT에 다시 로그인하지 않아도 돼요.`;
+    $('handoff-note').textContent = '방금 로그인한 ChatGPT 계정을 내 모든 프로젝트의 AI로 바로 연결할 수 있어요. ChatGPT에 다시 로그인하지 않아도 돼요.';
     $('handoff-proof').textContent = PROOF_NOTE;
     setStatus('handoff-status', '', false);
     $('handoff-step').hidden = false;
@@ -1463,7 +1502,7 @@
     const reconnect = Boolean(connection && connection.status === 'needs_reconnect');
     setStatus('connections-status', reconnect
       ? 'ChatGPT 연결을 저장했지만 다시 연결이 필요해요. 아래에서 한 번 더 연결해 주세요.'
-      : 'ChatGPT 연결됐어요. 이 프로젝트의 새 업무부터 이 AI로 일해요.', false);
+      : 'ChatGPT 연결됐어요. 내 모든 프로젝트의 새 업무부터 이 AI로 일해요.', false);
     if (!state.user || workspaceId !== state.workspaceId) return;
     // The same finished state as every other way of connecting; a login being made in the panel is over.
     closeFlow();
@@ -1483,8 +1522,10 @@
 
   // ---- AI 직원 실행 설정 ----------------------------------------------------------------------------
   //
-  // Shown under the provider cards for the chosen, ready project. Two groups, both read from the person's own server and
-  // written back to it, each control one real setting:
+  // Shown under the provider cards for one project, named in the caption (state.projectId; there is no picker): while it
+  // is the project the AI routes are asked through, which loadWorkspaces makes it whenever it is ready, every request
+  // below is about it (scope()). One that is not ready says so and asks nothing. Two groups, both read from the person's
+  // own server and written back to it, each control one real setting:
   //   실행 방식 -- GET/PUT /hermes-agent/settings (anyone in the project reads; only the owner writes), and
   //   도구 -- the Hermes toolsets the nine names in TOOLSETS stand for, through the owner-only relay.
   // The rules this section keeps: it is drawn only when everything it shows has been read (one sentence and a retry
@@ -1500,12 +1541,12 @@
   // Every read or change is one ticket, checked when its answer arrives: an answer for another project, an earlier read
   // or a page that has since signed out paints nothing.
   function agentTicket() {
-    return { run: ++state.agent.run, seq: state.seq, user: state.user, workspaceId: state.workspaceId };
+    return { run: ++state.agent.run, seq: state.seq, user: state.user, workspaceId: state.workspaceId, projectId: state.projectId };
   }
 
   function agentCurrent(ticket) {
     return ticket.run === state.agent.run && ticket.seq === state.seq && ticket.user === state.user
-      && ticket.workspaceId === state.workspaceId;
+      && ticket.workspaceId === state.workspaceId && ticket.projectId === state.projectId;
   }
 
   async function agentCall(path, options, ms) {
@@ -1612,7 +1653,15 @@
     const ticket = agentTicket();
     Object.assign(agent, { phase: 'loading', settings: null, tools: null, busy: false, readOnly: false });
     setStatus('agent-settings-status', '', false);
+    renderProject();
     $('agent-settings-step').hidden = false;
+    // Only the captioned project's own server is asked, and only once its AI employee space is ready.
+    const project = settingsProject();
+    if (!project || !project.ready || project.id !== state.workspaceId) {
+      agent.phase = 'not-ready';
+      drawAgent();
+      return;
+    }
     drawAgent();
     const [settings, tools] = await Promise.allSettled([readAgentSettings(), readToolsets()]);
     if (!agentCurrent(ticket)) return;
@@ -1634,6 +1683,13 @@
     body.setAttribute('aria-busy', agent.phase === 'loading' ? 'true' : 'false');
     if (agent.phase === 'ready') {
       fill(body, [agentRunGroup(), agentToolsGroup()]);
+    } else if (agent.phase === 'not-ready') {
+      // The captioned project cannot be asked yet: what to do about it, and the same 다시 확인 as the page's own.
+      fill(body, [
+        el('p', { className: 'settings-state', text: SETTINGS_NOT_READY_COPY }),
+        el('p', { className: 'ai-note', text: NOT_READY_HINT }),
+        el('button', { className: 'ai-button secondary', type: 'button', text: '다시 확인', onClick: recheckWorkspaces })
+      ]);
     } else {
       fill(body, [
         el('p', { className: 'settings-state', text: AGENT_STATE_COPY[agent.phase] || AGENT_STATE_COPY.failed }),
@@ -1841,11 +1897,6 @@
 
   // ---- Wiring ----------------------------------------------------------------------
 
-  $('workspace-select').addEventListener('change', (event) => {
-    if (state.busy) { event.target.value = state.workspaceId; return; }
-    state.workspaceId = event.target.value;
-    loadWorkspaceData();
-  });
   $('connect-cancel').addEventListener('click', closeFlow);
   $('return-top').addEventListener('click', () => returnToApp());
   $('open-signin').addEventListener('click', () => auth.open());

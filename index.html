@@ -164,20 +164,23 @@
 
   <!-- 4. Pricing at a glance. No price is written here: landing.js fills the
        figures from /membership/toss/config, and an empty catalog shows none.
-       The membership page owns the configurator and any purchase. -->
+       The membership page owns the configurator and any purchase.
+       Each row leads with the 내 AI 계정 연결 price and shows Sidekick AI 포함
+       second, and hands /membership/ that same choice (?funding=connected):
+       the cheaper AI-connected basis first (owner, 2026-10-07). -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-h">
     <div class="wrap">
       <div class="pricing-head" data-reveal>
         <h2 class="section-h" id="pricing-h">첫 업무부터, 7일 무료로.</h2>
-        <p class="section-p">앱에서 첫 업무를 시작하면 <b>7일 무료 체험</b>이 결제수단 없이 바로 켜져요. 그다음 동시에 맡길 일의 수에 맞춰 고르세요.</p>
+        <p class="section-p">앱에서 첫 업무를 시작하면 <b>7일 무료 체험</b>이 결제수단 없이 바로 켜져요. 그다음 동시에 맡길 일의 수에 맞춰 고르세요. 금액은 내 AI 계정을 연결한 기준이에요.</p>
       </div>
       <ul class="plan-rows" id="plans" data-reveal>
-        <li><a class="plan-row" data-plan="birdie" href="/membership/?plan=birdie&amp;funding=included"><span class="plan-row-name"><b>Birdie</b><small>하루 한두 건 · 동시에 1개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
-        <li><a class="plan-row" data-plan="eagle" href="/membership/?plan=eagle&amp;funding=included"><span class="plan-row-name"><b>Eagle <em>추천</em></b><small>매일 여러 건 · 동시에 2개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
-        <li><a class="plan-row" data-plan="albatross" href="/membership/?plan=albatross&amp;funding=included"><span class="plan-row-name"><b>Albatross</b><small>하루 종일 여러 흐름 · 동시에 4개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-connected" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+        <li><a class="plan-row" data-plan="birdie" href="/membership/?plan=birdie&amp;funding=connected"><span class="plan-row-name"><b>Birdie</b><small>하루 한두 건 · 동시에 1개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-included" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+        <li><a class="plan-row" data-plan="eagle" href="/membership/?plan=eagle&amp;funding=connected"><span class="plan-row-name"><b>Eagle <em>추천</em></b><small>매일 여러 건 · 동시에 2개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-included" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
+        <li><a class="plan-row" data-plan="albatross" href="/membership/?plan=albatross&amp;funding=connected"><span class="plan-row-name"><b>Albatross</b><small>하루 종일 여러 흐름 · 동시에 4개</small></span><span class="plan-row-price"><b data-role="price"></b><small data-role="price-included" hidden></small></span><span class="goal-go" aria-hidden="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li>
       </ul>
       <div class="pricing-more" data-reveal>
-        <p>원(KRW) 기준 월 정기결제예요. 내 AI 계정을 연결하면 더 저렴해져요. 구독 중이면 <a href="/membership/">같은 계정으로 로그인</a>해 확인하세요.</p>
+        <p>내 AI 계정을 연결하면 AI 사용료는 그 계정에서 나가요. Sidekick AI 포함은 AI 사용료까지 들어 있어 따로 준비할 것 없이 바로 시작해요. 모두 원(KRW) 기준 월 정기결제예요. 구독 중이면 <a href="/membership/">같은 계정으로 로그인</a>해 확인하세요.</p>
         <p id="pricing-closed">웹 결제는 준비 중이에요. 지금은 구성과 금액만 미리 볼 수 있어요.</p>
       </div>
     </div>
@@ -206,7 +209,7 @@
         </details>
         <details data-reveal>
           <summary>비용은 얼마인가요?</summary>
-          <p>앱에서 7일 무료 체험을 먼저 써 볼 수 있어요. 그다음 Birdie·Eagle·Albatross 중 업무량에 맞게 고르고, 내 AI 계정을 연결하면 금액이 더 낮아져요.</p>
+          <p>앱에서 7일 무료 체험을 먼저 써 볼 수 있어요. 그다음 Birdie·Eagle·Albatross 중 업무량에 맞게 고르세요. 내 AI 계정을 연결하면 AI 사용료는 그 계정에서 나가고 멤버십은 더 저렴해요. Sidekick AI 포함은 AI 사용료까지 들어 있어요.</p>
         </details>
         <details data-reveal>
           <summary>지금 쓸 수 있나요?</summary>

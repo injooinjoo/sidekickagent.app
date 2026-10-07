@@ -2,6 +2,12 @@
  * script); this file only steps it. No network, no storage, no cookie, no microphone: the scenes are plain state
  * kept in this closure, and a reload brings every one back to its start. Under prefers-reduced-motion nothing
  * plays by itself: a tap moves one step. */
+  // 받침에 맞는 조사(이/가, 을/를, 은/는). 한글이 아닌 끝 글자는 받침 없는 쪽.
+  function josa(word, withFinal, withoutFinal) {
+    const text = String(word);
+    const code = text.charCodeAt(text.length - 1) - 0xac00;
+    return code >= 0 && code <= 11171 && code % 28 !== 0 ? withFinal : withoutFinal;
+  }
 (function () {
   'use strict';
   var doc = document;
@@ -164,7 +170,7 @@
         }).join('');
         html += '<div class="team-row dm-member" data-member="' + m.id + '"><span class="avatar">' + esc(p[1]) + '</span>' +
           '<span class="team-who"><b>' + esc(p[0]) + '</b><small>' + esc(DUTIES[m.duty][0]) + '</small></span>' +
-          '<label class="dm-duty"><span class="sr-only">' + esc(p[0]) + '가 맡을 일</span><select data-action="duty" data-id="' + m.id + '">' + options + '</select></label>' +
+          '<label class="dm-duty"><span class="sr-only">' + esc(p[0]) + josa(p[0], '이', '가') + ' 맡을 일</span><select data-action="duty" data-id="' + m.id + '">' + options + '</select></label>' +
           '<button class="dm-x" type="button" data-action="remove" data-id="' + m.id + '" aria-label="' + esc(p[0]) + ' 빼기"' + (members.length <= 1 ? ' disabled' : '') + '>×</button></div>';
       });
       return html;
@@ -199,14 +205,14 @@
         var id = q(panel, '[data-add-select]').value;
         if (!PEOPLE[id] || has(id) || members.length >= MAX_MEMBERS) return;
         members.push({ id: id, duty: PEOPLE[id][2] });
-        tell(PEOPLE[id][0] + '가 합류했어요. ' + '‘' + DUTIES[PEOPLE[id][2]][0] + '’를 맡고, ' + DUTIES[PEOPLE[id][2]][1] + '.');
+        tell(PEOPLE[id][0] + josa(PEOPLE[id][0], '이', '가') + ' 합류했어요. ' + '‘' + DUTIES[PEOPLE[id][2]][0] + '’' + josa(DUTIES[PEOPLE[id][2]][0], '을', '를') + ' 맡고, ' + DUTIES[PEOPLE[id][2]][1] + '.');
         render();
       } else if (action === 'remove') {
         var out = button.getAttribute('data-id');
         if (members.length <= 1 || !has(out)) return;
         var gone = members.filter(function (m) { return m.id === out; })[0];
         members = members.filter(function (m) { return m.id !== out; });
-        tell(PEOPLE[out][0] + '가 팀에서 빠졌어요. ‘' + DUTIES[gone.duty][0] + '’은 다른 팀원에게 맡길 수 있어요.');
+        tell(PEOPLE[out][0] + josa(PEOPLE[out][0], '이', '가') + ' 팀에서 빠졌어요. ‘' + DUTIES[gone.duty][0] + '’' + josa(DUTIES[gone.duty][0], '은', '는') + ' 다른 팀원에게 맡길 수 있어요.');
         render();
       }
     });
@@ -217,7 +223,7 @@
       var m = members.filter(function (x) { return x.id === id; })[0];
       if (!m || !DUTIES[select.value]) return;
       m.duty = select.value;
-      tell(PEOPLE[id][0] + '는 이제 ‘' + DUTIES[m.duty][0] + '’을 맡아요 — ' + DUTIES[m.duty][1] + '.');
+      tell(PEOPLE[id][0] + josa(PEOPLE[id][0], '은', '는') + ' 이제 ‘' + DUTIES[m.duty][0] + '’' + josa(DUTIES[m.duty][0], '을', '를') + ' 맡아요 — ' + DUTIES[m.duty][1] + '.');
       render();
     });
     reset();
