@@ -101,7 +101,9 @@
   // The most the page waits for that exchange (the first script in /ai/'s <head> gives up on its side at the same time).
   const APP_LOGIN_WAIT_MS = 5000;
   // After the takeover the page says which account this browser now is (GET /account, read for at most this long) and lets
-  // the person say it is not theirs. Without a name, in general words.
+  // the person say it is not theirs. It names the account so the person can tell which one it is (owner, 2026-10-06: the
+  // address or the name, not "the account you used in the app"); see appLoginSentence. Only when the server named nothing
+  // in time, in general words.
   const APP_LOGIN_IDENTITY_MS = 3000;
   const APP_LOGIN_KNOWN_COPY = '앱에서 쓰던 계정으로 이어졌어요.';
   // The grammar of what the app puts in /ai/'s fragment: an attempt id and three 43-character proofs.
@@ -862,6 +864,33 @@
     if (!info || typeof info !== 'object') return '';
     const detail = maskedEmail(info.email) || maskedPhone(info.phone_masked);
     return [detail, Object.hasOwn(METHOD_LABELS, info.method) ? METHOD_LABELS[info.method] : ''].filter(Boolean).join(' · ');
+  }
+
+  // Marks that are not seen but change what is seen around them: soft hyphen, zero-width characters, bidirectional
+  // marks, overrides and isolates, the byte-order mark. A value holding one is not shown: it could make a line read as
+  // something other than what it holds.
+  const UNSEEN_MARKS = /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff]/;
+
+  function plainText(value, max) {
+    const text = cleanText(value, max);
+    return text && !UNSEEN_MARKS.test(text) ? text : '';
+  }
+
+  // The sentence the app-login notice says (showAppLoginNotice), from GET /account's answer for the session just taken
+  // over (null when it could not be read). First what the person signed in with, which the server checked: the whole
+  // address, else the number as the server masked it (never a whole number). Then the account's name, which comes from
+  // the sign-in provider and so can be anything its holder chose -- it is shown only when there is neither, and never
+  // when it could pass for an address or a number. Then the door the account came through. Nothing else of the answer
+  // (no id) is used.
+  function appLoginSentence(info) {
+    const known = info && typeof info === 'object' ? info : {};
+    const email = plainText(known.email, 254);
+    const address = (/^[^\s@]+@[^\s@]+$/.test(email) ? email : '') || maskedPhone(known.phone_masked);
+    if (address) return `${address} 계정으로 이어졌어요.`;
+    const name = plainText(known.display_name, 80);
+    if (name && !name.includes('@') && /\p{L}/u.test(name)) return `${name} 님의 계정으로 이어졌어요.`;
+    const door = Object.hasOwn(METHOD_LABELS, known.method) ? METHOD_LABELS[known.method] : '';
+    return door ? `${door}로 로그인한 계정으로 이어졌어요.` : APP_LOGIN_KNOWN_COPY;
   }
 
   // A display hint only. Anything that does not look like one is dropped.
@@ -1998,10 +2027,11 @@
 
   // After a takeover the page says which account this browser now is, and lets the person undo it. The code in the fragment
   // is a bearer that anyone with an app session can mint and send on, so a link can sign a visitor in as the person who made
-  // it (login CSRF); this notice is what makes that visible. It names the account only in masked form (the first and last
-  // letter of an address, a number as the server masked it), stays until it is dismissed or the session ends, and lives for
-  // this page load only. "내 계정이 아니에요" is the ordinary 로그아웃: the session here is revoked and cleared and the page
-  // goes back to its signed-out state.
+  // it (login CSRF); this notice is what makes that visible. It names the account the way appLoginSentence says (the whole
+  // address the server gave for this session, else the number as the server masked it, else the account's name, else the
+  // door it came through) only on the page, never in an address, a log or storage; it stays until it is dismissed or the
+  // session ends, and lives for this page load only. "내 계정이 아니에요" is the ordinary 로그아웃: the session here is
+  // revoked and cleared and the page goes back to its signed-out state.
   // The notice stays in view under the sticky header while the page scrolls (the page scrolls to the provider the app asked
   // for, and a notice left behind at the top would be out of sight at once). Whatever the page scrolls into view then lands
   // below the notice as well: html.has-app-login-notice adds the notice's height to the scroll offset (see /ai/ai.css).
@@ -2029,9 +2059,9 @@
     try {
       const info = await api('/account', { method: 'GET', cache: 'no-store', credentials: 'omit',
         ...(controller ? { signal: controller.signal } : {}) });
-      return info && typeof info === 'object' ? maskedEmail(info.email) || maskedPhone(info.phone_masked) : '';
+      return info && typeof info === 'object' ? info : null;
     } catch (_) {
-      return '';
+      return null;
     } finally {
       clearTimeout(timer);
     }
@@ -2039,7 +2069,7 @@
 
   async function showAppLoginNotice(token) {
     try {
-      const label = await readAppLoginIdentity();
+      const sentence = appLoginSentence(await readAppLoginIdentity());
       // Only while this is still the session that was taken over.
       if (session.token !== token || appLoginNotice) return;
       const notice = document.createElement('div');
@@ -2048,7 +2078,7 @@
       notice.setAttribute('role', 'status');
       notice.setAttribute('aria-live', 'polite');
       const words = document.createElement('p');
-      words.textContent = label ? `${label} 계정으로 이어졌어요.` : APP_LOGIN_KNOWN_COPY;
+      words.textContent = sentence;
       const actions = document.createElement('div');
       actions.className = 'app-login-actions';
       const keep = document.createElement('button');

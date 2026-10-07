@@ -2,21 +2,33 @@
   'use strict';
 
   // The account page: who is signed in, the membership state the server holds
-  // for this account, the account's projects with a way into AI 연결, and
-  // 로그아웃. Signed out, it is a sign-in gate on the shared sheet; Google and
+  // for this account, the account's one AI connection with the way into AI 연결,
+  // and 로그아웃. Signed out, it is a sign-in gate on the shared sheet; Google and
   // Apple come back here (auth.js RETURN_PATHS).
   //
-  // It reads two routes and writes none. GET /account answers who is signed in
-  // -- how, the address or the masked phone number, the display name, since
-  // when, which ways in are linked -- and the membership summary, in one
-  // answer. GET /workspaces/ai-engine-targets lists the projects. No account id
-  // is shown: a phone account's id carries the whole number.
+  // It reads three routes and changes nothing itself. GET /account answers who is
+  // signed in -- how, the address or the masked phone number, the display name,
+  // since when, which ways in are linked -- and the membership summary, in one
+  // answer. The AI is the account's, not one project's (owner, 2026-10-07): it is
+  // connected once and every project of the account runs on it, so the page shows
+  // it once -- GET /workspaces/ai-engine-targets names a project that can answer
+  // for it, and GET /ai-engine-connections through that project is the account's
+  // connection, the same answer /ai/ lists. No account id is shown: a phone
+  // account's id carries the whole number.
   // It sells nothing -- there is no purchase or checkout path here -- and the
   // only way off it to a store or a web subscription is the `manage_url` the
   // server derived for a paid membership the person already holds.
   const auth = window.SidekickAuth;
   const { api } = auth;
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
+  const PROVIDER_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+  // The names /ai/ gives the AI services (ai/ai.js PROVIDER_NAMES); any other keeps the server's id.
+  const PROVIDER_NAMES = {
+    openai: 'ChatGPT', anthropic: 'Claude', xai: 'Grok', gemini: 'Gemini', openrouter: 'OpenRouter',
+    minimax: 'MiniMax', deepseek: 'DeepSeek', qwen: 'Qwen', kimi: 'Kimi', zai: 'Z.AI',
+    copilot: 'GitHub Copilot', nous: 'Nous Portal', vertex: 'Google Vertex AI', bedrock: 'AWS Bedrock',
+    'azure-foundry': 'Azure AI Foundry', '9router': '9Router', omniroute: 'OmniRoute'
+  };
   const PLAN_LABELS = { birdie: 'Birdie', eagle: 'Eagle', albatross: 'Albatross' };
   const SOURCE_LABELS = { toss: '웹', apple: 'App Store', google: 'Google Play' };
   const FUNDING_LABELS = { connected: '내 AI 계정 사용', included: 'Sidekick AI 포함' };
@@ -27,12 +39,13 @@
   const NETWORK_COPY = auth.NETWORK_COPY;
   const ACCOUNT_FAILED_COPY = '계정 정보를 불러오지 못했어요.';
   const MEMBERSHIP_FAILED_COPY = '멤버십 상태를 불러오지 못했어요.';
-  const PROJECTS_FAILED_COPY = '프로젝트 목록을 불러오지 못했어요.';
+  const AI_FAILED_COPY = 'AI 연결을 불러오지 못했어요.';
   const EXPIRED_COPY = '로그인이 만료됐어요. 다시 로그인해 주세요.';
 
   // `notice` is what /auth.js said while the page was starting (a session that
-  // ended, a dropped connection), kept so the gate can still say it.
-  const state = { seq: 0, notice: null };
+  // ended, a dropped connection), kept so the gate can still say it. `account` and
+  // `ai` are this load's two answers the AI card is drawn from, whichever comes first.
+  const state = { seq: 0, notice: null, account: null, ai: null };
   const $ = (id) => document.getElementById(id);
 
   function el(tag, props, children) {
@@ -230,6 +243,8 @@
     // The header menu says what this card says.
     auth.learnAccount(answer);
     renderProfile(account);
+    state.account = account;
+    renderAi();
     if (account.membership) renderMembership(account.membership);
     else setStatus('membership-status', MEMBERSHIP_FAILED_COPY, true);
   }
@@ -244,24 +259,66 @@
       const id = String(row.id || '');
       if (!SAFE_ID.test(id) || seen.has(id)) return;
       seen.add(id);
-      workspaces.push({ id, name: cleanText(row.name, 120) || '이름 없는 프로젝트', ready: row.ready === true });
+      workspaces.push({ id, ready: row.ready === true, recent: row.recent === true });
     });
     return workspaces;
   }
 
-  function projectItem(workspace) {
-    return el('li', { className: 'project-item' }, [
-      el('div', { className: 'project-head' }, [
-        el('strong', { text: workspace.name }),
-        el('span', { className: workspace.ready ? 'project-tag is-ok' : 'project-tag is-warn', text: workspace.ready ? 'AI 연결 가능' : '준비 중' })
-      ]),
-      workspace.ready ? null : el('p', { className: 'account-note', text: '앱에서 이 프로젝트를 한 번 열면 준비돼요.' }),
-      el('a', {
-        className: workspace.ready ? 'account-button' : 'account-button secondary',
-        href: `/ai/?workspace=${encodeURIComponent(workspace.id)}`,
-        text: 'AI 연결'
-      })
-    ]);
+  // The account's connections only. An employee's own AI (agent_id) belongs to one project's employee and is the app's
+  // to show; the card is the AI every project runs on.
+  function sanitizeAiConnections(value) {
+    if (!Array.isArray(value)) return null;
+    return value
+      .filter((row) => row && typeof row === 'object' && !row.agent_id && PROVIDER_ID.test(String(row.provider || '')))
+      .map((row) => ({
+        provider: String(row.provider),
+        model: cleanText(row.model, 160),
+        connected: row.status === 'connected' && row.readiness === 'ready'
+      }));
+  }
+
+  function providerName(id) {
+    return Object.hasOwn(PROVIDER_NAMES, id) ? PROVIDER_NAMES[id] : id;
+  }
+
+  // The account the AI is connected for, named the way /ai/ names who is signed in beside its title.
+  function accountName(account) {
+    return account ? account.email || account.phoneMasked || account.displayName : '';
+  }
+
+  function aiLink(text, primary) {
+    return el('a', { className: primary ? 'account-button' : 'account-button secondary', href: '/ai/', text });
+  }
+
+  // One card for the account's AI, drawn once both answers are known enough: which AI and model, whether it works, the
+  // account it is connected for, and one way to /ai/ -- AI 연결 when nothing is connected, AI 연결 관리 when something is.
+  function renderAi() {
+    const ai = state.ai;
+    if (!ai) return;
+    const connection = ai.connections.find((row) => row.connected) || ai.connections[0] || null;
+    if (!connection) {
+      $('ai-rows').hidden = true;
+      setStatus('ai-status', '연결한 AI가 아직 없어요. 한 번 연결하면 내 모든 프로젝트에서 같이 써요.', false);
+      fill($('ai-actions'), [aiLink('AI 연결', true)]);
+      $('ai-actions').hidden = false;
+      return;
+    }
+    const rows = [['AI', providerName(connection.provider)]];
+    if (connection.model) rows.push(['모델', connection.model]);
+    rows.push(['상태', connection.connected ? '연결됨' : '다시 연결 필요']);
+    const owner = accountName(state.account);
+    if (owner) rows.push(['사이드킥 계정', owner]);
+    fill($('ai-rows'), rows.map(([label, value]) => el('div', {}, [el('dt', { text: label }), el('dd', { text: value })])));
+    $('ai-rows').hidden = false;
+    setStatus('ai-status', connection.connected ? '' : '새 업무만 잠시 멈춰요. AI 연결 관리에서 같은 AI를 다시 연결해 주세요.', false);
+    fill($('ai-actions'), [aiLink('AI 연결 관리', false)]);
+    $('ai-actions').hidden = false;
+  }
+
+  function aiFailed(error) {
+    setStatus('ai-status', error && error.network ? NETWORK_COPY : AI_FAILED_COPY, true);
+    fill($('ai-next'), [retryButton('다시 불러오기', () => loadAi(state.seq))]);
+    $('ai-next').hidden = false;
   }
 
   function signInAnotherWay() {
@@ -270,38 +327,62 @@
     auth.open();
   }
 
-  async function loadProjects(seq) {
-    $('project-list').hidden = true;
-    $('projects-next').hidden = true;
-    setStatus('projects-status', '프로젝트를 불러오고 있어요.', false);
+  // The AI is the same in every project of the account, so any project that can answer for it is asked: the one the
+  // server marks recent when it is ready, else the first ready one.
+  async function loadAi(seq) {
+    state.ai = null;
+    $('ai-rows').hidden = true;
+    $('ai-actions').hidden = true;
+    $('ai-next').hidden = true;
+    setStatus('ai-status', 'AI 연결을 불러오고 있어요.', false);
     let workspaces = null;
     try {
       workspaces = sanitizeWorkspaces(await api('/workspaces/ai-engine-targets', { method: 'GET' }));
     } catch (error) {
       if (seq !== state.seq) return;
       if (refused(error)) return;
-      setStatus('projects-status', error.network ? NETWORK_COPY : PROJECTS_FAILED_COPY, true);
-      fill($('projects-next'), [retryButton('다시 불러오기', () => loadProjects(state.seq))]);
-      $('projects-next').hidden = false;
+      aiFailed(error);
       return;
     }
     if (seq !== state.seq) return;
-    if (!workspaces) { setStatus('projects-status', PROJECTS_FAILED_COPY, true); return; }
+    if (!workspaces) { aiFailed(null); return; }
     if (!workspaces.length) {
-      setStatus('projects-status', '아직 프로젝트가 없어요. 앱에서 같은 계정으로 로그인하고 하고 싶은 일을 고르면 첫 프로젝트가 여기에 보여요.', false);
-      fill($('projects-next'), [
+      setStatus('ai-status', '아직 프로젝트가 없어요. 앱에서 같은 계정으로 로그인하고 하고 싶은 일을 고르면, 여기서 AI를 연결할 수 있어요.', false);
+      fill($('ai-next'), [
         el('p', { text: '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 방법으로 다시 로그인해 보세요.' }),
         el('div', { className: 'account-actions' }, [
           el('button', { className: 'account-button', type: 'button', text: '다른 방법으로 로그인', onClick: signInAnotherWay }),
           el('a', { className: 'account-button secondary', href: '/support/', text: '도움말 보기' })
         ])
       ]);
-      $('projects-next').hidden = false;
+      $('ai-next').hidden = false;
       return;
     }
-    fill($('project-list'), workspaces.map(projectItem));
-    $('project-list').hidden = false;
-    setStatus('projects-status', '', false);
+    const project = workspaces.find((workspace) => workspace.ready && workspace.recent) || workspaces.find((workspace) => workspace.ready);
+    if (!project) {
+      setStatus('ai-status', '프로젝트의 AI 직원 공간을 아직 준비하고 있어요. 앱에서 프로젝트를 한 번 열면 여기서 AI를 연결할 수 있어요.', false);
+      fill($('ai-actions'), [aiLink('AI 연결', false)]);
+      $('ai-actions').hidden = false;
+      return;
+    }
+    const user = auth.user();
+    const userId = user && SAFE_ID.test(String(user.id || '')) ? String(user.id) : '';
+    if (!userId) { aiFailed(null); return; }
+    let connections = null;
+    try {
+      const query = new URLSearchParams({ workspace_id: project.id, user_id: userId }).toString();
+      connections = sanitizeAiConnections(await api(`/ai-engine-connections?${query}`, { method: 'GET' }));
+    } catch (error) {
+      if (seq !== state.seq) return;
+      if (refused(error)) return;
+      aiFailed(error);
+      return;
+    }
+    if (seq !== state.seq) return;
+    if (!connections) { aiFailed(null); return; }
+    state.ai = { connections };
+    setStatus('ai-status', '', false);
+    renderAi();
   }
 
   async function boot() {
@@ -315,10 +396,11 @@
     // /auth.js has already checked the stored session with the server on this
     // page load; GET /account answers again, with everything this page shows.
     state.notice = null;
+    state.account = null;
     $('account-gate').hidden = true;
     $('account-loading').hidden = true;
     $('account-view').hidden = false;
-    await Promise.all([loadAccount(seq), loadProjects(seq)]);
+    await Promise.all([loadAccount(seq), loadAi(seq)]);
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());

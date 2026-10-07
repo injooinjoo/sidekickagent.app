@@ -18,14 +18,14 @@
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="description" content="사이드킥 계정, 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인하세요." />
+  <meta name="description" content="사이드킥 계정, 멤버십 상태, AI 연결을 한곳에서 확인하세요." />
   <title>내 계정 · Sidekick</title>
   <link rel="canonical" href="https://sidekickagent.app/account/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
   <meta property="og:title" content="내 계정 · Sidekick" />
-  <meta property="og:description" content="사이드킥 계정, 멤버십 상태, 프로젝트와 AI 연결을 한곳에서 확인하세요." />
+  <meta property="og:description" content="사이드킥 계정, 멤버십 상태, AI 연결을 한곳에서 확인하세요." />
   <meta property="og:url" content="https://sidekickagent.app/account/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -52,14 +52,14 @@
   <main class="account-shell">
     <section class="account-intro" aria-labelledby="page-title">
       <h1 id="page-title">내 계정</h1>
-      <p>멤버십과 프로젝트, AI 연결을 한곳에서 확인해요.</p>
+      <p>멤버십과 AI 연결을 한곳에서 확인해요.</p>
     </section>
 
     <p class="account-status" id="account-loading" aria-live="polite">계정을 확인하고 있어요.</p>
 
     <section class="account-card" id="account-gate" aria-labelledby="gate-heading" hidden>
       <h2 id="gate-heading">로그인이 필요해요</h2>
-      <p>로그인하면 계정 정보, 멤버십 상태, 프로젝트와 AI 연결을 볼 수 있어요. 앱에서 쓰는 로그인 방법으로 로그인해야 같은 계정이 열려요.</p>
+      <p>로그인하면 계정 정보, 멤버십 상태, AI 연결을 볼 수 있어요. 앱에서 쓰는 로그인 방법으로 로그인해야 같은 계정이 열려요.</p>
       <div class="account-actions">
         <button class="account-button" type="button" id="gate-signin">로그인</button>
         <a class="account-button secondary" href="/support/">도움말 보기</a>
@@ -76,15 +76,15 @@
         <div class="account-actions" id="membership-actions" hidden></div>
       </section>
 
-      <section class="account-card" aria-labelledby="projects-heading">
-        <div class="account-card-head">
-          <h2 id="projects-heading">프로젝트와 AI 연결</h2>
-          <a class="account-button secondary" href="/ai/" id="ai-manage">AI 연결 관리</a>
-        </div>
-        <p class="account-note">프로젝트마다 쓰는 AI를 연결할 수 있어요. 연결은 프로젝트별로 저장돼요.</p>
-        <ul class="project-list" id="project-list" hidden></ul>
-        <p class="account-status" id="projects-status" aria-live="polite">프로젝트를 불러오고 있어요.</p>
-        <div class="account-next" id="projects-next" hidden></div>
+      <!-- One AI connection for the account (owner, 2026-10-07): connected once, every project of this account runs on it,
+           so there are no per-project rows here. /account/account.js fills it from the same answer /ai/ lists. -->
+      <section class="account-card" aria-labelledby="ai-heading">
+        <h2 id="ai-heading">AI 연결</h2>
+        <p class="account-note">내 모든 프로젝트에 같은 AI가 연결돼요. 새로 만드는 프로젝트도 이 AI로 시작해요.</p>
+        <dl class="account-rows" id="ai-rows" hidden></dl>
+        <p class="account-status" id="ai-status" aria-live="polite">AI 연결을 불러오고 있어요.</p>
+        <div class="account-actions" id="ai-actions" hidden></div>
+        <div class="account-next" id="ai-next" hidden></div>
       </section>
 
       <section class="account-card" aria-labelledby="profile-heading">

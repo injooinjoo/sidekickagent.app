@@ -34,10 +34,11 @@
 
   const state = {
     plan: DEFAULT_PLAN,
-    // Sidekick AI 포함이 기본이다 (2026-10-02 소유자 방향: 설정보다 결과가 먼저).
-    // 내 AI 계정 연결은 더 싸지만 계정을 따로 준비해야 하므로, 바꾸고 싶은 사람이
-    // 스위치로 고르는 두 번째 선택지로 둔다. 링크의 ?funding= 은 그대로 따른다.
-    funding: 'included',
+    // 내 AI 계정 연결이 기본이다 (2026-10-07 소유자 방향: 가격은 더 싼 AI 연결
+    // 기준부터 보여 준다 — 2026-10-02 의 'Sidekick AI 포함 기본'을 대체한다).
+    // Sidekick AI 포함은 스위치를 끄면 보이는 두 번째 선택지다. 링크의
+    // ?funding= 은 그대로 따른다. 마크업의 첫 켜짐(aria-checked="true")도 이 값과 같다.
+    funding: 'connected',
     storage: 'managed',
     // A copy of the shared sign-in's bearer, refreshed whenever it changes, so
     // every "is this person signed in" below reads one field.
