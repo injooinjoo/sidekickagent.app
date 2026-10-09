@@ -10,7 +10,8 @@
   // The doors are the ones the app offers, and the backend is the same.
   //
   // /login/ is the one page that is only a way in: five doors (Google, Apple,
-  // ChatGPT, phone, email) and nothing else. Which end it has is decided by the
+  // ChatGPT, phone, email) and nothing else -- four in the iOS app's sign-in
+  // sheet, which has no ChatGPT door. Which end it has is decided by the
   // address it was opened with. A login the app began (#app_handoff=…) is the
   // hand-off (initAppHandoff): it ends by returning to the app, and keeps what it
   // learns in the page's memory only. A login that begins on the website ends on
@@ -346,6 +347,16 @@
   const turnstile = { loading: null, widget: null, token: '', stale: false, said: '', retry: null };
 
   // ---- App handoff receiver --------------------------------------------------
+  // Which app opened the hand-off. The app's address carries nothing but the attempt, its state and a door hint
+  // (webLoginHandoff.js refuses any other key), so the browser it opened is the one witness: the iOS app's sign-in
+  // sheet (ASWebAuthenticationSession) names an iPhone or an iPad -- or a Mac, which is what an iPad asking for desktop
+  // pages and the iOS app on an Apple silicon Mac both say -- and the Android app's Custom Tab names Android. Only a
+  // hand-off asks, and only the apps start one, so an Apple device here is the iOS app.
+  function appleHandoff() {
+    const agent = String((typeof navigator === 'object' && navigator && navigator.userAgent) || '');
+    return !/Android/i.test(agent) && /iPhone|iPad|iPod|Macintosh/.test(agent);
+  }
+
   // Reuse the site's authorize/fetch owner, with an isolated PKCE client per
   // attempt. This is the same /token?grant_type=pkce body auth-js 2.108.2 uses;
   // no shared SDK storage or SIGNED_IN subscription can adopt a candidate.
@@ -368,6 +379,26 @@
     const accountNote = el('handoff-account');
     const who = el('handoff-who');
     const other = el('handoff-other');
+    // The iOS app's sheet has no ChatGPT door (owner 2026-10-09; App Review 5.2.2, the A8 rule of no AI-account login
+    // on iOS): the button and its code panel leave the page before any door is shown or bound, so nothing on the page
+    // names it and nothing can start it. The Android app's sheet and the web page keep all five doors.
+    const chatGptDoor = !appleHandoff();
+    if (!chatGptDoor) {
+      const chatgpt = el('handoff-chatgpt');
+      const chatgptPanel = el('chatgpt-code-block');
+      if (chatgpt) chatgpt.remove();
+      if (chatgptPanel) chatgptPanel.remove();
+    }
+    // The two policy links under the card open the pages' in-app form (?in_app=1, /app-mode.js) from either app's
+    // sheet, as the apps' own policy links do: the policy alone, with no site menu, no way on to /membership/ or /ai/
+    // and nothing about buying on the website. The web page's links are left as they are.
+    for (const link of [el('login-terms'), el('login-privacy')]) {
+      const href = link && link.getAttribute('href');
+      if (!href) continue;
+      const policy = new URL(href, LOGIN_URL);
+      policy.searchParams.set('in_app', '1');
+      link.setAttribute('href', policy.pathname + policy.search);
+    }
     // A custom-scheme navigation made without a tap can be ignored outside the system sign-in
     // sheet. If this page is still in front this long after the app was asked for, the link
     // below it is the way back -- the only retry; the page never navigates to the app twice.
@@ -599,7 +630,7 @@
     }
 
     async function startChatGpt() {
-      if (busy || stopped) return;
+      if (busy || stopped || !chatGptDoor) return;
       try { await checkBrowser(); } catch (error) { fail(error); return; }
       hideCodePanel();
       await startChatGptLogin();
@@ -620,8 +651,11 @@
     function callbackUrl(answer) {
       if (!answer || answer.attempt_id !== pending.id) throw { status: 400 };
       const expiry = Number(answer.expires_at);
-      if (!Number.isInteger(expiry) || expiry <= nowSeconds()
-          || expiry > Math.min(nowSeconds() + 60, pending.expires_at, candidate.expiresAt)) throw { status: 410 };
+      const now = nowSeconds();
+      // The server mints a 60-second code; a slightly slower device clock must not reject it.
+      const clockSkewSeconds = 5;
+      if (!Number.isInteger(expiry) || expiry <= now
+          || expiry > Math.min(now + 60 + clockSkewSeconds, pending.expires_at, candidate.expiresAt)) throw { status: 410 };
       const url = new URL(answer.callback_url);
       const keys = Array.from(url.searchParams.keys()).sort();
       if (url.protocol !== 'sidekick:' || url.hostname !== 'auth' || url.pathname !== '/complete'

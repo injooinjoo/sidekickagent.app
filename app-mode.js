@@ -31,7 +31,11 @@
   // mailto links, and references outside sidekickagent.app that the policy
   // itself cites. App Review reads a policy page opened from the app as part of
   // the app, and a web checkout or web AI-account login two taps away from it
-  // is steering (owner decision 2026-09-29/30).
+  // is steering (owner decision 2026-09-29/30). The same goes for words: what a
+  // page says about buying on the website (the web membership, its Toss
+  // checkout, prices and refunds, and the store purchases beside them) is
+  // marked data-web-sale in the page and leaves with the chrome (App Review
+  // 3.1.1/3.1.3, 2026-10-09). Everything else in the policy stays word for word.
   //
   // The first file in <head> (only the hashed inline frame guard runs before
   // it), so the mode needs no inline script of its own and nothing in the
@@ -44,7 +48,7 @@
   var MODE_KEY = 'sidekick_in_app';
   var POLICY_PATHS = ['/privacy/', '/terms/', '/support/', '/delete-account/'];
   var SITE_HOSTS = ['sidekickagent.app', 'www.sidekickagent.app'];
-  var CHROME = ['.nav', '.account-slot', '.account-menu'];
+  var CHROME = ['.nav', '.account-slot', '.account-menu', '[data-web-sale]'];
 
   function remembered() {
     try { return window.sessionStorage.getItem(MODE_KEY) === '1'; } catch (_) { return false; }

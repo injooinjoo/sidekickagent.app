@@ -809,12 +809,14 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 /* In-app mode (/app-mode.js): a policy page the iOS app opens with ?in_app=1
    is the policy and nothing that leads further into the site. app-mode.js
    puts .in-app on <html> before the body is drawn and takes the menu, the
-   account slot and the home links out once the page is parsed; these rules
-   keep them off the first paint before that, and keep off any such link a
-   later script might add. The wordmark stays, as a picture, not a link. */
+   account slot, the home links and what a page marks data-web-sale (buying
+   on the website) out once the page is parsed; these rules keep them off the
+   first paint before that, and keep off any such link a later script might
+   add. The wordmark stays, as a picture, not a link. */
 .in-app .site-header .nav,
 .in-app .account-slot,
 .in-app .account-menu,
+.in-app [data-web-sale],
 .in-app a[href="/"]:not(.brand),
 .in-app a[href^="/membership"],
 .in-app a[href^="/ai/"],
