@@ -334,8 +334,8 @@
       "sha256": "f00ceac48003dafd1ae005ce4e4218ad5b0e1a269d6315481590c1a235034535"
     },
     "membership/index.html": {
-      "bytes": 16385,
-      "sha256": "bd6051a20fca7f5e1eae4655c69251104c691009031a70ad2a231d4a7fa44173"
+      "bytes": 16358,
+      "sha256": "81c6afa3815a102c634ad94832e7352ca61a6e8bbed4f6f0793bbc84632cdb7f"
     },
     "membership/membership.css": {
       "bytes": 15188,
@@ -350,8 +350,8 @@
       "sha256": "62565cd853f606385ccf5e8f9470968ea3b27a932d89c2680e82a8ebbb52c98d"
     },
     "privacy/index.html": {
-      "bytes": 25569,
-      "sha256": "4705d6259abaea0e596bedba1aa8c2aa3bc0b6209a06dd6ecbbc89048905719d"
+      "bytes": 27095,
+      "sha256": "4bd0c643e2a879412bbba35e42032bd199f12359d2b0551fd0afde7a494f27ce"
     },
     "robots.txt": {
       "bytes": 71,
@@ -370,12 +370,12 @@
       "sha256": "88b6e40e2a6abf9ac0b10772c72dbc3459663ea419b03cc6ce9badc5125f7a57"
     },
     "support/index.html": {
-      "bytes": 8612,
-      "sha256": "afa526f25156f461d1f3f8109ae3c3d5d03f8825c7ec22004a3e5d862dfc2ec1"
+      "bytes": 8598,
+      "sha256": "bfc60e290259cb7d9ae782feb3db0dd10bf1cfbee2424de2ab1585cbe7691dab"
     },
     "terms/index.html": {
-      "bytes": 11388,
-      "sha256": "1a1ee9f59c63999b34399c8c31b454f1f697afc9a35df20d2b9ca37e4ab8cc8b"
+      "bytes": 11380,
+      "sha256": "21a91f491a38098ac6426c7c89acbbff713e815f92bcb9fb95881af43e57d058"
     },
     "use.js": {
       "bytes": 3854,
@@ -420,5 +420,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "13e664fcd98e55dd417bd25a5dcbacaba82296be"
+  "source_sha": "3ff50dfacd83ffa1442ea822a17c14136d650049"
 }
