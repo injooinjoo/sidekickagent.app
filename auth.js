@@ -403,6 +403,9 @@
     // sheet. If this page is still in front this long after the app was asked for, the link
     // below it is the way back -- the only retry; the page never navigates to the app twice.
     const RETURN_LINK_DELAY_MS = 1500;
+    // Where an attempt that ended on this page sends the person back: the app takes it as a quiet cancel with a short
+    // notice and nothing to exchange (webLoginHandoff.parseHandoffReturnError). It is the one link an ended page offers.
+    const ENDED_APP_ADDRESS = 'sidekick://auth/complete?error=expired';
     let pending = null;
     let candidate = null; // bearer lives only in this page's memory
     let browser = null;
@@ -441,9 +444,10 @@
       clearAttempt();
       releaseDoors();
       choices.hidden = true;
-      back.hidden = true;
-      back.removeAttribute('href');
       cancel.hidden = true;
+      // Never an ended page with nothing to press: the one way on is back to the app, by the person's own tap.
+      back.href = ENDED_APP_ADDRESS;
+      back.hidden = false;
       say(message, true);
     }
 
@@ -709,7 +713,7 @@
 
     cancel.addEventListener('click', () => stop('로그인을 취소했어요. 이 창을 닫고 앱에서 다시 시작해 주세요.'));
     back.addEventListener('click', (event) => {
-      if (callbackExpiresAt <= nowSeconds()) {
+      if (handedOff && callbackExpiresAt <= nowSeconds()) {
         event.preventDefault();
         stop('앱으로 돌아갈 시간이 지났어요. 앱에서 다시 시작해 주세요.');
       }
