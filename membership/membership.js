@@ -155,6 +155,12 @@
     if (error && (error.status === 401 || error.status === 423)) auth.signOut({ server: false, silent: true });
   }
 
+  // 이 구독의 결제 기간이 끝나는 날. 서버가 날짜를 주지 않았으면 빈 문자열이다.
+  function periodEndLabel(subscription) {
+    const end = subscription && Number(subscription.current_period_end);
+    return end > 0 ? new Date(end * 1000).toLocaleDateString('ko-KR') : '';
+  }
+
   function renderSubscription() {
     const panel = $('subscription-panel');
     const subscription = state.subscription;
@@ -165,14 +171,15 @@
     const plan = PLANS[subscription.plan_id];
     const fundingLabel = subscription.funding_mode === 'included' ? 'Sidekick AI' : '내 AI 계정';
     $('subscription-line').textContent = `${plan ? plan.label : subscription.plan_id} · ${fundingLabel}`;
-    const until = new Date(subscription.current_period_end * 1000).toLocaleDateString('ko-KR');
+    const until = periodEndLabel(subscription);
     // 다른 곳(App Store)의 구독이 살아 있거나 서버가 웹 결제를 허락하지 않으면 다시 시작하기를
     // 내놓지 않는다. 해지는 언제나 할 수 있어야 하므로 해지 버튼은 이 조건과 무관하다.
     const resumeBlocked = Boolean(webPurchaseBlock());
+    // 해지한 구독도 이미 결제한 기간이 끝날 때까지는 지금 플랜 그대로다(2026-10-12 결정).
     $('subscription-renewal').textContent = subscription.cancel_at_period_end
       ? (resumeBlocked
-        ? '해지해서 이용이 중단됐어요. 지금은 웹에서 다시 시작할 수 없어요.'
-        : `해지해서 이용이 중단됐어요. ${until} 전까지는 추가 결제 없이 다시 시작할 수 있어요.`)
+        ? `해지했어요. 다음 결제는 없고, ${until}까지 지금 플랜을 그대로 쓸 수 있어요. 지금은 웹에서 다시 시작할 수 없어요.`
+        : `해지했어요. 다음 결제는 없고, ${until}까지 지금 플랜을 그대로 쓸 수 있어요. 그 전에 다시 시작하면 추가 결제 없이 이어져요.`)
       : `${until}에 다음 달 금액이 결제돼요.`;
     $('cancel-button').hidden = Boolean(subscription.cancel_at_period_end);
     $('resume-button').hidden = !subscription.resumable || resumeBlocked;
@@ -499,13 +506,17 @@
 
   $('cancel-button').addEventListener('click', async () => {
     if (!state.token || state.busy) return;
-    // 해지는 그 즉시 이용을 멈춘다. 실수로 누르지 않게 한 번 더 묻는다.
-    if (!window.confirm('해지하면 바로 이용이 중단됩니다. 해지할까요?')) return;
+    // 해지는 다음 결제를 멈추고, 이미 결제한 기간은 끝날 때까지 그대로 쓰게 둔다(2026-10-12 결정).
+    // 실수로 누르지 않게 한 번 더 묻고, 지금 플랜을 언제까지 쓰는지 날짜로 보여 준다.
+    const until = periodEndLabel(state.subscription);
+    const keeps = until ? `${until}까지` : '이미 결제한 기간이 끝날 때까지';
+    if (!window.confirm(`해지하면 다음 결제부터 청구되지 않아요. 지금 플랜은 ${keeps} 그대로 쓸 수 있어요. 해지할까요?`)) return;
     state.busy = true;
     render();
     try {
       state.subscription = await api('/membership/toss/cancel', { method: 'POST' });
-      say('해지했어요. 이용이 바로 중단됐고 다음 결제는 청구되지 않아요.', false);
+      const ends = periodEndLabel(state.subscription);
+      say(`해지했어요. 다음 결제는 청구되지 않고, ${ends ? `${ends}까지` : '이미 결제한 기간이 끝날 때까지'} 지금 플랜을 그대로 쓸 수 있어요.`, false);
     } catch (error) {
       say(failureCopy(error, '해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), true);
       endSessionIfRefused(error);
