@@ -292,6 +292,22 @@ p, li { font-size: 16px; color: var(--muted); }
 .card h2 { margin-top: 0; }
 .card p:last-child { margin-bottom: 0; }
 .notice { background: var(--sunken); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin: 26px 0; }
+/* Policy sub-headings and tables (privacy 국외 이전·앱 접근권한, /licenses/).
+ * A wide table scrolls sideways inside its own box on a phone instead of
+ * widening the page. */
+.policy h3 { font-size: 18px; line-height: 1.4; margin: 28px 0 10px; letter-spacing: -0.01em; }
+.table-scroll { overflow-x: auto; margin: 16px 0 24px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); }
+.table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.table-scroll table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.table-scroll.table-compact table { min-width: 0; }
+.table-scroll th, .table-scroll td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); font-size: 14px; line-height: 1.6; color: var(--muted); }
+.table-scroll th { color: var(--ink); font-weight: 600; background: var(--sunken); }
+.table-scroll tbody tr:last-child td { border-bottom: 0; }
+/* /licenses/: one block per distinct license text, folded. */
+.license-group { border-bottom: 1px solid var(--line); }
+.license-group summary { cursor: pointer; display: flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; color: var(--ink); }
+.license-group summary small { font-weight: 400; }
+.license-text { margin: 0 0 16px; padding: 14px 16px; max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink-soft); background: var(--sunken); border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .warm { background: var(--accent-soft); border-color: var(--accent-border); }
 small { color: var(--muted); }
 ul, ol { padding-left: 22px; }
