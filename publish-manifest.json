@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "029ee9b9f2a71badee89ac4da05fc85d55e173ef54a217d95d06a58e5c121816",
+  "export_rules_sha256": "bd5f4737082068333b3804888f140ae7c600e5ab7d11c2ab1f8e06518f29d16b",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -322,8 +322,12 @@
       "sha256": "9e00e528a2ed10d85769b557627348a373ce4abf7925ef3150fad23151df51d2"
     },
     "licenses/index.html": {
-      "bytes": 400543,
-      "sha256": "194c820eabbd81a136a34f6833a241393fac7fce99e23ebbbe5fba98d2c81da0"
+      "bytes": 400674,
+      "sha256": "6a9ea6356ba52f87c824a5146e099270a4130afaa6d077edda541fe78771fcef"
+    },
+    "licenses/licenses.css": {
+      "bytes": 3911,
+      "sha256": "dcad8db3b76775cf3fbbde2ce2a4551db95f83e86b351ab5327ca9754d992b7a"
     },
     "login/index.html": {
       "bytes": 13036,
@@ -424,5 +428,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "a20302164f898f127b3cd630363c001a54cfa962"
+  "source_sha": "5fee2779f9cc85d0fe6ac9d15b3e74d991813d42"
 }
