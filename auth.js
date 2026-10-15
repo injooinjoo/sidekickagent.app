@@ -174,7 +174,9 @@
     '<p class="social-status" id="social-status" aria-live="polite" hidden></p>',
     '<p class="app-hint">앱에서 쓰는 로그인 방법으로 로그인해야 같은 계정이 열려요.</p>',
     '</div>',
-    '<p class="legal">계속하면 <a href="/terms/">서비스 약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>',
+    // The one line every sign-in surface shows where an account can be created (login page, this sheet, /ai/):
+    // continuing confirms 만 14세 이상 (privacy policy: the service is for 14 and older) and the two documents.
+    '<p class="legal">계속하면 만 14세 이상이며 <a href="/terms/">이용약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>',
     '</div>',
     '</div>'
   ].join('');
@@ -565,6 +567,27 @@
       finally { busy = false; }
     }
 
+    // Sign in with Apple must be revocable when the account is deleted (App Review 5.1.1(v)), and Apple revokes
+    // against a refresh token. The app's Apple sign-in runs here, and Supabase hands Apple's own refresh token to
+    // this page exactly once, in its PKCE answer. It goes straight to the backend's existing revocation-material
+    // route through the one request helper, which proves it with Apple and seals it for account deletion; this page
+    // never stores it. Best effort and bounded: a failure or a slow answer never stops the sign-in.
+    const APPLE_MATERIAL_WAIT_MS = 8000;
+    async function sendAppleRevocationMaterial(appleRefreshToken, bearer) {
+      if (!appleRefreshToken || !bearer) return;
+      let timer = null;
+      const waited = new Promise((resolve) => { timer = setTimeout(resolve, APPLE_MATERIAL_WAIT_MS); });
+      try {
+        await Promise.race([
+          request(API_ORIGIN + '/auth/apple/revocation-material', bearer, { refresh_token: appleRefreshToken })
+            .catch(() => null),
+          waited
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
     async function receiveProvider(returned) {
       const oauth = pending.oauth;
       if (!oauth || pending.phase !== 'provider' || returned.attempt !== pending.id
@@ -581,10 +604,14 @@
       await checkBrowser();
       const providerToken = String((providerAnswer && providerAnswer.access_token) || '');
       if (!providerToken) throw { status: 401 };
+      // Apple's own refresh token, read once for revocation and never kept (see sendAppleRevocationMaterial).
+      const appleRefreshToken = pending.provider === 'apple' && providerAnswer
+        ? String(providerAnswer.provider_refresh_token || '') : '';
       const answer = await request(API_ORIGIN + '/auth/session/exchange', providerToken, undefined, {}, 'POST');
       await checkBrowser();
       candidate = checkedCandidate(answer);
       await verifyCandidate(candidate);
+      await sendAppleRevocationMaterial(appleRefreshToken, candidate.token);
       // The person has just chosen this account at the provider: no second question.
       await returnToApp();
     }
