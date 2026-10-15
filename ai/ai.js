@@ -12,8 +12,8 @@
   //
   // Sign-in is the shared /auth.js. Everything else is the backend's AI-engine
   // routes, the same ones the app calls: the project list, the provider catalog,
-  // the account logins (a device code, a code pasted back, or a redirect that
-  // returns here), the key and cloud forms, and the account's connections with
+  // the account logins (a device code, or a redirect that returns here), the key
+  // and cloud forms, and the account's connections with
   // their model choice and disconnect. No secret stays on this page: a key goes
   // out once in a request body, and nothing this page keeps in sessionStorage is
   // a token or a code. After a ChatGPT sign-in it also offers to make that same
@@ -1153,9 +1153,6 @@
       setStatus('connect-status', '로그인 페이지 주소를 받지 못했어요. 다시 시도해 주세요.', true);
       return;
     }
-    // Claude has no device flow and no callback it can register: the person
-    // copies a code from its page and pastes it here.
-    if (started.authorization_mode === 'paste_code') { showPasteCode(flow); return; }
     if (flow.method.flow === 'device_code' || started.user_code) { showDeviceCode(flow, started); return; }
     redirectToProvider(flow);
   }
@@ -1344,29 +1341,6 @@
     if (flow.timer) clearTimeout(flow.timer);
     pollAccount(flow);
   });
-
-  function showPasteCode(flow) {
-    const input = el('input', { className: 'ai-input', id: 'connect-code', type: 'text', autocomplete: 'off', spellcheck: 'false', required: true });
-    const submit = el('button', { className: 'ai-button', type: 'submit', text: '연결 확인' });
-    const form = el('form', { className: 'connect-form' }, [
-      field('받은 코드', input, '로그인 페이지가 보여 준 코드를 그대로 붙여넣어요.'),
-      el('p', { className: 'ai-note', text: PROOF_NOTE }),
-      submit
-    ]);
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const code = input.value.trim();
-      if (!code) { setStatus('connect-status', CODE_COPY.AI_ENGINE_OAUTH_CODE_REQUIRED, true); return; }
-      completeAccount(flow, code, '', [submit, input]);
-    });
-    fill($('connect-body'), [
-      el('p', { className: 'ai-note', text: `${flow.provider.name} 로그인 페이지에서 로그인한 뒤, 화면에 나온 코드를 복사해 아래에 붙여넣어 주세요.` }),
-      el('div', { className: 'connect-actions' }, [openLoginPageButton(flow)]),
-      requirementNote(flow),
-      form
-    ]);
-    setStatus('connect-status', '', false);
-  }
 
   async function completeAccount(flow, code, callbackUrl, controls) {
     if (!live(flow) || state.busy) return;
