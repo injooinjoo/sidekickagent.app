@@ -1111,3 +1111,15 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   border-radius: var(--radius-pill); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
 .maintenance-notice-retry:disabled { opacity: 0.5; cursor: default; }
 .maintenance-notice[hidden] { display: none; }
+
+/* Keep navigation and short Korean labels intact on narrow screens. */
+.nav a, .account-pill { white-space: nowrap; }
+h1, h2, h3 { word-break: keep-all; overflow-wrap: break-word; text-wrap: balance; }
+.hero-subscribe { margin: 20px 0 0; }
+.hero-subscribe a { min-height: 48px; }
+@media (max-width: 560px) {
+  .nav { gap: 12px; }
+  .nav a { font-size: 13px; }
+  .site-header { gap: 10px; }
+  .brand img { width: 96px; }
+}

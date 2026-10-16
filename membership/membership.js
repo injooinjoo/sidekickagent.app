@@ -120,7 +120,7 @@
   function subscriptionExistsCopy() {
     const current = state.membership && state.membership.subscription_state;
     if (typeof current === 'string' && current.indexOf('WEB_') === 0) {
-      return '이미 웹에서 구독 중이에요. 새로 결제하지 않았고 청구되지 않았어요.';
+      return '이미 구독 중이에요. 추가로 청구되지 않았어요.';
     }
     return '이미 App Store에서 구독 중이에요. 한 계정의 구독은 한 곳에서만 유지돼서 웹에서는 결제하지 않았고 청구되지 않았어요. 구독 관리는 App Store에서 해요.';
   }
@@ -142,9 +142,9 @@
     if (code === 'provider_rejected') return '카드사에서 결제를 승인하지 않았어요. 청구되지 않았어요. 다른 카드로 다시 시도해 주세요.';
     if (code === 'billing_key_missing') return '등록된 카드를 찾지 못했어요. 청구되지 않았어요. 카드를 다시 등록해 주세요.';
     if (code === 'test_checkout_not_allowed') return '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 청구되지 않았어요.';
-    if (code === 'sales_disabled' || code === 'selection_not_saleable' || code === 'schema_not_ready') return '지금은 웹에서 구매할 수 없어요. 청구되지 않았어요.';
+    if (code === 'sales_disabled' || code === 'selection_not_saleable' || code === 'schema_not_ready') return '지금은 구독할 수 없어요. 청구되지 않았어요.';
     if (code === 'plan_unchanged') return '이미 이 플랜을 쓰고 있어요. 바뀐 것은 없어요.';
-    if (code === 'subscription_inactive') return '이용 중인 웹 구독이 없어요. 새로 구독해 주세요.';
+    if (code === 'subscription_inactive') return '이용 중인 구독이 없어요.';
     if (error.network && !chargeUnknown) return '인터넷 연결을 확인한 뒤 다시 시도해 주세요.';
     return fallback;
   }
@@ -208,8 +208,8 @@
       card.querySelector(`[data-sub="${id}"]`).textContent = !plan.sold
         ? '지금은 웹에서 구매할 수 없어요.'
         : amount === null ? '금액을 불러오고 있어요.'
-        : state.funding === 'connected' ? '내 AI 계정 연결 시 · 매월 결제'
-        : 'Sidekick AI 포함 · 매월 결제';
+        : state.funding === 'connected' ? '내 AI 계정 사용'
+        : 'AI 사용료 포함';
 
       const button = card.querySelector('[data-buy]');
       const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
@@ -230,7 +230,7 @@
         : !plan.sold ? '지금은 구매할 수 없어요'
         : purchaseBlock === 'pending' && (ready || changeable) ? '구독 상태를 확인하는 중이에요'
         : purchaseBlock && (ready || changeable) ? '웹에서는 결제할 수 없어요'
-        : ready ? `${plan.label} 시작하기`
+        : ready ? `${plan.label} 구독하기`
         : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
         : changeable && quoted ? '지금은 바꿀 수 없어요'
         : changeable ? `${plan.label}로 바꾸기`
@@ -247,23 +247,24 @@
     toggle.classList.toggle('is-on', connected);
     toggle.setAttribute('aria-checked', String(connected));
     $('mode-note').textContent = connected
-      ? '내 AI 계정을 연결하면 AI 사용료는 그 계정에서 나가고, 멤버십은 그만큼 저렴해져요.'
-      : 'AI 사용료가 포함돼 있어요. 따로 준비할 것 없이 바로 시작해요.';
+      ? '연결한 AI 계정의 사용료는 별도예요.'
+      : 'AI 사용료가 포함돼 있어요. 별도 연결 없이 시작하세요.';
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
     $('open-signin').hidden = authenticated;
     if (authenticated) $('auth-status').textContent = '';
     renderSubscription();
+    $('page-title').textContent = subscribed ? '구독 관리' : '요금제';
+    document.querySelector('.promo-line').hidden = subscribed;
 
     if (!$('checkout-status').dataset.pinned) {
       const status = testModeHere()
         ? '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 준비가 끝나면 바로 열려요.'
         : !publicCheckoutReady()
-        ? '지금은 웹에서 구매할 수 없어요. 앱에서 계속 사용할 수 있어요.'
+        ? '지금은 구독을 시작할 수 없어요.'
         : purchaseBlock ? WEB_PURCHASE_BLOCK_COPY[purchaseBlock]
-        : subscribed ? '이미 구독 중이에요.'
-        : '카드는 토스페이먼츠 등록창에서 입력해요.';
+        : '';
       $('checkout-status').textContent = status;
     }
   }
