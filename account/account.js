@@ -15,9 +15,8 @@
   // for it, and GET /ai-engine-connections through that project is the account's
   // connection, the same answer /ai/ lists. No account id is shown: a phone
   // account's id carries the whole number.
-  // It sells nothing -- there is no purchase or checkout path here -- and the
-  // only way off it to a store or a web subscription is the `manage_url` the
-  // server derived for a paid membership the person already holds.
+  // No payment starts here. Subscribers use the server-derived manage_url;
+  // people without a subscription can view plans on the membership page.
   const auth = window.SidekickAuth;
   const { api } = auth;
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -167,14 +166,14 @@
     return el('a', {
       className: 'account-button secondary',
       href: url,
-      text: `${SOURCE_LABELS[membership.purchase_source] || ''}에서 구독 관리`.trim(),
+      text: '구독 관리',
       target: external ? '_blank' : null,
       rel: external ? 'noopener' : null
     });
   }
 
   // Rows for what the server said, in words. A paid plan first; otherwise the
-  // one account trial; otherwise no membership. Nothing here offers to buy.
+  // one account trial; otherwise no membership. Only the membership page can start checkout.
   function renderMembership(membership) {
     const rows = [];
     let note = '';
@@ -188,20 +187,20 @@
       if (FUNDING_LABELS[membership.funding_mode]) rows.push(['AI 사용', FUNDING_LABELS[membership.funding_mode]]);
       const until = dateOf(membership.current_period_end);
       if (until) rows.push([membership.status === 'cancel_at_period_end' ? '이용 종료일' : '다음 결제일', until]);
-      note = '구독은 구독한 곳에서만 바꾸거나 해지할 수 있어요.';
+      note = '';
       action = manageLink(membership);
     } else if (trial.status === 'active') {
       rows.push(['플랜', '7일 무료 체험']);
       rows.push(['상태', '체험 중']);
       const ends = dateOf(trial.ends_at);
       if (ends) rows.push(['체험 종료', ends]);
-      note = '체험이 끝나면 앱에서 멤버십을 이어서 시작할 수 있어요.';
+      note = '체험이 끝나도 자동으로 결제되지 않아요.';
+      action = el('a', { className: 'account-button', href: '/membership/', text: '요금제 보기' });
     } else {
       rows.push(['플랜', '없음']);
       rows.push(['상태', trial.status === 'expired' ? '무료 체험이 끝났어요' : '이용 중인 멤버십이 없어요']);
-      note = trial.status === 'eligible'
-        ? '7일 무료 체험은 사이드킥 앱에서 시작할 수 있어요.'
-        : '멤버십은 사이드킥 앱에서 시작할 수 있어요.';
+      note = trial.status === 'eligible' ? '앱에 가입하면 7일 무료로 체험할 수 있어요.' : '';
+      action = el('a', { className: 'account-button', href: '/membership/', text: '요금제 보기' });
     }
     fill($('membership-rows'), rows.map(([label, value]) => el('div', {}, [el('dt', { text: label }), el('dd', { text: value })])));
     $('membership-rows').hidden = false;

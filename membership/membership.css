@@ -7,7 +7,7 @@
 button, input { font: inherit; }
 
 .page-shell { max-width: 960px; margin: 0 auto; padding: 40px 22px 74px; }
-.intro { max-width: 660px; margin-bottom: 34px; }
+.intro { max-width: 660px; margin-bottom: 20px; }
 .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .1em; }
 h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); line-height: 1.18; letter-spacing: -.045em; }
 .intro > p { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
@@ -97,7 +97,7 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 }
 @media (max-width: 560px) {
   .page-shell { padding: 28px 16px 46px; }
-  .intro { margin-bottom: 28px; }
+  .intro { margin-bottom: 20px; }
   h1 { font-size: 28px; }
   .intro > p { font-size: 14px; }
   .intro > p.promo-line { font-size: 13px; }
@@ -140,14 +140,14 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-name { color: var(--muted); font-size: 14px; }
 .plan-head em { padding: 2px 8px; border: 1px solid var(--accent-border); border-radius: 999px; color: var(--accent);
   background: var(--accent-soft); font-size: 11px; font-style: normal; font-weight: 800; }
-.plan-visual { margin: 16px 0 2px; overflow: hidden; min-height: 138px; border: 1px solid var(--line);
+.plan-visual { margin: 16px 0 2px; overflow: hidden; min-height: 78px; border: 1px solid var(--line);
   border-radius: 15px; background: var(--sunken); }
 .plan-visual-bar { height: 28px; padding: 0 9px; display: flex; align-items: center; gap: 5px;
   border-bottom: 1px solid var(--line); background: var(--card); }
 .plan-visual-bar i { width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
 .plan-visual-bar i:first-child { background: var(--brand); }
 .plan-visual-bar span { margin-left: auto; color: var(--soft); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
-.plan-visual-work { min-height: 109px; padding: 12px; display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-content: center; }
+.plan-visual-work { min-height: 49px; padding: 12px; display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-content: center; }
 .plan-visual-work--grid { grid-template-columns: 1fr 1fr; gap: 7px; }
 .plan-visual-avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center;
   justify-content: center; background: var(--ink); color: #fff; font-size: 10px; font-weight: 700; }
@@ -156,8 +156,8 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-visual-work:not(.plan-visual-work--grid) .plan-visual-task:last-child { grid-column: 2; }
 .plan-visual-task b { overflow: hidden; color: var(--ink-soft); font-size: 9px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .plan-visual-task small { overflow: hidden; color: var(--soft); font-size: 7px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
-.plan-price { display: flex; align-items: baseline; gap: 5px; margin: 18px 0 0; }
-.plan-price strong { font-size: 38px; letter-spacing: -.03em; }
+.plan-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin: 14px 0 0; }
+.plan-price strong { font-size: clamp(26px, 3vw, 34px); letter-spacing: -.03em; }
 .plan-price span { color: var(--muted); font-size: 14px; }
 .plan-price strong.just-changed { animation: price-in .34s cubic-bezier(.22,.61,.36,1); }
 @keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
@@ -199,3 +199,19 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 /* One line under the prices: the renewal and how to stop it, before anyone
    presses buy (terms 7. 자동 갱신). */
 .renew-note { margin: 16px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+
+.billing-details { margin-top: 24px; padding: 16px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.billing-details summary { min-height: 44px; cursor: pointer; display: list-item; align-content: center; color: var(--ink); font-weight: 600; }
+.billing-details p { max-width: 72ch; margin: 12px 0; line-height: 1.65; }
+.subscription-panel { margin-bottom: 24px; padding: 20px; }
+.subscription-panel .cancel-button, .subscription-panel .ghost-button { width: auto; justify-self: start; padding: 0 18px; }
+.plan-price strong { white-space: nowrap; }
+.plan-price span { white-space: nowrap; }
+@media (max-width: 720px) {
+  .plan-card { padding: 20px; }
+  .plan-visual { display: none; }
+  .plan-card .checkout-button { margin: 16px 0; }
+  .plan-includes { gap: 7px; }
+}
+
+.checkout-status:empty { display: none; }
