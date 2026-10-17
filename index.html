@@ -107,6 +107,18 @@
     </div>
   </section>
 
+  <!-- Motion band: an edge-to-edge breath between sections (owner, 2026-10-17).
+       A still first; landing.js loads the muted loop (the -m cut on a phone)
+       only near the window, plays it only while it is on screen, and never
+       under reduced motion, where the still is the whole band. -->
+  <div class="motion-band" id="band-morning">
+    <div class="band-media" aria-hidden="true">
+      <picture><source media="(max-width: 700px)" srcset="/assets/landing-v2/film/hero-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-v2/film/hero-poster.jpg" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
+      <video data-band-motion data-src="/assets/landing-v2/film/hero.mp4" data-src-m="/assets/landing-v2/film/hero-m.mp4" width="1280" height="714" muted loop playsinline preload="none" tabindex="-1"></video>
+    </div>
+    <p class="band-line">내가 쉬는 동안에도,<br>팀은 일을 이어가요.</p>
+  </div>
+
   <!-- 2. How it works, in the order the person lives it. No setup step. -->
   <section class="how" id="how" aria-labelledby="how-h">
     <div class="wrap-wide">
@@ -140,6 +152,29 @@
     </div>
   </section>
 
+  <!-- Film: one person's morning with the team, 73 seconds, no dialogue
+       (owner, 2026-10-17). Nothing of it loads until it is played: a still
+       (the -m cut on a phone), and the video's own controls without script.
+       With landing.js a play button covers the still, a tap plays the film
+       with its controls, and it pauses once scrolled away. -->
+  <section class="film-feature" id="film" aria-labelledby="film-h">
+    <div class="wrap-wide">
+      <div class="sec-head" data-reveal>
+        <h2 class="section-h" id="film-h">말로 맡기고, 확인만 하는 아침</h2>
+        <p class="section-p">한 사람이 사이드킥 팀과 보내는 아침을 1분 남짓한 영상에 담았어요.</p>
+      </div>
+      <figure class="film-frame" data-reveal>
+        <picture class="film-poster"><source media="(max-width: 700px)" srcset="/assets/landing-v2/film/film-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-v2/film/film-poster.jpg" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
+        <video class="film-video" data-film controls preload="none" playsinline width="1280" height="714" aria-label="데모 영상: 휴대폰에 말로 일을 맡기고, 노트북으로 자료를 살피고, 제품을 찍고, 휴대폰으로 결과를 확인하는 한 사람의 아침. 1분 13초, 대사 없음.">
+          <source src="/assets/landing-v2/film/film-m.mp4" type="video/mp4" media="(max-width: 700px)">
+          <source src="/assets/landing-v2/film/film.mp4" type="video/mp4">
+        </video>
+        <button class="film-play" type="button" aria-label="데모 영상 재생, 1분 13초" hidden><span class="film-play-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.7 5.1a.8.8 0 0 0-1.2.7Z" fill="currentColor"/></svg></span><span class="film-play-label">영상 보기 · 1:13</span></button>
+        <figcaption class="film-note">데모 영상 · 한 사람의 어느 아침</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- 3. Why it is safe to hand over. Plain words, no infrastructure. -->
   <section class="trust" id="trust" aria-labelledby="trust-h">
     <div class="wrap trust-layout">
@@ -162,7 +197,44 @@
       </ul>
       </div>
     </div>
+    <!-- How it works and what it never does, as six cards (owner, 2026-10-17,
+         after the Pickle onboarding cards). Every promise in the second group
+         is one /privacy/ or /terms/ already makes: no sign-in password and no
+         sign-in provider's password (privacy 1, 5, 10), connection details kept
+         encrypted (privacy 10), nothing sold, used for ads or for AI training
+         (terms 9, privacy 5), deleted work leaves new work at once and a
+         deleted account goes after 30 days (privacy 4). No price or purchase
+         words here. -->
+    <div class="wrap-wide promise-groups">
+      <div class="promise-group" role="group" aria-labelledby="promise-work-h">
+        <h3 class="promise-h" id="promise-work-h" data-reveal>이렇게 일해요</h3>
+        <ul class="promise-cards" data-reveal-group>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m8.2 12.3 2.6 2.6 5-5.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h4>대신 해줘요</h4><p>고른 일을 팀이 맡아 끝까지 진행해요. 실수할 수 있으니 결과는 꼭 확인해 주세요.</p></li>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h4>앱을 닫아도 계속 일해요</h4><p>맡긴 일은 앱을 닫아도 이어서 해요. 막히거나 확인이 필요하면 멈추고 물어봐요.</p></li>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 8h15M4.5 16h15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="8" r="2.3" fill="#fff" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="16" r="2.3" fill="#fff" stroke="currentColor" stroke-width="1.6"/></svg></span><h4>얼마나 맡길지 내가 정해요</h4><p>연결할 서비스와 허용할 범위는 직접 정해요. 중요한 일은 늘 확인을 받고 해요.</p></li>
+        </ul>
+      </div>
+      <div class="promise-group" role="group" aria-labelledby="promise-safe-h">
+        <h3 class="promise-h" id="promise-safe-h" data-reveal>안심하고 맡기세요</h3>
+        <ul class="promise-cards" data-reveal-group>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="9" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="15.5" cy="12" r="1.2" fill="currentColor"/></svg></span><h4>로그인 비밀번호는 받지 않아요</h4><p>사이드킥 로그인엔 비밀번호가 없고, Apple·Google·네이버 같은 로그인 비밀번호도 받지 않아요. 연결에 필요한 정보는 암호화해 보관해요.</p></li>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 12s3-5.5 8.5-5.5 8.5 5.5 8.5 5.5-3 5.5-8.5 5.5S3.5 12 3.5 12Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 19 19 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><h4>데이터를 팔거나 광고에 쓰지 않아요</h4><p>내 자료와 결과물을 다른 곳에 팔지 않고, AI 학습이나 광고에도 쓰지 않아요.</p></li>
+          <li class="promise-card" data-reveal><span class="promise-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5.2h5V7M6.5 7l.8 11.3a1.8 1.8 0 0 0 1.8 1.7h5.8a1.8 1.8 0 0 0 1.8-1.7L17.5 7M10.2 10.8v5.4M13.8 10.8v5.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h4>언제든 지울 수 있어요</h4><p>지운 자료는 바로 작업에서 빠져요. 계정과 데이터 삭제도 앱에서 요청할 수 있고, 30일 뒤 지워져요.</p></li>
+        </ul>
+        <p class="promise-note" data-reveal>자세한 기준은 <a href="/privacy/">개인정보처리방침</a>과 <a href="/terms/">이용약관</a>에서 확인하세요.</p>
+      </div>
+    </div>
   </section>
+
+  <!-- Motion band: the same breath before the prices, the confirmation in the
+       person's hand. Loaded and played by landing.js as the first band. -->
+  <div class="motion-band" id="band-confirm">
+    <div class="band-media" aria-hidden="true">
+      <picture><source media="(max-width: 700px)" srcset="/assets/landing-v2/film/ending-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-v2/film/ending-poster.jpg" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
+      <video data-band-motion data-src="/assets/landing-v2/film/ending.mp4" data-src-m="/assets/landing-v2/film/ending-m.mp4" width="1280" height="714" muted loop playsinline preload="none" tabindex="-1"></video>
+    </div>
+    <p class="band-line">필요할 때만 꺼내 보고,<br>확인하면 팀이 이어가요.</p>
+  </div>
 
   <!-- 4. Pricing at a glance. No price is written here: landing.js fills the
        figures from /membership/toss/config, and an empty catalog shows none.
