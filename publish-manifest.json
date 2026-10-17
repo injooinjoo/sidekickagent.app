@@ -314,12 +314,12 @@
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "index.html": {
-      "bytes": 33200,
-      "sha256": "5bcc6d63af4d81555352f420649269278413f7285089a5923a722f507cdcd4ee"
+      "bytes": 41791,
+      "sha256": "b4fcc563ee223b0af066ce58a5496eef07dd3227622237eae2b15083ca107443"
     },
     "landing.js": {
-      "bytes": 35687,
-      "sha256": "9e00e528a2ed10d85769b557627348a373ce4abf7925ef3150fad23151df51d2"
+      "bytes": 39836,
+      "sha256": "06dc7581a78f6ce4cb1299b12a9c812cae97c883e114d78e211dfc5baee8bf0e"
     },
     "licenses/index.html": {
       "bytes": 409095,
@@ -354,8 +354,8 @@
       "sha256": "c8ff05023be9701217fc1187a7035c6838a4b4f6f97a7d960b5e579fdc95608e"
     },
     "motion.css": {
-      "bytes": 7343,
-      "sha256": "62565cd853f606385ccf5e8f9470968ea3b27a932d89c2680e82a8ebbb52c98d"
+      "bytes": 8038,
+      "sha256": "0982693bccae417c941e486ef629baafe8ad7fb05e20d8335a37cfbec18acf69"
     },
     "privacy/index.html": {
       "bytes": 46286,
@@ -374,8 +374,8 @@
       "sha256": "394b07444a7f9ca69541761a3229932c4eedc505b3ce28e30f7424783e9477e7"
     },
     "styles.css": {
-      "bytes": 74878,
-      "sha256": "5ca3882d144b572303b6cd7ae4f3d5d8303363b2ee30059eb661c2bb71b4ff88"
+      "bytes": 81178,
+      "sha256": "6994f1b79bf8d1ad665922abac4f669bcbd11c4eb4ea984b72b0dc58c934689c"
     },
     "support/index.html": {
       "bytes": 12757,
@@ -428,5 +428,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "83b0a10848c643578b12a950259a7bab6043e35e"
+  "source_sha": "fb11b581dfdafbf07e7e35853586d997b0e69294"
 }

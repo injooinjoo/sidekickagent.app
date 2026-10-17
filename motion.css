@@ -110,3 +110,16 @@ html.js .product-story [data-reveal] { opacity: 1; transform: none; }
     .product-story .companion-art { transform: translateY(calc(var(--scene-progress, 0) * 14px)) rotate(calc(var(--scene-progress, 0) * 3deg)); }
   }
 }
+
+/* Motion bands and the featured film (owner, 2026-10-17). A band's loop
+   fades in over its still once it really plays (landing.js marks .is-ready);
+   under reduced motion no loop is loaded and none is drawn, so the still is
+   the band. The film's play button grows a little under a pointer. */
+.product-story .band-media video { transition: opacity .6s var(--ease); }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .product-story .film-play-ico { transition: transform .25s var(--ease); }
+  .product-story .film-play:hover .film-play-ico { transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-story .band-media video { display: none; }
+}

@@ -51,7 +51,91 @@
     if (characterPreference.addEventListener) characterPreference.addEventListener('change', updateCharacters);
     else if (characterPreference.addListener) characterPreference.addListener(updateCharacters);
   }
-  var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  // ---- Motion bands and the featured film (owner, 2026-10-17) ----------------
+  // A band is its still until it comes near the window. Then its muted loop
+  // (the -m cut on a narrow screen) starts loading, plays while the band is on
+  // screen and pauses once it leaves or the tab is hidden; the loop fades in
+  // over the still only once it really plays. Under reduced motion no loop is
+  // ever loaded and the still is the band. The film loads nothing until it is
+  // played: script swaps its own controls for one play button over the still,
+  // a tap plays it with those controls back, and it pauses once scrolled away.
+  (function () {
+    var still = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var narrow = window.matchMedia ? window.matchMedia('(max-width: 700px)') : null;
+    var reduced = function () { return Boolean(still && still.matches); };
+    var watching = 'IntersectionObserver' in window;
+    var bands = [];
+    document.querySelectorAll('video[data-band-motion]').forEach(function (video) {
+      var media = video.parentElement;
+      var visible = false;
+      var failed = false;
+      var load = function () {
+        if (video.hasAttribute('src') || failed || reduced()) return;
+        video.setAttribute('preload', 'auto');
+        video.setAttribute('src', (narrow && narrow.matches && video.getAttribute('data-src-m')) || video.getAttribute('data-src'));
+      };
+      var update = function () {
+        if (!visible || document.hidden || failed || reduced()) {
+          if (video.hasAttribute('src') && !video.paused) video.pause();
+          if (reduced()) media.classList.remove('is-ready');
+          return;
+        }
+        load();
+        video.muted = true;
+        var playing = video.play();
+        if (playing && playing.catch) playing.catch(function () { media.classList.remove('is-ready'); });
+      };
+      video.addEventListener('playing', function () {
+        if (visible && !document.hidden && !reduced()) media.classList.add('is-ready');
+        else update();
+      });
+      video.addEventListener('error', function () { failed = true; media.classList.remove('is-ready'); });
+      if (watching) {
+        var near = new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) load();
+        }, { rootMargin: '300px 0px', threshold: 0 });
+        near.observe(video);
+        new IntersectionObserver(function (entries) {
+          visible = entries[0].isIntersecting;
+          update();
+        }, { threshold: 0 }).observe(video);
+      }
+      bands.push(update);
+    });
+    var updateBands = function () { bands.forEach(function (update) { update(); }); };
+    if (bands.length) {
+      document.addEventListener('visibilitychange', updateBands);
+      if (still && still.addEventListener) still.addEventListener('change', updateBands);
+      else if (still && still.addListener) still.addListener(updateBands);
+    }
+
+    var film = document.querySelector('video[data-film]');
+    var frame = film && film.closest('.film-frame');
+    var play = frame && frame.querySelector('.film-play');
+    if (!film || !frame || !play) return;
+    film.removeAttribute('controls');
+    frame.classList.add('is-enhanced');
+    play.hidden = false;
+    play.addEventListener('click', function () {
+      film.setAttribute('controls', '');
+      film.muted = false;
+      frame.classList.add('is-playing');
+      play.hidden = true;
+      if (film.focus) film.focus({ preventScroll: true });
+      var started = film.play();
+      if (started && started.catch) started.catch(function () { /* its own controls stay, to try again */ });
+    });
+    film.addEventListener('ended', function () {
+      frame.classList.remove('is-playing');
+      film.removeAttribute('controls');
+      play.hidden = false;
+    });
+    var stop = function () { if (!film.paused) film.pause(); };
+    if (watching) new IntersectionObserver(function (entries) { if (!entries[0].isIntersecting) stop(); }, { threshold: 0 }).observe(film);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); });
+  })();
+  var CHECK ='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
