@@ -9,14 +9,17 @@
   //
   // The doors are the ones the app offers, and the backend is the same.
   //
-  // /login/ is the one page that is only a way in: five doors (Google, Apple,
-  // ChatGPT, phone, email) and nothing else -- four in the iOS app's sign-in
-  // sheet, which has no ChatGPT door. Which end it has is decided by the
+  // /login/ is the one page that is only a way in: six doors (카카오, 네이버,
+  // Google, Apple, 전화번호, 이메일) and nothing else, the same in the website
+  // and in either app's sign-in sheet (owner request 2026-10-17: every door says
+  // "…로 이어서 하기" but Apple's, which keeps Apple's own Korean title "Apple로
+  // 계속하기" (HIG, App Review 4.8); Kakao and Naver work, and there is no ChatGPT
+  // sign-in on the web). Which end it has is decided by the
   // address it was opened with. A login the app began (#app_handoff=…) is the
   // hand-off (initAppHandoff): it ends by returning to the app, and keeps what it
   // learns in the page's memory only. A login that begins on the website ends on
   // the website, as a 30-day session like the sheet's. Both run the same door
-  // functions below; see "The code and ChatGPT doors".
+  // functions below; see "The code doors".
   //
   // A sign-in lasts 30 days in this browser (owner decision 2026-09-30, "30일
   // 유지"): across pages, tabs and restarts, until it expires or the person
@@ -30,7 +33,11 @@
   // redirect to Supabase's authorize endpoint with a PKCE challenge, and a code
   // that comes back only to /login/ (receiveWebLogin), which trades it with the
   // verifier this tab kept for a 30-day Sidekick session on the same account --
-  // what an email, phone or ChatGPT sign-in already hands over. A session
+  // what an email or phone sign-in already hands over. Kakao and Naver are
+  // Sidekick's own OAuth loop (the backend's, the same one the app uses): the
+  // backend starts the provider with this tab's S256 challenge and sends the
+  // browser back only to /login/ with a one-time code, which this tab trades
+  // with its verifier (see "Kakao and Naver"). A session
   // handed over in the URL fragment (#access_token=, Supabase's implicit flow)
   // is never taken: anyone can put their own session in a link (login CSRF), so
   // a page only takes it out of the address bar (discardSessionFragment).
@@ -48,6 +55,20 @@
   const inMaintenance = () => Boolean(window.SidekickMaintenance && window.SidekickMaintenance.active());
   const SUPABASE_ORIGIN = 'https://wdjlokfsehsnvcipkods.supabase.co';
   const SUPABASE_PROVIDERS = { google: 'Google', apple: 'Apple' };
+  // Kakao and Naver: Sidekick's own loop (POST /auth/oauth/{provider}/web/start, the provider, the backend's callback,
+  // then /login/ with a one-time code, traded at POST /auth/oauth/exchange). Never Supabase's Kakao provider: that
+  // would make a second account with another id than the app's Kakao login.
+  const KOREAN_PROVIDERS = { kakao: '카카오', naver: '네이버' };
+  // The only places a start may send the browser: the provider's own authorize page, or -- with the backend's test
+  // providers on -- straight back to /login/ with the code.
+  const KOREAN_AUTHORIZE = { kakao: 'https://kauth.kakao.com/oauth/authorize', naver: 'https://nid.naver.com/oauth2.0/authorize' };
+  const KOREAN_TEST_RETURN = 'https://sidekickagent.app/login/';
+  // The public half of the backend's challenge id, as it comes back in the address (korean_oauth.WEB_LOGIN_RETURNS).
+  const KOREAN_WEB_STATE = /^oauthweb_[0-9a-f]{32}$/;
+  const KOREAN_HANDOFF_STATE = /^oauthhandoff_[0-9a-f]{32}$/;
+  // A provider with no credentials in this environment (the start answers 503) says so on its own button.
+  const KOREAN_UNAVAILABLE_LABEL = '지금은 준비 중이에요';
+  const KOREAN_UNAVAILABLE_COPY = '지금은 준비 중이에요. 다른 방법으로 이어서 해 주세요.';
   // Where a Google/Apple sign-in ends after /login/. A page on this list goes
   // back to its own path; any other page (the landing, a policy page, the 404)
   // returns to the account page rather than to /membership/: a sign-in started
@@ -70,7 +91,9 @@
   // code, kept beside the session (localStorage) and cleared with it.
   const PROFILE_KEY = 'sidekick_web_account_hint';
   // A ChatGPT sign-in's one-time claim on its own account as a project's AI
-  // (sessionStorage, per tab): see keepChatGptHandoff().
+  // (sessionStorage, per tab): see chatGptHandoff(). The web no longer signs in
+  // with ChatGPT (owner 2026-10-17), so nothing writes it any more; a tab that
+  // still holds one from before may use it, and 로그아웃 clears it.
   const HANDOFF_KEY = 'sidekick_web_chatgpt_handoff';
   // The server keeps the account for a day (CHATGPT_LOGIN_HANDOFF_SECONDS);
   // the page stops offering it a little before that.
@@ -83,9 +106,6 @@
   const MAX_SESSION_SECONDS = 30 * 24 * 60 * 60;
   // setTimeout holds a delay of at most 2^31-1 ms (about 24.8 days).
   const MAX_TIMER_MS = 2147483000;
-  // 32 random bytes are 43 base64url characters: inside the server's
-  // ^[A-Za-z0-9_-]{32,128}$ for a ChatGPT sign-in's app_state.
-  const APP_STATE_BYTES = 32;
   // No request got an answer: the person's connection, or Sidekick briefly away
   // (a release answers 503 without the headers a browser needs to read it). Both
   // read the same to the page, so the sentence names neither a server nor blame.
@@ -112,10 +132,19 @@
   const APP_LOGIN_PROOF = /^[A-Za-z0-9_-]{43}$/;
   // Every way in the app offers, so a purchase or a connection is attached to
   // the account the person already has instead of minting a second one.
+  // `guide` is said when the way is chosen, `sent` once a code is on its way (after the masked address or number).
   const AUTH_METHODS = {
-    email: { label: '이메일', inputType: 'email', autocomplete: 'email', placeholder: '' },
-    phone: { label: '전화번호', inputType: 'tel', autocomplete: 'tel', placeholder: '010-1234-5678' }
+    email: { label: '이메일 주소', inputType: 'email', autocomplete: 'email', placeholder: '', noun: '주소',
+      guide: '이메일 주소를 입력해 주세요. 메일로 6자리 인증번호를 보내 드려요.',
+      sent: '메일로 받은 6자리 인증번호를 입력해 주세요.',
+      invalid: '이메일 주소를 다시 확인해 주세요.' },
+    phone: { label: '휴대폰 번호', inputType: 'tel', autocomplete: 'tel-national', placeholder: '010-1234-5678', noun: '번호',
+      guide: '휴대폰 번호를 입력해 주세요. 국내 번호(+82)로 6자리 인증번호를 문자로 보내 드려요.',
+      sent: '문자로 받은 6자리 인증번호를 입력해 주세요.',
+      invalid: '휴대폰 번호를 다시 확인해 주세요. 국내 휴대폰 번호(010-1234-5678)만 받을 수 있어요.' }
   };
+  const CODE_REQUEST_LABEL = '인증번호 받기';
+  const CODE_RESEND_LABEL = '다시 받기';
   // How each way in is named to the person. `supabase` is Google or Apple when
   // the page no longer knows which door was pressed; `unknown` is the server's
   // word for the same (GET /account, POST /auth/session/exchange).
@@ -150,11 +179,14 @@
     '<div class="signin-body">',
     '<img class="signin-mark" src="/assets/sidekick-mark.svg" width="56" height="56" alt="" decoding="async" />',
     '<h2>사이드킥 로그인</h2>',
+    // Kakao, Naver, Google, Apple, then the code doors (owner 2026-10-17; the owner may reorder). paintBrandDoors gives
+    // each brand door the colours of its brand guide, all four the same size.
     '<div class="doors">',
-    '<button class="door" type="button" id="google-button">Google로 로그인</button>',
-    '<button class="door" type="button" id="apple-button">Apple로 로그인</button>',
-    '<button class="door" type="button" id="chatgpt-button">ChatGPT로 로그인</button>',
-    '<button class="door" type="button" id="otp-toggle">이메일 · 휴대폰으로 로그인</button>',
+    '<button class="door" type="button" id="kakao-button" data-brand="kakao"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#000000" d="M9 1.5C4.58 1.5 1 4.29 1 7.73c0 2.22 1.48 4.17 3.71 5.27l-.95 3.47c-.08.3.26.54.52.37l4.14-2.74c.19.02.38.03.58.03 4.42 0 8-2.79 8-6.23S13.42 1.5 9 1.5z"/></svg><span class="door-label">카카오로 이어서 하기</span></button>',
+    '<button class="door" type="button" id="naver-button" data-brand="naver"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M11.35 9.63 6.48 2.5H2.5v13h4.15V8.37l4.87 7.13h3.98v-13h-4.15z"/></svg><span class="door-label">네이버로 이어서 하기</span></button>',
+    '<button class="door" type="button" id="google-button" data-brand="google"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg><span class="door-label">Google로 이어서 하기</span></button>',
+    '<button class="door" type="button" id="apple-button" data-brand="apple"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span class="door-label">Apple로 계속하기</span></button>',
+    '<button class="door" type="button" id="otp-toggle">전화번호 · 이메일로 이어서 하기</button>',
     '</div>',
     '<div class="otp-block" id="otp-block" hidden>',
     '<div class="method-tabs" role="tablist" aria-label="로그인 방법">',
@@ -163,11 +195,11 @@
     '</div>',
     '<form id="email-form">',
     '<label for="email" id="value-label" class="sr-only">이메일</label>',
-    '<div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호</button></div>',
+    '<div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호 받기</button></div>',
     '</form>',
     '<form id="code-form" hidden>',
     '<label for="code" class="field-label">인증번호 6자리</label>',
-    '<div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required /><button type="submit">로그인</button></div>',
+    '<div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required /><button type="submit">확인</button></div>',
     '</form>',
     '</div>',
     '<p class="form-status" id="auth-status" aria-live="polite"></p>',
@@ -300,12 +332,12 @@
     return { ...loaded, token: legacy, expiresAt, expired: false };
   }
 
-  // ---- The code and ChatGPT doors, wherever they run ------------------------------
+  // ---- The code doors, wherever they run ------------------------------------------
   //
-  // The phone/email code and ChatGPT's approval are used in three places: the
+  // The phone/email code is used in three places: the
   // sign-in sheet (every page), the /login/ page on the web, and the app hand-off
-  // on /login/. They are one implementation (sendCode, verifyCode,
-  // startChatGptLogin, ...) that the page running it hands two things:
+  // on /login/. It is one implementation (sendCode, verifyCode,
+  // ...) that the page running it hands two things:
   //   call(path, body)          one POST to the API and its answer. The sheet and
   //                             the web page send the shared api(); the app
   //                             hand-off sends its own bounded fetch, which
@@ -317,12 +349,44 @@
   //                             handed straight to the app (takeDoorAnswer).
   // Declared before the hand-off is routed: that path never builds the page's
   // session, so nothing the doors use may reach for it.
-  const door = { method: 'email', challengeId: null, busy: false, sending: false, verifying: false,
-    chatgpt: null, call: null, signedIn: null };
+  const door = { method: 'email', challengeId: null, sending: false, verifying: false, call: null, signedIn: null };
   // Every code the server sends is six digits (login.py: :06d). The field takes no
   // more and sends itself when the sixth arrives.
   const CODE_DIGITS = 6;
   const byId = (id) => document.getElementById(id);
+
+  // ---- Kakao and Naver, wherever they start -----------------------------------------
+  //
+  // Declared before the hand-off is routed, like the doors above: the hand-off and the
+  // website both use these two.
+  //
+  // What a Kakao or Naver start answered, checked before the browser goes anywhere: the
+  // provider's own authorize page (or, with the backend's test providers on, /login/ itself),
+  // carrying the challenge the backend minted for this very attempt. Null for anything else.
+  function koreanStart(provider, answer, attempt, statePattern) {
+    const id = String((answer && answer.state) || '');
+    const dot = id.lastIndexOf('.');
+    const state = dot > 0 ? id.slice(0, dot) : '';
+    if (!statePattern.test(state) || id.slice(dot + 1) !== attempt) return null;
+    let url = null;
+    try { url = new URL(String((answer && answer.authorize_url) || '')); } catch (_) { return null; }
+    const place = url.origin + url.pathname;
+    if (url.username || url.password || url.hash || (place !== KOREAN_AUTHORIZE[provider] && place !== KOREAN_TEST_RETURN)) return null;
+    if (place === KOREAN_AUTHORIZE[provider] && url.searchParams.get('state') !== id) return null;
+    return { destination: url.toString(), state };
+  }
+
+  // A door whose provider is not set up in this environment says so on itself and can no
+  // longer be pressed; the other doors are as they were.
+  function markUnavailable(button) {
+    if (!button) return;
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+    // /login/ dims a disabled door in its own style; a sheet door is painted on itself (paintBrandDoors).
+    if (button.style && button.dataset && button.dataset.brand) button.style.opacity = '0.6';
+    const label = typeof button.querySelector === 'function' ? button.querySelector('.door-label') : null;
+    if (label) label.textContent = KOREAN_UNAVAILABLE_LABEL;
+  }
 
   // Turnstile in front of the email/phone code.
   //
@@ -349,15 +413,6 @@
   const turnstile = { loading: null, widget: null, token: '', stale: false, said: '', retry: null };
 
   // ---- App handoff receiver --------------------------------------------------
-  // Which app opened the hand-off. The app's address carries nothing but the attempt, its state and a door hint
-  // (webLoginHandoff.js refuses any other key), so the browser it opened is the one witness: the iOS app's sign-in
-  // sheet (ASWebAuthenticationSession) names an iPhone or an iPad -- or a Mac, which is what an iPad asking for desktop
-  // pages and the iOS app on an Apple silicon Mac both say -- and the Android app's Custom Tab names Android. Only a
-  // hand-off asks, and only the apps start one, so an Apple device here is the iOS app.
-  function appleHandoff() {
-    const agent = String((typeof navigator === 'object' && navigator && navigator.userAgent) || '');
-    return !/Android/i.test(agent) && /iPhone|iPad|iPod|Macintosh/.test(agent);
-  }
 
   // Reuse the site's authorize/fetch owner, with an isolated PKCE client per
   // attempt. This is the same /token?grant_type=pkce body auth-js 2.108.2 uses;
@@ -381,16 +436,9 @@
     const accountNote = el('handoff-account');
     const who = el('handoff-who');
     const other = el('handoff-other');
-    // The iOS app's sheet has no ChatGPT door (owner 2026-10-09; App Review 5.2.2, the A8 rule of no AI-account login
-    // on iOS): the button and its code panel leave the page before any door is shown or bound, so nothing on the page
-    // names it and nothing can start it. The Android app's sheet and the web page keep all five doors.
-    const chatGptDoor = !appleHandoff();
-    if (!chatGptDoor) {
-      const chatgpt = el('handoff-chatgpt');
-      const chatgptPanel = el('chatgpt-code-block');
-      if (chatgpt) chatgpt.remove();
-      if (chatgptPanel) chatgptPanel.remove();
-    }
+    // No door here signs in with ChatGPT, in either app's sheet or on the web (owner 2026-10-17); the iOS app's sheet
+    // had none since 2026-10-09 (App Review 5.2.2). Connecting a ChatGPT account as a project's AI is the app's own
+    // "AI 연결", not a way in.
     // The two policy links under the card open the pages' in-app form (?in_app=1, /app-mode.js) from either app's
     // sheet, as the apps' own policy links do: the policy alone, with no site menu, no way on to /membership/ or /ai/
     // and nothing about buying on the website. The web page's links are left as they are.
@@ -560,11 +608,51 @@
         authorize.searchParams.set('redirect_to', redirect.toString());
         authorize.searchParams.set('code_challenge', challenge);
         authorize.searchParams.set('code_challenge_method', 's256');
-        if (provider === 'google') authorize.searchParams.set('prompt', 'select_account');
+        if (provider === 'google') {
+          authorize.searchParams.set('prompt', 'select_account');
+          authorize.searchParams.set('hl', 'ko');
+        }
         say(SUPABASE_PROVIDERS[provider] + '로 이동하고 있어요.');
         window.location.assign(authorize.toString());
       } catch (error) { fail(error); }
       finally { busy = false; }
+    }
+
+    // Kakao and Naver from either app's sheet: the backend starts the provider with this attempt's S256 challenge and
+    // sends the browser back here as `?oauth_attempt=<this attempt>&oauth_state=…&code=…` -- the same return Google and
+    // Apple make -- and receiveProvider trades the code with the verifier kept in this tab. A provider with no
+    // credentials here (503) says so on its button, and the other doors stay.
+    async function startKorean(provider, button) {
+      if (busy || stopped || !Object.hasOwn(KOREAN_PROVIDERS, provider)) return;
+      busy = true;
+      choices.hidden = true;
+      try {
+        await checkBrowser();
+        const verifier = randomProof();
+        const challenge = await digest(verifier);
+        await checkBrowser();
+        pending.provider = provider;
+        pending.oauth = { state: '', verifier, expires_at: Math.min(nowSeconds() + 300, pending.expires_at) };
+        pending.phase = 'provider';
+        persist();
+        say(KOREAN_PROVIDERS[provider] + ' 로그인으로 이동하고 있어요.');
+        const started = await request(API_ORIGIN + '/auth/oauth/' + provider + '/web/start', '',
+          { return_to: 'app_handoff', attempt: pending.id, code_challenge: challenge });
+        await checkBrowser();
+        const going = koreanStart(provider, started, pending.id, KOREAN_HANDOFF_STATE);
+        if (!going) throw { status: 400 };
+        pending.oauth.state = going.state;
+        persist();
+        window.location.assign(going.destination);
+      } catch (error) {
+        if (error && error.status === 503 && !stopped && pending) {
+          // Not this attempt's end: the door says it is not ready, and the person picks another.
+          pending.oauth = null;
+          pending.phase = 'choosing';
+          try { persist(); markUnavailable(button); choices.hidden = false; say(KOREAN_UNAVAILABLE_COPY); }
+          catch (failure) { fail(failure); }
+        } else fail(error);
+      } finally { busy = false; }
     }
 
     // Sign in with Apple must be revocable when the account is deleted (App Review 5.1.1(v)), and Apple revokes
@@ -598,6 +686,18 @@
       pending.phase = 'exchanging';
       persist(); // A lost response or reload must start a fresh attempt.
       say('선택한 계정을 확인하고 있어요.');
+      if (Object.hasOwn(KOREAN_PROVIDERS, pending.provider)) {
+        // The backend's own code, bound to this attempt and to the verifier only this tab holds.
+        if (!KOREAN_HANDOFF_STATE.test(oauth.state)) throw { status: 400 };
+        const korean = await request(API_ORIGIN + '/auth/oauth/exchange', '', { provider: pending.provider,
+          state: oauth.state + '.' + pending.id, code: returned.code, app_state: pending.id, code_verifier: oauth.verifier });
+        returned.code = '';
+        await checkBrowser();
+        candidate = checkedCandidate(korean);
+        await verifyCandidate(candidate);
+        await returnToApp();
+        return;
+      }
       const providerAnswer = await request(SUPABASE_ORIGIN + '/auth/v1/token?grant_type=pkce', '',
         { auth_code: returned.code, code_verifier: oauth.verifier }, { apikey: PUBLIC_KEY });
       returned.code = '';
@@ -633,7 +733,7 @@
       finally { busy = false; }
     }
 
-    // ChatGPT, and the phone or email code, answer in this page rather than by a redirect.
+    // The phone or email code answers in this page rather than by a redirect.
     // They run the shared door functions; what comes back is held here as a candidate, the
     // same way as the account a provider returns -- in memory, never as this browser's
     // session. Once it checks out, the person -- who has just signed in on purpose -- goes
@@ -658,13 +758,6 @@
         await returnToApp();
       } catch (error) { fail(error); }
       finally { busy = false; }
-    }
-
-    async function startChatGpt() {
-      if (busy || stopped || !chatGptDoor) return;
-      try { await checkBrowser(); } catch (error) { fail(error); return; }
-      hideCodePanel();
-      await startChatGptLogin();
     }
 
     // The browser's own sign-in, named in masked form (GET /account). A failed read only
@@ -750,8 +843,10 @@
     el('handoff-apple').addEventListener('click', () => startProvider('apple'));
     // A copy of the page cached from before the other doors existed has only these two; it
     // keeps working with them (the page and this script are published together, not cached together).
-    const chatgptButton = el('handoff-chatgpt');
-    if (chatgptButton) chatgptButton.addEventListener('click', startChatGpt);
+    for (const provider of Object.keys(KOREAN_PROVIDERS)) {
+      const button = el('handoff-' + provider);
+      if (button) button.addEventListener('click', () => startKorean(provider, button));
+    }
     door.call = doorRequest;
     door.signedIn = takeDoorAnswer;
     bindLoginDoors();
@@ -773,8 +868,6 @@
       if (handedOff) { showReturnLink(); return; }
       if (stopped) return;
       checkBrowser().catch(fail);
-      // Coming back from ChatGPT's approval tab is when its answer is ready.
-      resumeChatGptPoll();
     });
 
     try {
@@ -893,7 +986,7 @@
     profile: readProfile()
   };
   // The sheet and the web login page keep what a door answers as this browser's
-  // session; the app hand-off supplies its own pair (see "The code and ChatGPT doors").
+  // session; the app hand-off supplies its own pair (see "The code doors").
   door.call = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
   door.signedIn = adoptSignIn;
   const hooks = { onSignedIn: null, onSignedOut: null, onNotice: null };
@@ -1033,7 +1126,6 @@
     removeAppLoginNotice();
     invalidateWebLogin();
     retireWebHandoff();
-    stopChatGpt();
     const mine = session.token;
     session.token = '';
     session.expiresAt = 0;
@@ -1213,14 +1305,6 @@
       }
       notify(error && error.network ? NETWORK_COPY : CHECK_FAILED_COPY, true);
     }
-  }
-
-  function randomAppState() {
-    const bytes = new Uint8Array(APP_STATE_BYTES);
-    window.crypto.getRandomValues(bytes);
-    let binary = '';
-    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 
   function httpsUrl(value) {
@@ -1501,7 +1585,9 @@
     // not stay open offering to verify a code for the other identity.
     $('code-form').hidden = true;
     $('code').value = '';
-    setAuthStatus('', false);
+    const request = codeButton();
+    if (request) request.textContent = CODE_REQUEST_LABEL;
+    setAuthStatus(config.guide, false);
     input.focus();
   }
 
@@ -1522,27 +1608,23 @@
 
   // What the sheet and the web login page do with a door's answer: it becomes this
   // browser's 30-day session. (The app hand-off never gets here; it holds the answer in
-  // memory and asks first.) A ChatGPT sign-in also keeps its one-time claim on the
-  // ChatGPT account for /ai/.
+  // memory and asks first.)
   async function adoptSignIn(method, answer) {
     setToken(answer.access_token, answer.user || null, expiryOf(answer.access_token, answer));
     rememberAccount(method, answer.user);
-    if (method === 'chatgpt') keepChatGptHandoff(answer.ai_engine, answer.user);
     await finishSignIn();
   }
 
   // ---- The /login/ page's own doors -----------------------------------------------
   //
   // The phone and email buttons open the code form in the page itself (no sheet); the
-  // form's two steps and ChatGPT's code panel are the same markup the sheet has, so the
-  // same functions drive them. Both modes of the page bind these; Google, Apple and
-  // ChatGPT's start are bound by the mode, because what they begin differs.
+  // form's two steps are the same markup the sheet has, so the same functions drive
+  // them. Both modes of the page bind these; Kakao, Naver, Google and Apple are bound by
+  // the mode, because what they begin differs.
 
   function showCodePanel(method) {
     const block = $('otp-block');
     if (!block) return;
-    // One door at a time: a ChatGPT code is put away when a form opens.
-    stopChatGpt();
     showSocialStatus('', false);
     if (!block.hidden && door.method === method) { $('email').focus(); return; }
     block.hidden = false;
@@ -1558,9 +1640,8 @@
     setAuthStatus('', false);
   }
 
-  // Puts the code and ChatGPT doors back as they were before anything was asked or typed.
+  // Puts the code doors back as they were before anything was asked or typed.
   function releaseDoors() {
-    stopChatGpt();
     hideCodePanel();
     const form = $('code-form');
     if (form) form.hidden = true;
@@ -1578,7 +1659,7 @@
     $('email-form').addEventListener('submit', sendCode);
     $('code-form').addEventListener('submit', verifyCode);
     bindCodeField();
-    bindChatGptBlock();
+    bindValueField();
   }
 
   // ---- Google / Apple through Supabase -------------------------------------
@@ -1696,14 +1777,17 @@
     let p;
     try { p = JSON.parse(readTab(WEB_PREFIX + id)); } catch (_) { throw { status: 400 }; }
     const now = nowSeconds();
+    // Kakao and Naver come back with the public half of the backend's challenge as their state, and the provider's
+    // own login may take longer than Google's account chooser: ten minutes, as long as the backend keeps it.
+    const korean = Boolean(p) && Object.hasOwn(KOREAN_PROVIDERS, p.provider_intent);
     if (!p || p.id !== id || typeof p.state !== 'string' || typeof p.verifier !== 'string'
-        || !WEB_PROOF.test(p.state) || !WEB_PROOF.test(p.verifier)
-        || !Object.hasOwn(SUPABASE_PROVIDERS, p.provider_intent) || p.phase !== 'provider'
+        || !(korean ? KOREAN_WEB_STATE.test(p.state) : WEB_PROOF.test(p.state)) || !WEB_PROOF.test(p.verifier)
+        || !(korean || Object.hasOwn(SUPABASE_PROVIDERS, p.provider_intent)) || p.phase !== 'provider'
         || !Number.isSafeInteger(p.generation) || p.generation < 0
         || !Number.isInteger(p.created_at) || p.created_at > now
         || !Number.isInteger(p.expires_at) || p.expires_at <= now || p.expires_at > p.created_at + 600
         || !Number.isInteger(p.oauth_expires_at) || p.oauth_expires_at <= now
-        || p.oauth_expires_at > p.created_at + 300 || p.oauth_expires_at > p.expires_at
+        || p.oauth_expires_at > p.created_at + (korean ? 600 : 300) || p.oauth_expires_at > p.expires_at
         || !RETURN_PATHS.includes(p.return_path)
         || typeof p.source_user_id !== 'string' || !(p.source_user_id === '' || SAFE_ID.test(p.source_user_id))
         || typeof p.source_fingerprint !== 'string' || !(p.source_fingerprint === '' || WEB_PROOF.test(p.source_fingerprint))) throw { status: 400 };
@@ -1742,10 +1826,18 @@
       webAttempt.phase = 'exchanging';
       persistWebAttempt();
       webSay('선택한 계정을 확인하고 있어요.');
-      const exchange = webRequest('/auth/session/exchange', source.token, {
-        flow: 'web_pkce', provider: webAttempt.provider_intent,
-        auth_code: returned.code, code_verifier: webAttempt.verifier
-      });
+      // Kakao and Naver: the backend's one-time code, opened only with this tab's attempt and verifier
+      // (korean_oauth.assert_web_login_binding). Google and Apple: Supabase's code, traded for a Sidekick session.
+      const korean = Object.hasOwn(KOREAN_PROVIDERS, webAttempt.provider_intent);
+      const exchange = korean
+        ? webRequest('/auth/oauth/exchange', '', {
+          provider: webAttempt.provider_intent, state: webAttempt.state + '.' + webAttempt.id,
+          code: returned.code, app_state: webAttempt.id, code_verifier: webAttempt.verifier
+        })
+        : webRequest('/auth/session/exchange', source.token, {
+          flow: 'web_pkce', provider: webAttempt.provider_intent,
+          auth_code: returned.code, code_verifier: webAttempt.verifier
+        });
       returned.code = '';
       const answer = await exchange;
       await checkWebSource();
@@ -1753,18 +1845,20 @@
       const id = String((answer && answer.user && answer.user.id) || '');
       const expiresAt = expiryOf(token, answer);
       if (!isSidekickToken(token) || !SAFE_ID.test(id) || expiresAt <= nowSeconds()
-          || answer.method !== 'unknown' || (webAttempt.source_user_id && webAttempt.source_user_id !== id))
+          || (!korean && answer.method !== 'unknown') || (webAttempt.source_user_id && webAttempt.source_user_id !== id))
         throw { status: 409 };
       const checked = await webRequest('/auth/session', token);
       await checkWebSource();
       if (!checked || !checked.user || checked.user.id !== id) throw { status: 409 };
       const destination = webAttempt.return_path;
+      // Kakao and Naver say which door it was; a Google/Apple exchange cannot (see SIGN_IN_CLAIM).
+      const method = korean ? webAttempt.provider_intent : 'unknown';
       // No await in this final source fence + storage adoption block.
       assertWebAttempt();
       if (!sameWebSource(source, currentWebSource()) || expiresAt <= nowSeconds()) throw { status: 409 };
       if (!setToken(token, checked.user, expiresAt, true)) throw { status: 400 };
-      rememberAccount('unknown', checked.user);
-      session.source = 'sidekick-unknown';
+      rememberAccount(method, korean ? answer.user : checked.user);
+      session.source = 'sidekick-' + method;
       session.checked = true;
       webSay('로그인했어요.');
       if (cancel) cancel.hidden = true;
@@ -1826,7 +1920,11 @@
       url.searchParams.set('redirect_to', redirect.toString());
       url.searchParams.set('code_challenge', challenge);
       url.searchParams.set('code_challenge_method', 's256');
-      if (provider === 'google') url.searchParams.set('prompt', 'select_account');
+      if (provider === 'google') {
+        url.searchParams.set('prompt', 'select_account');
+        // Google's own screens in Korean: Google documents `hl`, and Supabase passes it on.
+        url.searchParams.set('hl', 'ko');
+      }
       showSocialStatus(SUPABASE_PROVIDERS[provider] + '로 이동하고 있어요.', false);
       window.location.assign(url.toString());
     } catch (_) {
@@ -1834,21 +1932,82 @@
     } finally { webStarting = false; }
   }
 
+  // ---- Kakao and Naver on the website ------------------------------------------------
+  //
+  // Same fences as Google and Apple above (one attempt per tab, the session this browser
+  // had when it began, the way back to /ai/ or /account/), but Sidekick's own loop: the
+  // backend starts the provider with this tab's S256 challenge (POST
+  // /auth/oauth/{provider}/web/start) and its callback sends the browser back only to
+  // /login/ as `?web_login_attempt=<this attempt>&web_login_state=…&code=…`, where
+  // receiveWebLogin trades the code with the verifier (POST /auth/oauth/exchange). A
+  // provider without credentials here (503) says 준비 중 on its own button.
+  async function startKoreanLogin(provider, button) {
+    if (!Object.hasOwn(KOREAN_PROVIDERS, provider) || webStarting) return;
+    webStarting = true;
+    invalidateWebLogin();
+    const generation = webGeneration;
+    try {
+      if (!window.crypto || !window.crypto.subtle) throw { status: 400 };
+      const source = currentWebSource();
+      const assertStart = () => {
+        if (generation !== webGeneration || !sameWebSource(source, currentWebSource())) throw { status: 409 };
+      };
+      let sourceId = '';
+      if (source.token) {
+        const answer = await webRequest('/auth/session', source.token);
+        assertStart();
+        sourceId = String((answer && answer.user && answer.user.id) || '');
+        if (!SAFE_ID.test(sourceId)) throw { status: 401 };
+      }
+      const verifier = webProof();
+      const challenge = await webDigest(verifier);
+      assertStart();
+      const fingerprint = source.token ? await webDigest(source.token + ':' + source.expiresAt) : '';
+      assertStart();
+      const here = window.location.pathname;
+      const now = nowSeconds();
+      webAttempt = { id: webProof(), state: '', verifier, provider_intent: provider,
+        phase: 'provider', generation, created_at: now, expires_at: now + 600,
+        oauth_expires_at: now + 600, source_user_id: sourceId, source_fingerprint: fingerprint,
+        return_path: RETURN_PATHS.includes(here) ? here : DEFAULT_RETURN_PATH };
+      persistWebAttempt(true);
+      await checkWebSource();
+      showSocialStatus(KOREAN_PROVIDERS[provider] + ' 로그인으로 이동하고 있어요.', false);
+      const started = await webRequest('/auth/oauth/' + provider + '/web/start', '',
+        { return_to: 'web', attempt: webAttempt.id, code_challenge: challenge });
+      await checkWebSource();
+      const going = koreanStart(provider, started, webAttempt.id, KOREAN_WEB_STATE);
+      if (!going) throw { status: 400 };
+      webAttempt.state = going.state;
+      persistWebAttempt();
+      window.location.assign(going.destination);
+    } catch (error) {
+      if (generation === webGeneration) {
+        invalidateWebLogin();
+        if (error && error.status === 503) { markUnavailable(button); showSocialStatus(KOREAN_UNAVAILABLE_COPY, true); }
+        else showSocialStatus(SOCIAL_FAILED_COPY, true);
+      }
+    } finally { webStarting = false; }
+  }
+
   // ---- /login/ on the web: a login that begins here ends here -----------------------
   //
   // Opened with no hand-off in the address, /login/ is the website's own login page. The
-  // five doors are the sheet's doors: Google and Apple through startSupabaseLogin (they come
-  // back to this page and finish in receiveWebLogin), ChatGPT, the phone code and the email
-  // code through the shared door functions. The end is the website: /account/. (A login the
-  // app began never reaches here; it is initAppHandoff.)
+  // six doors are the sheet's doors: Kakao and Naver through startKoreanLogin, Google and
+  // Apple through startSupabaseLogin (all four come back to this page and finish in
+  // receiveWebLogin), the phone code and the email code through the shared door functions.
+  // The end is the website: /account/. (A login the app began never reaches here; it is
+  // initAppHandoff.)
 
   function setUpLoginPage() {
     const google = byId('handoff-google');
     const apple = byId('handoff-apple');
-    const chatgpt = byId('handoff-chatgpt');
+    const kakao = byId('handoff-kakao');
+    const naver = byId('handoff-naver');
+    if (kakao) kakao.addEventListener('click', () => startKoreanLogin('kakao', kakao));
+    if (naver) naver.addEventListener('click', () => startKoreanLogin('naver', naver));
     if (google) google.addEventListener('click', () => startSupabaseLogin('google'));
     if (apple) apple.addEventListener('click', () => startSupabaseLogin('apple'));
-    if (chatgpt) chatgpt.addEventListener('click', () => { hideCodePanel(); startChatGptLogin(); });
     bindLoginDoors();
     // Signed in here (the sheet's ending), the person leaves for their account.
     hooks.onSignedIn = () => { webSay('로그인했어요.'); window.location.replace(DEFAULT_RETURN_PATH); };
@@ -2196,62 +2355,7 @@
     return redeemed.ok;
   }
 
-  // ---- ChatGPT: a device code the person approves in another tab ------------
-
-  // The panel that shows the code to type on ChatGPT's page: /login/ ships it in its markup,
-  // the sheet builds it under its doors the first time it is needed.
-  function chatGptBlock() {
-    let block = $('chatgpt-code-block');
-    if (block) return block;
-    const anchor = document.querySelector('#signin-sheet .doors');
-    if (!anchor) return null;
-    block = document.createElement('div');
-    block.id = 'chatgpt-code-block';
-    block.className = 'otp-block';
-    block.hidden = true;
-    const hint = document.createElement('p');
-    hint.className = 'form-status';
-    hint.textContent = '아래 코드를 ChatGPT 승인 페이지에 입력해 주세요.';
-    const row = document.createElement('div');
-    row.className = 'form-row';
-    const code = document.createElement('input');
-    code.id = 'chatgpt-user-code';
-    code.readOnly = true;
-    code.setAttribute('aria-label', 'ChatGPT 승인 코드');
-    const copy = document.createElement('button');
-    copy.type = 'button';
-    copy.id = 'chatgpt-copy-code';
-    copy.textContent = '코드 복사';
-    row.append(code, copy);
-    const openPage = document.createElement('button');
-    openPage.type = 'button';
-    openPage.className = 'door';
-    openPage.id = 'chatgpt-open-page';
-    openPage.textContent = 'ChatGPT 승인 페이지 열기';
-    block.append(hint, row, openPage);
-    anchor.after(block);
-    bindChatGptBlock();
-    return block;
-  }
-
-  function bindChatGptBlock() {
-    const copy = $('chatgpt-copy-code');
-    const openPage = $('chatgpt-open-page');
-    if (copy && !copy.dataset.bound) {
-      copy.dataset.bound = '1';
-      copy.addEventListener('click', () => copyText($('chatgpt-user-code').value, copy));
-    }
-    if (openPage && !openPage.dataset.bound) {
-      openPage.dataset.bound = '1';
-      // The new tab opens from this click, so no pop-up blocker stands in the way,
-      // and noopener keeps the provider's page from reaching back into this one.
-      openPage.addEventListener('click', () => {
-        if (door.chatgpt && door.chatgpt.authorizationUrl) {
-          window.open(door.chatgpt.authorizationUrl, '_blank', 'noopener');
-        }
-      });
-    }
-  }
+  // ---- Small helpers the pages share ---------------------------------------------
 
   async function copyText(value, button) {
     const text = String(value || '');
@@ -2267,142 +2371,23 @@
     if (button) setTimeout(() => { button.textContent = label; }, 2000);
   }
 
-  function showChatGptCode(userCode) {
-    const block = chatGptBlock();
-    if (!block) return;
-    $('chatgpt-user-code').value = userCode;
-    block.hidden = false;
-  }
-
-  function hideChatGptCode() {
-    const block = $('chatgpt-code-block');
-    if (block) block.hidden = true;
-  }
-
-  function stopChatGpt() {
-    const pending = door.chatgpt;
-    if (pending && pending.timer) clearTimeout(pending.timer);
-    door.chatgpt = null;
-    hideChatGptCode();
-  }
-
-  function scheduleChatGptPoll(delay) {
-    const pending = door.chatgpt;
-    if (!pending) return;
-    if (pending.timer) clearTimeout(pending.timer);
-    pending.timer = setTimeout(pollChatGptLogin, delay);
-  }
-
-  async function startChatGptLogin() {
-    if (door.busy) return;
-    stopChatGpt();
-    door.busy = true;
-    showSocialStatus('ChatGPT 승인 코드를 받고 있어요.', false);
-    const appState = randomAppState();
-    try {
-      // The server binds the code to this app_state and answers with the page to
-      // approve on, the code to type there, and the state to poll with.
-      const started = await door.call('/auth/oauth/chatgpt/start', { app_state: appState });
-      const state = String(started.state || '');
-      const userCode = String(started.user_code || '');
-      const authorizationUrl = httpsUrl(started.authorization_url);
-      if (!state || !userCode || !authorizationUrl) throw new Error('chatgpt_start_invalid');
-      door.chatgpt = {
-        state,
-        appState,
-        authorizationUrl,
-        interval: Math.max(2, Number(started.poll_interval_seconds) || 5) * 1000,
-        expiresAt: Date.now() + Math.max(60, Number(started.expires_in_seconds) || 600) * 1000,
-        timer: null,
-        inFlight: false
-      };
-      showChatGptCode(userCode);
-      showSocialStatus('승인 페이지에서 코드를 입력하고 돌아오면 이어서 로그인해요.', false);
-      scheduleChatGptPoll(door.chatgpt.interval);
-    } catch (error) {
-      stopChatGpt();
-      showSocialStatus(error && error.network ? NETWORK_COPY
-        : error && error.status === 503 ? '지금은 ChatGPT로 로그인할 수 없어요. 다른 방법으로 로그인해 주세요.'
-        : 'ChatGPT 로그인을 시작하지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
-    } finally {
-      door.busy = false;
-    }
-  }
-
-  async function pollChatGptLogin() {
-    const pending = door.chatgpt;
-    if (!pending || pending.inFlight) return;
-    if (Date.now() > pending.expiresAt) {
-      stopChatGpt();
-      showSocialStatus('승인 시간이 지났어요. 처음부터 다시 시도해 주세요.', true);
-      return;
-    }
-    pending.inFlight = true;
-    let signedIn = null;
-    let failed = false;
-    try {
-      const polled = await door.call('/auth/oauth/chatgpt/poll', { state: pending.state, app_state: pending.appState });
-      if (polled && polled.status === 'complete' && polled.access_token) signedIn = polled;
-    } catch (error) {
-      // A dropped connection is worth another try; any answer from the server
-      // that is not "pending" means this code is spent.
-      failed = !(error && error.network);
-    } finally {
-      pending.inFlight = false;
-    }
-    // Cancelled or replaced by a new attempt while this answer was on its way.
-    if (door.chatgpt !== pending) return;
-    if (signedIn) {
-      stopChatGpt();
-      showSocialStatus('', false);
-      await door.signedIn('chatgpt', signedIn);
-      return;
-    }
-    if (failed) {
-      stopChatGpt();
-      showSocialStatus('승인이 확인되지 않았어요. 처음부터 다시 시도해 주세요.', true);
-      return;
-    }
-    scheduleChatGptPoll(pending.interval);
-  }
-
-  // A background tab's timers are throttled; the moment the person comes back
-  // from the approval tab is exactly when the answer is ready. Coming back is
-  // also when a session that ran out while the machine slept is noticed.
-  function resumeChatGptPoll() {
-    if (!door.chatgpt) return;
-    if (door.chatgpt.timer) clearTimeout(door.chatgpt.timer);
-    pollChatGptLogin();
-  }
-
+  // Coming back to a tab is when a session that ran out while the machine slept is noticed.
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
     if (LOGIN_RECEIVER) {
       if (webAttempt && (webAttempt.oauth_expires_at <= nowSeconds() || sessionExpired()))
         invalidateWebLogin('로그인 시간이 지났어요. 다시 시작해 주세요.');
-      resumeChatGptPoll();
       return;
     }
     if (sessionExpired()) { expireSession(); return; }
-    resumeChatGptPoll();
   });
 
-  // A ChatGPT sign-in also proves a ChatGPT account the person may want their
-  // projects to run on. The server holds that account for a day and answers the
-  // sign-in with a one-time claim on it (ai_engine.handoff_state/handoff_code);
-  // /ai/ offers it for a project (POST /ai-engine/login-handoff/claim) so the
-  // person does not sign in to ChatGPT a second time. The claim stays in this
-  // tab only, never in a URL, and is dropped once used or declined, after a day,
-  // or on 로그아웃. It is bound to the account that signed in.
-  function keepChatGptHandoff(engine, user) {
-    const ready = Boolean(engine && typeof engine === 'object' && engine.status === 'ready_to_connect');
-    const state = ready ? cleanText(engine.handoff_state, 200) : '';
-    const code = ready ? cleanText(engine.handoff_code, 200) : '';
-    const userId = user && typeof user === 'object' ? String(user.id || '') : '';
-    if (!state || !code || !SAFE_ID.test(userId)) { writeTab(HANDOFF_KEY, ''); return; }
-    writeTab(HANDOFF_KEY, JSON.stringify({ state, code, user_id: userId, saved_at: Date.now() }));
-  }
-
+  // A ChatGPT sign-in used to prove a ChatGPT account the person might want their
+  // projects to run on, and left a one-time claim on it in this tab for /ai/ (POST
+  // /ai-engine/login-handoff/claim). The web no longer signs in with ChatGPT (owner
+  // 2026-10-17), so nothing writes a claim; one a tab still holds is offered while it
+  // is fresh and bound to the account signed in, and dropped once used or declined,
+  // after a day, or on 로그아웃.
   function chatGptHandoff() {
     let raw = null;
     try { raw = JSON.parse(readTab(HANDOFF_KEY) || 'null'); } catch (_) { raw = null; }
@@ -2500,8 +2485,8 @@
     }, TURNSTILE_RETRY_MS);
   }
 
-  // Runs whenever the code form shows (the sheet opens on it, or 이메일 ·
-  // 휴대폰으로 로그인 opens it): the script loads once, the widget renders once
+  // Runs whenever the code form shows (the sheet opens on it, or 전화번호 ·
+  // 이메일로 이어서 하기 opens it): the script loads once, the widget renders once
   // into a slot under the form, and a spent, expired or failed check runs again.
   function prepareTurnstile() {
     if (!TURNSTILE_SITE_KEY) return;
@@ -2562,11 +2547,15 @@
       $('code-form').hidden = false;
       $('code').focus();
       // The same sentence whoever asks and whatever the answer: nothing here says whether
-      // an account exists for this address or number.
-      setAuthStatus(`${result.value_masked || `입력한 ${AUTH_METHODS[method].label}`}로 인증번호를 보냈어요.`, false);
+      // an account exists for this address or number. Then what to do next, and the
+      // request button becomes the way to ask again.
+      const config = AUTH_METHODS[method];
+      const request = codeButton();
+      if (request) request.textContent = CODE_RESEND_LABEL;
+      setAuthStatus(`${result.value_masked ? `${result.value_masked} ${config.noun}` : `입력한 ${config.label}`}로 인증번호를 보냈어요. ${config.sent}`, false);
     } catch (error) {
       setAuthStatus(error && error.network ? NETWORK_COPY
-        : error && error.status === 422 ? (method === 'phone' ? '전화번호를 확인해 주세요.' : '이메일 주소를 확인해 주세요.')
+        : error && error.status === 422 ? AUTH_METHODS[method].invalid
         : error && error.status === 429 ? '인증번호를 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.'
         : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
     } finally {
@@ -2636,12 +2625,58 @@
     field.addEventListener('paste', onCodePaste);
   }
 
+  // A Korean mobile number takes the shape it is read in as it is typed: 010-1234-5678
+  // (a ten-digit one 011-123-4567). One typed with + (an international form) is left as
+  // typed, and so is an address; the backend reads the digits either way.
+  function formatPhone(value) {
+    const text = String(value || '');
+    if (/^\s*\+/.test(text)) return text;
+    const digits = text.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return digits.slice(0, 3) + '-' + digits.slice(3);
+    if (digits.length === 10) return digits.slice(0, 3) + '-' + digits.slice(3, 6) + '-' + digits.slice(6);
+    return digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+  }
+
+  function bindValueField() {
+    const field = $('email');
+    if (!field || !field.dataset || field.dataset.shaped) return;
+    field.dataset.shaped = '1';
+    field.addEventListener('input', () => {
+      if (door.method !== 'phone') return;
+      const shaped = formatPhone(field.value);
+      if (shaped !== field.value) field.value = shaped;
+    });
+  }
+
   // ---- Wiring ----------------------------------------------------------------
 
+  // The sheet's brand doors in the colours of each brand's own button guide, all four the
+  // same size: set here, on the doors themselves, so every copy of the sheet (built from
+  // SHEET_HTML, or shipped by /membership/ and /ai/) looks the same.
+  const BRAND_DOORS = {
+    kakao: { background: '#FEE500', color: 'rgba(0, 0, 0, 0.85)' },
+    naver: { background: '#03C75A', color: '#ffffff' },
+    google: { background: '#ffffff', color: '#1F1F1F', boxShadow: 'inset 0 0 0 1px #DADCE0' },
+    apple: { background: '#000000', color: '#ffffff' }
+  };
+
+  function paintBrandDoors() {
+    for (const [brand, colours] of Object.entries(BRAND_DOORS)) {
+      const button = $(brand + '-button');
+      if (!button || !button.style) continue;
+      Object.assign(button.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', ...colours });
+    }
+  }
+
   function bindSheet(sheet) {
+    for (const [provider, button] of [['kakao', $('kakao-button')], ['naver', $('naver-button')]]) {
+      // A copy of a page cached from before these doors existed has none; the others still work.
+      if (button) button.addEventListener('click', () => startKoreanLogin(provider, button));
+    }
     $('google-button').addEventListener('click', () => startSupabaseLogin('google'));
     $('apple-button').addEventListener('click', () => startSupabaseLogin('apple'));
-    $('chatgpt-button').addEventListener('click', startChatGptLogin);
+    paintBrandDoors();
     sheet.querySelectorAll('[data-method]').forEach((tab) => {
       tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method));
     });
@@ -2654,6 +2689,7 @@
     $('email-form').addEventListener('submit', sendCode);
     $('code-form').addEventListener('submit', verifyCode);
     bindCodeField();
+    bindValueField();
     $('close-signin').addEventListener('click', close);
     sheet.addEventListener('click', (event) => { if (event.target === sheet) close(); });
   }
