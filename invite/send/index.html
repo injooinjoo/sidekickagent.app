@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-aY++K1et3rzGh6Ck2Edk63bH9cciiFLHrZDPT7Ixuy0=' https://t1.kakaocdn.net; style-src 'sha256-Ax11wbx4AXgq1Rfomvi4SPjd0Cf7yuc4GBGJ/gYnhFo='; img-src 'self'; connect-src https://kapi.kakao.com; form-action https://sharer.kakao.com; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin">
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>카카오톡으로 초대장 보내기 · Sidekick</title>
+  <!-- Kakao JavaScript key (owner): the PUBLIC, domain-restricted JavaScript key of the Kakao app, from the Kakao
+       developer console once https://sidekickagent.app is registered there as a JavaScript SDK domain and as a web
+       domain for message links. Never the REST API or Admin key. Empty: the page offers 링크 복사 and the system share
+       sheet only and loads nothing from Kakao. The key lives here, not in the script, so setting it does not change
+       the script's hash in the policy above. -->
+  <meta name="kakao-javascript-key" content="7205664860dae26a8414a51c98643a69">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/assets/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <style>
+    /* /login/'s white card and tokens (apps/site/login/index.html); the policy names this block by hash. */
+    :root { color-scheme: light; --ink: #1a1d21; --ink-soft: #3f454d; --muted: #6b737d; --bg: #f7f8fa; --card: #ffffff; --sunken: #f0f2f4; --line: #e1e5ea; --hairline: #eceff2; --accent: #b3230a; --shadow: 0 18px 50px rgba(26, 29, 33, 0.08); --radius-md: 14px; --radius-xl: 24px; --control-h-lg: 52px; }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+    main { width: min(100%, 360px); }
+    .card { padding: 14px 14px 20px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
+    .hero { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 16px; background: #f5efec; }
+    .body { padding: 0 8px; }
+    h1 { margin: 18px 0 4px; font-size: 20px; line-height: 1.35; letter-spacing: -0.02em; }
+    .status { margin: 0 0 16px; min-height: 1.4em; color: var(--muted); font-size: 14px; }
+    .status.is-error { color: var(--accent); }
+    .actions { display: grid; gap: 10px; }
+    .option { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--control-h-lg); padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: center; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+    .option:hover { border-color: var(--ink-soft); background: var(--bg); }
+    .option.kakao { border-color: #fee500; background: #fee500; color: #191919; }
+    .option.kakao:hover { background: #f5dc00; }
+    .option.primary { border-color: var(--ink); background: var(--ink); color: #ffffff; }
+    .option.primary:hover { background: var(--ink-soft); }
+    .link { margin: 12px 0 0; color: var(--muted); font-size: 12.5px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; user-select: all; -webkit-user-select: all; }
+    .copied { margin: 8px 0 0; min-height: 1.4em; color: var(--muted); font-size: 13px; }
+    :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
+</style>
+</head>
+<body>
+  <main aria-labelledby="send-title">
+    <div class="card">
+      <img class="hero" src="/assets/invite/kakao-invite.jpg" width="1000" height="1000" alt="">
+      <div class="body">
+        <h1 id="send-title">사이드킥 초대장</h1>
+        <p class="status" id="send-status" role="status" aria-live="polite">카카오톡을 여는 중이에요.</p>
+        <div id="send-ready">
+          <div class="actions">
+            <button type="button" class="option kakao" id="send-kakao" hidden>카카오톡으로 보내기</button>
+            <button type="button" class="option primary" id="copy-link">링크 복사</button>
+            <button type="button" class="option" id="share-link" hidden>다른 앱으로 보내기</button>
+          </div>
+          <p class="link" id="invite-link"></p>
+          <p class="copied" id="copy-status" role="status" aria-live="polite"></p>
+        </div>
+        <p class="status is-error" id="send-missing" role="alert" hidden>초대 코드를 확인할 수 없어요. 앱에서 다시 보내 주세요.</p>
+      </div>
+    </div>
+  </main>
+  <script>(() => {
+  'use strict';
+  // The app opens this page only to send its invitation through KakaoTalk:
+  //   https://sidekickagent.app/invite/send/#c=XXXXXXXX&n=<display name, percent-encoded>
+  // Both values are in the fragment, which the browser never sends to a server, so the name reaches no log; the
+  // only place it goes is the card the person chooses to send through Kakao's own sharing. No analytics here.
+  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const ORIGIN = 'https://sidekickagent.app';
+  const IMAGE = { url: ORIGIN + '/assets/invite/kakao-invite.jpg', width: 1000, height: 1000 };
+  const DESCRIPTION = '나만의 AI 직원팀, 사이드킥에 초대해요. 초대 받기를 눌러 함께 시작해요.';
+  // Kakao's official JavaScript SDK, pinned: the latest version on developers.kakao.com/docs/ko/javascript/download
+  // (2.8.3, 2026-09-03) and the SRI value of that exact file (sha384, what the page's 'SRI 해시 복사' gives).
+  const KAKAO_SDK = {
+    src: 'https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js',
+    integrity: 'sha384-oroumrnFVE0xtgqyDZJARgERibXg2C28380uaUZz2kHDS5CR7tu20eGiOU6GkTpy',
+  };
+  const SDK_WAIT_MS = 6000;
+  const byId = (id) => document.getElementById(id);
+
+  let params = null;
+  try { params = new URLSearchParams(String(window.location.hash || '').replace(/^#/, '')); } catch (_) {}
+  const code = String((params && params.get('c')) || '').toUpperCase().replace(/[\s-]/g, '');
+  if (!(code.length === 8 && Array.from(code).every((ch) => ALPHABET.includes(ch)))) {
+    byId('send-ready').hidden = true;
+    byId('send-status').hidden = true;
+    byId('send-missing').hidden = false;
+    return;
+  }
+  // The name the app shows for the person: no control characters, one line, at most 20 characters.
+  const name = Array.from(String((params && params.get('n')) || '').replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ').trim()).slice(0, 20).join('').trim();
+  const link = ORIGIN + '/i/?c=' + code;
+  const title = name ? name + '님의 사이드킥 초대장' : '사이드킥 초대장';
+  const template = {
+    objectType: 'feed',
+    content: {
+      title,
+      description: DESCRIPTION,
+      imageUrl: IMAGE.url,
+      imageWidth: IMAGE.width,
+      imageHeight: IMAGE.height,
+      link: { mobileWebUrl: link, webUrl: link },
+    },
+    buttons: [{ title: '초대 받기', link: { mobileWebUrl: link, webUrl: link } }],
+  };
+  window.__sidekickInviteTemplate = template;
+  byId('send-title').textContent = title;
+  byId('invite-link').textContent = link;
+
+  byId('copy-link').addEventListener('click', async () => {
+    let copied = false;
+    try { await navigator.clipboard.writeText(link); copied = true; } catch (_) {}
+    byId('copy-status').textContent = copied ? '초대 링크를 복사했어요.' : '아래 링크를 길게 눌러 복사해 주세요.';
+  });
+  if (typeof navigator.share === 'function') {
+    byId('share-link').hidden = false;
+    byId('share-link').addEventListener('click', () => {
+      navigator.share({ title, text: DESCRIPTION, url: link }).catch(() => {});
+    });
+  }
+
+  // Without Kakao (no key yet, the SDK blocked or slow, Kakao refusing) the page is still a way to send: the link
+  // to copy and the system share sheet stay, only the Kakao button goes.
+  const withoutKakao = () => {
+    byId('send-kakao').hidden = true;
+    byId('send-status').textContent = '지금은 카카오톡으로 바로 보낼 수 없어요. 링크를 복사하거나 다른 앱으로 보내 주세요.';
+  };
+  const send = () => {
+    try {
+      window.Kakao.Share.sendDefault(template);
+      byId('send-status').textContent = '카카오톡에서 받을 사람을 골라 주세요.';
+    } catch (_) {
+      withoutKakao();
+    }
+  };
+
+  const keyMeta = document.querySelector('meta[name="kakao-javascript-key"]');
+  const key = String((keyMeta && keyMeta.getAttribute('content')) || '').trim();
+  if (!/^[0-9a-f]{32}$/i.test(key)) { withoutKakao(); return; }
+
+  let decided = false;
+  const giveUp = () => { if (decided) return; decided = true; withoutKakao(); };
+  const timer = window.setTimeout(giveUp, SDK_WAIT_MS);
+  const sdk = document.createElement('script');
+  sdk.src = KAKAO_SDK.src;
+  sdk.integrity = KAKAO_SDK.integrity;
+  sdk.crossOrigin = 'anonymous';
+  sdk.onerror = () => { window.clearTimeout(timer); giveUp(); };
+  sdk.onload = () => {
+    window.clearTimeout(timer);
+    if (decided) return;
+    decided = true;
+    try {
+      if (!window.Kakao.isInitialized()) window.Kakao.init(key);
+    } catch (_) {
+      withoutKakao();
+      return;
+    }
+    // Ask once, at once; the button sends again on request (a desktop browser opens Kakao's window only on a tap).
+    byId('send-kakao').hidden = false;
+    byId('send-kakao').addEventListener('click', send);
+    send();
+  };
+  document.head.appendChild(sdk);
+})();</script>
+</body>
+</html>

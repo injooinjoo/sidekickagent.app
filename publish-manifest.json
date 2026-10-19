@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "ff5ec5bb9d3f22a8e5965e66b001d3a4ddf31452c775f6888085afe3e5c882a9",
+  "export_rules_sha256": "9e24a0572d72d11081e5209fe3cab1b15d13d58b63cb81bec2418c68301d1bbe",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -144,6 +144,10 @@
     "assets/icon-512.png": {
       "bytes": 23931,
       "sha256": "b93a947b419eec8f79434632c3bdffd900452263e8637dfb80e60f1809742fe7"
+    },
+    "assets/invite/kakao-invite.jpg": {
+      "bytes": 147480,
+      "sha256": "3de7807e5c0b643e9d95ccf0a83dd8ce53136911bbc03dcbe2a0c06e8187900e"
     },
     "assets/landing-v2/film/ending-m.mp4": {
       "bytes": 1023031,
@@ -313,21 +317,29 @@
       "bytes": 15086,
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
+    "i/index.html": {
+      "bytes": 10579,
+      "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
+    },
     "index.html": {
       "bytes": 41791,
       "sha256": "b4fcc563ee223b0af066ce58a5496eef07dd3227622237eae2b15083ca107443"
     },
     "invite/index.html": {
-      "bytes": 8352,
-      "sha256": "c658eedbcee47d650e5b71610fc57d031a41e9f576675a34e325898901033710"
+      "bytes": 10579,
+      "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
+    },
+    "invite/send/index.html": {
+      "bytes": 10758,
+      "sha256": "82d061487e262fc8d896381edf3f98e409a9daafcfd93ad5b886683dac359f84"
     },
     "landing.js": {
       "bytes": 39836,
       "sha256": "06dc7581a78f6ce4cb1299b12a9c812cae97c883e114d78e211dfc5baee8bf0e"
     },
     "licenses/index.html": {
-      "bytes": 410059,
-      "sha256": "b0094a0d2b8a82c1ae72a856f3e59ef3003c98aad63d0f7486ee06dd85033c76"
+      "bytes": 410540,
+      "sha256": "0a48728b4f923972ce39e009bed6cafe09ebfb137c74f741741b93e7fc86d41a"
     },
     "licenses/licenses.css": {
       "bytes": 3911,
@@ -362,8 +374,8 @@
       "sha256": "0982693bccae417c941e486ef629baafe8ad7fb05e20d8335a37cfbec18acf69"
     },
     "privacy/index.html": {
-      "bytes": 62550,
-      "sha256": "fdb113780b11536a6f7a0c0a4480d4c4a5f72f109b2326bdf579c7edf805ddc3"
+      "bytes": 64598,
+      "sha256": "d4d0dc623b3b45ae21e7a87bb84b29f184a2b9be84de74e1f384682ca0aa4300"
     },
     "robots.txt": {
       "bytes": 71,
@@ -386,8 +398,8 @@
       "sha256": "271273a89e5990cf40380c1ac74e5a95708bc760dfdfb18f2290c04e5199e0a5"
     },
     "terms/index.html": {
-      "bytes": 23307,
-      "sha256": "b92a725cc15f7d7092d9578860c9258fa98d0ac7b5559ca426abd27ba4487102"
+      "bytes": 23529,
+      "sha256": "998c73eca9802f34ba306a7d2ff1d4950e31e44420fff9c588d2423c907aa358"
     },
     "use.js": {
       "bytes": 3854,
@@ -432,5 +444,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "bcfe3619879811bff7eb36ec21e2b339d4a2f78b"
+  "source_sha": "f556edfb2248661cc1bb4dbc4ac0283a75837832"
 }
