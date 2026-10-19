@@ -2,21 +2,27 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-031bV/BwY+es8ZN6qWEflE+/YKC8C4pHoxQ2pTCQW0k=' 'sha256-SIkbfR8T7rCBns4gp5zvNYlaJT8uhTTxLIzpk7/Zf4Q=' https://us-assets.i.posthog.com; style-src 'self' 'sha256-NHPYPkFD2b7Vcfd5HPgFQfMYJwF4YeAl0Qji0evoLd8='; img-src 'self'; connect-src https://us.i.posthog.com https://us-assets.i.posthog.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-2kD/BEwHtkamg8w0/7ODyxmQiEutSLi8HvvHB9lEJMc=' 'sha256-7BVu4BYLYnvkvwCIk1b8XrNVgyFRR8Fd1bmOI4sO4R0=' https://us-assets.i.posthog.com; style-src 'self' 'sha256-O21EmGKtBqd6gzZRkxCUDHNg1zw6ysArtclqgrZd11w='; img-src 'self'; connect-src https://us.i.posthog.com https://us-assets.i.posthog.com; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
   'use strict';
-  // The invite code arrives as ?c=XXXXXXXX (the server's INVITE_URL). It is the invitation itself, so it is
-  // read here, before any other script, and taken out of the address bar: no page view, referrer or history entry
-  // carries it. sessionStorage keeps it for a reload of this tab only.
+  // The invite code arrives as ?c=XXXXXXXX (the server's INVITE_URL, and the short link /i/?c=XXXXXXXX) or as
+  // /i/#XXXXXXXX. It is the invitation itself, so it is read here, before any other script, and taken out of the
+  // address bar: no page view, referrer or history entry carries it. sessionStorage keeps it for a reload of this
+  // tab only. /i/ is this same file, so both addresses settle on /invite/.
   const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let raw = '';
   try { raw = new URLSearchParams(window.location.search).get('c') || ''; } catch (_) {}
+  if (!raw) {
+    let hash = String(window.location.hash || '').replace(/^#/, '');
+    try { hash = decodeURIComponent(hash); } catch (_) {}
+    raw = hash.indexOf('c=') === 0 ? hash.slice(2) : hash;
+  }
   if (!raw) { try { raw = window.sessionStorage.getItem('sidekick-invite-code') || ''; } catch (_) {} }
   const code = String(raw).toUpperCase().replace(/[\s-]/g, '');
   const valid = code.length === 8 && Array.from(code).every((ch) => ALPHABET.includes(ch));
-  if (window.location.search) { try { history.replaceState(null, '', '/invite/'); } catch (_) {} }
+  if (window.location.search || window.location.hash) { try { history.replaceState(null, '', '/invite/'); } catch (_) {} }
   if (valid) { try { window.sessionStorage.setItem('sidekick-invite-code', code); } catch (_) {} }
   window.__sidekickInviteCode = valid ? code : null;
 })();</script>
@@ -26,7 +32,23 @@
   <link rel="stylesheet" href="/analytics.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>사이드킥 초대 · Sidekick</title>
+  <title>사이드킥 초대장 · Sidekick</title>
+  <meta name="description" content="나만의 AI 직원팀, 사이드킥에 초대해요. 초대 받기를 눌러 함께 시작해요.">
+  <!-- A link to this page shared anywhere (a message, a chat) shows the same card as the KakaoTalk invitation. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="사이드킥">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="사이드킥 초대장">
+  <meta property="og:description" content="나만의 AI 직원팀, 사이드킥에 초대해요. 초대 받기를 눌러 함께 시작해요.">
+  <meta property="og:image" content="https://sidekickagent.app/assets/invite/kakao-invite.jpg">
+  <meta property="og:image:width" content="1000">
+  <meta property="og:image:height" content="1000">
+  <meta property="og:image:alt" content="노트북 앞에서 별을 안고 웃는 사이드킥 직원">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="사이드킥 초대장">
+  <meta name="twitter:description" content="나만의 AI 직원팀, 사이드킥에 초대해요. 초대 받기를 눌러 함께 시작해요.">
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/invite/kakao-invite.jpg">
+  <meta name="twitter:image:alt" content="노트북 앞에서 별을 안고 웃는 사이드킥 직원">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="icon" href="/assets/favicon-16.png" type="image/png" sizes="16x16">
@@ -38,11 +60,11 @@
     html { -webkit-text-size-adjust: 100%; }
     body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
     main { width: min(100%, 400px); }
-    .card { padding: 32px 24px 22px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
-    .brand { display: inline-flex; }
-    .brand-mark { width: 44px; height: 44px; flex: none; }
-    h1 { margin: 18px 0 6px; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
-    .lead { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+    .card { padding: 14px 14px 22px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
+    .hero { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 16px; background: #f5efec; }
+    .body { padding: 0 10px; }
+    h1 { margin: 20px 0 6px; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
+    .lead { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
     .code-box { display: grid; gap: 10px; margin: 0 0 18px; padding: 18px 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--sunken); }
     .code-label { margin: 0; color: var(--ink-soft); font-size: 13px; font-weight: 600; }
     .code { margin: 0; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 34px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.2; user-select: all; -webkit-user-select: all; }
@@ -53,36 +75,38 @@
     .actions { display: grid; gap: 10px; }
     .status { margin: 0; min-height: 1.4em; color: var(--muted); font-size: 13px; }
     .status.is-error { color: var(--accent); }
-    .note { margin: 18px 8px 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .note { margin: 18px 4px 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
     .store { margin: 10px 0 0; color: var(--muted); font-size: 12.5px; }
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
     [hidden] { display: none !important; }
-    @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .code { font-size: 28px; } }
+    @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 10px 10px 18px; } .body { padding: 0 6px; } .code { font-size: 28px; } }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
 </style>
 </head>
 <body>
   <main aria-labelledby="invite-title">
     <div class="card">
-      <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg></span>
-      <h1 id="invite-title">사이드킥에 초대받았어요</h1>
-      <p class="lead">사이드킥 앱에서 아래 초대 코드를 입력하면 바로 함께 시작할 수 있어요.</p>
+      <img class="hero" src="/assets/invite/kakao-invite.jpg" width="1000" height="1000" alt="노트북 앞에서 별을 안고 웃는 사이드킥 직원">
+      <div class="body">
+        <h1 id="invite-title">사이드킥에 초대받았어요</h1>
+        <p class="lead">나만의 AI 직원팀, 사이드킥이에요. 아래 초대 코드로 바로 함께 시작할 수 있어요.</p>
 
-      <div id="invite-found">
-        <div class="code-box">
-          <p class="code-label" id="invite-code-label">초대 코드</p>
-          <p class="code" id="invite-code" aria-labelledby="invite-code-label">····-····</p>
+        <div id="invite-found">
+          <div class="code-box">
+            <p class="code-label" id="invite-code-label">초대 코드</p>
+            <p class="code" id="invite-code" aria-labelledby="invite-code-label">····-····</p>
+          </div>
+          <div class="actions">
+            <a class="option primary" id="open-app" href="sidekick://invite">앱에서 열기</a>
+            <button type="button" class="option" id="copy-code">코드 복사</button>
+          </div>
+          <p class="status" id="copy-status" role="status" aria-live="polite"></p>
+          <p class="note">앱을 설치한 뒤 이 페이지에서 '앱에서 열기'를 누르면 초대 코드가 자동으로 들어가요. 코드를 앱에 직접 입력해도 돼요.</p>
         </div>
-        <div class="actions">
-          <a class="option primary" id="open-app" href="sidekick://invite">앱에서 열기</a>
-          <button type="button" class="option" id="copy-code">코드 복사</button>
-        </div>
-        <p class="status" id="copy-status" role="status" aria-live="polite"></p>
-        <p class="note">앱이 열리지 않으면 사이드킥 앱을 설치한 뒤 이 코드를 직접 입력해 주세요.</p>
+
+        <p class="status is-error" id="invite-missing" role="alert" hidden>초대 코드를 확인할 수 없어요. 받은 링크를 다시 열어 주세요.</p>
+        <p class="store">App Store 출시 준비 중</p>
       </div>
-
-      <p class="status is-error" id="invite-missing" role="alert" hidden>초대 코드를 확인할 수 없어요. 받은 링크를 다시 열어 주세요.</p>
-      <p class="store">App Store 출시 준비 중</p>
     </div>
   </main>
   <script>(() => {
@@ -95,13 +119,22 @@
     return;
   }
   const display = code.slice(0, 4) + '-' + code.slice(4);
+  const appLink = 'sidekick://invite?code=' + encodeURIComponent(code);
   byId('invite-code').textContent = display;
-  byId('open-app').setAttribute('href', 'sidekick://invite?code=' + encodeURIComponent(code));
+  byId('open-app').setAttribute('href', appLink);
   byId('copy-code').addEventListener('click', async () => {
     let copied = false;
     try { await navigator.clipboard.writeText(display); copied = true; } catch (_) {}
     byId('copy-status').textContent = copied ? '코드를 복사했어요.' : '코드를 길게 눌러 복사해 주세요.';
   });
+  // One try at opening the installed app with the code, once per tab and code: a reload, or coming back from the
+  // App Store, does not try again -- '앱에서 열기' does it on request. No loop and no retrying timer. If the app is
+  // not installed nothing else happens: no fingerprint, no clipboard, the page stays as it is.
+  let tried = false;
+  try { tried = window.sessionStorage.getItem('sidekick-invite-opened') === code; } catch (_) {}
+  if (tried) return;
+  try { window.sessionStorage.setItem('sidekick-invite-opened', code); } catch (_) {}
+  window.setTimeout(() => { window.location.assign(appLink); }, 300);
 })();</script>
 </body>
 </html>
