@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-031bV/BwY+es8ZN6qWEflE+/YKC8C4pHoxQ2pTCQW0k=' 'sha256-SIkbfR8T7rCBns4gp5zvNYlaJT8uhTTxLIzpk7/Zf4Q=' https://us-assets.i.posthog.com; style-src 'self' 'sha256-NHPYPkFD2b7Vcfd5HPgFQfMYJwF4YeAl0Qji0evoLd8='; img-src 'self'; connect-src https://us.i.posthog.com https://us-assets.i.posthog.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <script>(() => {
+  'use strict';
+  // The invite code arrives as ?c=XXXXXXXX (the server's INVITE_URL). It is the invitation itself, so it is
+  // read here, before any other script, and taken out of the address bar: no page view, referrer or history entry
+  // carries it. sessionStorage keeps it for a reload of this tab only.
+  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let raw = '';
+  try { raw = new URLSearchParams(window.location.search).get('c') || ''; } catch (_) {}
+  if (!raw) { try { raw = window.sessionStorage.getItem('sidekick-invite-code') || ''; } catch (_) {} }
+  const code = String(raw).toUpperCase().replace(/[\s-]/g, '');
+  const valid = code.length === 8 && Array.from(code).every((ch) => ALPHABET.includes(ch));
+  if (window.location.search) { try { history.replaceState(null, '', '/invite/'); } catch (_) {} }
+  if (valid) { try { window.sessionStorage.setItem('sidekick-invite-code', code); } catch (_) {} }
+  window.__sidekickInviteCode = valid ? code : null;
+})();</script>
+  <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <link rel="stylesheet" href="/analytics.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>사이드킥 초대 · Sidekick</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/assets/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <style>
+    /* /login/'s white card and tokens (apps/site/login/index.html); the policy names this block by hash. */
+    :root { color-scheme: light; --ink: #1a1d21; --ink-soft: #3f454d; --muted: #6b737d; --bg: #f7f8fa; --card: #ffffff; --sunken: #f0f2f4; --line: #e1e5ea; --hairline: #eceff2; --accent: #b3230a; --shadow: 0 18px 50px rgba(26, 29, 33, 0.08); --radius-md: 14px; --radius-xl: 24px; --control-h-lg: 52px; }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+    main { width: min(100%, 400px); }
+    .card { padding: 32px 24px 22px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
+    .brand { display: inline-flex; }
+    .brand-mark { width: 44px; height: 44px; flex: none; }
+    h1 { margin: 18px 0 6px; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
+    .lead { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+    .code-box { display: grid; gap: 10px; margin: 0 0 18px; padding: 18px 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--sunken); }
+    .code-label { margin: 0; color: var(--ink-soft); font-size: 13px; font-weight: 600; }
+    .code { margin: 0; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 34px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.2; user-select: all; -webkit-user-select: all; }
+    .option { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--control-h-lg); padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+    .option:hover { border-color: var(--ink-soft); background: var(--bg); }
+    .option.primary { border-color: var(--ink); background: var(--ink); color: #ffffff; }
+    .option.primary:hover { background: var(--ink-soft); }
+    .actions { display: grid; gap: 10px; }
+    .status { margin: 0; min-height: 1.4em; color: var(--muted); font-size: 13px; }
+    .status.is-error { color: var(--accent); }
+    .note { margin: 18px 8px 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .store { margin: 10px 0 0; color: var(--muted); font-size: 12.5px; }
+    :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .code { font-size: 28px; } }
+    @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
+</style>
+</head>
+<body>
+  <main aria-labelledby="invite-title">
+    <div class="card">
+      <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg></span>
+      <h1 id="invite-title">사이드킥에 초대받았어요</h1>
+      <p class="lead">사이드킥 앱에서 아래 초대 코드를 입력하면 바로 함께 시작할 수 있어요.</p>
+
+      <div id="invite-found">
+        <div class="code-box">
+          <p class="code-label" id="invite-code-label">초대 코드</p>
+          <p class="code" id="invite-code" aria-labelledby="invite-code-label">····-····</p>
+        </div>
+        <div class="actions">
+          <a class="option primary" id="open-app" href="sidekick://invite">앱에서 열기</a>
+          <button type="button" class="option" id="copy-code">코드 복사</button>
+        </div>
+        <p class="status" id="copy-status" role="status" aria-live="polite"></p>
+        <p class="note">앱이 열리지 않으면 사이드킥 앱을 설치한 뒤 이 코드를 직접 입력해 주세요.</p>
+      </div>
+
+      <p class="status is-error" id="invite-missing" role="alert" hidden>초대 코드를 확인할 수 없어요. 받은 링크를 다시 열어 주세요.</p>
+      <p class="store">App Store 출시 준비 중</p>
+    </div>
+  </main>
+  <script>(() => {
+  'use strict';
+  const code = window.__sidekickInviteCode;
+  const byId = (id) => document.getElementById(id);
+  if (!code) {
+    byId('invite-found').hidden = true;
+    byId('invite-missing').hidden = false;
+    return;
+  }
+  const display = code.slice(0, 4) + '-' + code.slice(4);
+  byId('invite-code').textContent = display;
+  byId('open-app').setAttribute('href', 'sidekick://invite?code=' + encodeURIComponent(code));
+  byId('copy-code').addEventListener('click', async () => {
+    let copied = false;
+    try { await navigator.clipboard.writeText(display); copied = true; } catch (_) {}
+    byId('copy-status').textContent = copied ? '코드를 복사했어요.' : '코드를 길게 눌러 복사해 주세요.';
+  });
+})();</script>
+</body>
+</html>

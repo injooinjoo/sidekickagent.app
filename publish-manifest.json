@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "bd5f4737082068333b3804888f140ae7c600e5ab7d11c2ab1f8e06518f29d16b",
+  "export_rules_sha256": "ff5ec5bb9d3f22a8e5965e66b001d3a4ddf31452c775f6888085afe3e5c882a9",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -317,13 +317,17 @@
       "bytes": 41791,
       "sha256": "b4fcc563ee223b0af066ce58a5496eef07dd3227622237eae2b15083ca107443"
     },
+    "invite/index.html": {
+      "bytes": 8352,
+      "sha256": "c658eedbcee47d650e5b71610fc57d031a41e9f576675a34e325898901033710"
+    },
     "landing.js": {
       "bytes": 39836,
       "sha256": "06dc7581a78f6ce4cb1299b12a9c812cae97c883e114d78e211dfc5baee8bf0e"
     },
     "licenses/index.html": {
-      "bytes": 409805,
-      "sha256": "dfdbf12f3809f6d17cf986f960d604a72110b3bfd60bb28d2c99e1f2f4c66eef"
+      "bytes": 410059,
+      "sha256": "b0094a0d2b8a82c1ae72a856f3e59ef3003c98aad63d0f7486ee06dd85033c76"
     },
     "licenses/licenses.css": {
       "bytes": 3911,
@@ -358,8 +362,8 @@
       "sha256": "0982693bccae417c941e486ef629baafe8ad7fb05e20d8335a37cfbec18acf69"
     },
     "privacy/index.html": {
-      "bytes": 58408,
-      "sha256": "c0e2ce2a5079cf3bf44fe676aaa1c129f854105841f653683cb053894922c6ec"
+      "bytes": 62550,
+      "sha256": "fdb113780b11536a6f7a0c0a4480d4c4a5f72f109b2326bdf579c7edf805ddc3"
     },
     "robots.txt": {
       "bytes": 71,
@@ -382,8 +386,8 @@
       "sha256": "271273a89e5990cf40380c1ac74e5a95708bc760dfdfb18f2290c04e5199e0a5"
     },
     "terms/index.html": {
-      "bytes": 20630,
-      "sha256": "4f69d35144ce9c78612a5594b7d701623262ac22528e8224962f6bb7cae0c738"
+      "bytes": 23307,
+      "sha256": "b92a725cc15f7d7092d9578860c9258fa98d0ac7b5559ca426abd27ba4487102"
     },
     "use.js": {
       "bytes": 3854,
@@ -428,5 +432,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "12c899259022d3d237ecc92762548d6b5d12e208"
+  "source_sha": "81b241e7ab5587e560acb9f5d62b704d6089cb6a"
 }
