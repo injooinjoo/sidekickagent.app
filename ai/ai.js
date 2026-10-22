@@ -691,6 +691,7 @@
       if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
       state.connections = sanitizeConnections(connections);
       renderConnections();
+      renderProviders();
     } catch (error) {
       if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
       showFailure(error, 'connections-status');
@@ -732,7 +733,7 @@
     });
     change.addEventListener('click', () => changeModel(connection, select.value, [change, disconnect, select]));
     disconnect.addEventListener('click', () => disconnectConnection(connection, [change, disconnect, select]));
-    return el('li', { className: 'connection-item' }, [
+    return el('li', { className: 'connection-item', 'data-connection-id': connection.id, tabindex: '-1' }, [
       el('div', { className: 'connection-head' }, [
         el('strong', { text: name }),
         el('span', { className: connection.connected ? 'pill is-ok' : 'pill is-warn', text: connection.connected ? '연결됨' : '다시 연결 필요' })
@@ -858,7 +859,14 @@
       }))),
       provider.endpointRequired ? el('p', { className: 'provider-detail', text: '운영 중인 AI 연결 주소가 필요해요.' }) : null,
       detail ? el('p', { className: 'provider-detail', text: detail }) : null,
-      el('div', { className: 'provider-actions' }, provider.methods.map((method, index) => el('button', {
+      el('div', { className: 'provider-actions' }, linked ? [el('button', {
+        className: 'ai-button', type: 'button', text: '연결 관리',
+        onClick: () => {
+          const connection = state.connections.find((item) => item.provider === provider.id && item.connected);
+          const item = Array.from($('connection-list').children).find((node) => node.getAttribute('data-connection-id') === connection?.id);
+          if (item) { smoothScroll(item); item.focus({ preventScroll: true }); }
+        }
+      })] : provider.methods.map((method, index) => el('button', {
         className: index === 0 ? 'ai-button' : 'ai-button secondary',
         type: 'button',
         text: METHOD_ACTIONS[method.kind],

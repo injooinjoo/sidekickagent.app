@@ -140,6 +140,7 @@
     if (error.status === 423) return auth.DELETION_PENDING_COPY;
     const code = String(error.code || error.detail || '');
     if (code === 'provider_rejected') return '카드사에서 결제를 승인하지 않았어요. 청구되지 않았어요. 다른 카드로 다시 시도해 주세요.';
+    if (code === 'ai_connection_required') return 'AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 먼저 연결해 주세요.';
     if (code === 'billing_key_missing') return '등록된 카드를 찾지 못했어요. 청구되지 않았어요. 카드를 다시 등록해 주세요.';
     if (code === 'test_checkout_not_allowed') return '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 청구되지 않았어요.';
     if (code === 'sales_disabled' || code === 'selection_not_saleable' || code === 'schema_not_ready') return '지금은 구독할 수 없어요. 청구되지 않았어요.';
@@ -213,7 +214,8 @@
 
       const button = card.querySelector('[data-buy]');
       const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
-      const current = subscribed && state.subscription.plan_id === id;
+      const current = subscribed && state.subscription.plan_id === id
+        && state.subscription.funding_mode === state.funding;
       // 구독 중이면 다른 플랜 카드의 버튼은 "바꾸기" 다. 견적을 받은 카드만
       // 결제 문구가 되고, 해지를 예약한 구독은 바꿀 수 없다 — 다음 달에 끝나는
       // 구독 위에 새 금액을 올리는 것은 사람이 원한 적 없는 일이다.
@@ -230,6 +232,7 @@
         : !plan.sold ? '지금은 구매할 수 없어요'
         : purchaseBlock === 'pending' && (ready || changeable) ? '구독 상태를 확인하는 중이에요'
         : purchaseBlock && (ready || changeable) ? '웹에서는 결제할 수 없어요'
+        : ready && authenticated && state.funding === 'connected' && state.membership?.connected_ai_ready !== true ? 'AI 먼저 연결하기'
         : ready ? `${plan.label} 구독하기`
         : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
         : changeable && quoted ? '지금은 바꿀 수 없어요'
@@ -249,6 +252,16 @@
     $('mode-note').textContent = connected
       ? '연결한 AI 계정의 사용료는 별도예요.'
       : 'AI 사용료가 포함돼 있어요. 별도 연결 없이 시작하세요.';
+    if (authenticated && (state.membership?.ai_connection_required === true
+        || (connected && state.membership?.connected_ai_ready !== true))) {
+      const note = $('mode-note');
+      note.textContent = 'AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 연결하거나 AI 포함 방식으로 변경해 주세요. ';
+      const link = document.createElement('a');
+      link.href = '/ai/';
+      link.textContent = 'AI 연결하기';
+      note.appendChild(link);
+    }
+
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
@@ -422,6 +435,19 @@
     }
   }
 
+  async function requireConnectedAi() {
+    if (state.funding !== 'connected') return true;
+    // Re-read just before either a card window or a discounted plan change.
+    const membership = await api('/membership/status', { method: 'GET' });
+    state.membership = membership;
+    state.membershipChecked = true;
+    if (membership?.connected_ai_ready === true) return true;
+    say('이 멤버십을 구매하려면 AI를 먼저 연결해 주세요.', true);
+    render();
+    location.href = '/ai/';
+    return false;
+  }
+
   async function startCheckout() {
     const plan = PLANS[state.plan];
     if (!publicCheckoutReady() || !state.token || !plan.sold || state.busy) return;
@@ -430,6 +456,7 @@
     state.busy = true;
     render();
     try {
+      if (!await requireConnectedAi()) { state.busy = false; render(); return; }
       // The backend derives the customerKey from the signed-in account. The
       window.SidekickWebAnalytics?.track('subscription_started', { plan: state.plan, payment_provider: 'toss', billing_period: 'monthly' });
       // browser never chooses it, and it carries no amount or order: this
@@ -464,7 +491,8 @@
     const plan = PLANS[planId];
     const subscription = state.subscription;
     if (!publicCheckoutReady() || !state.token || !plan || !plan.sold || state.busy) return;
-    if (!subscription || !subscription.active || subscription.plan_id === planId) return;
+    if (!subscription || !subscription.active
+        || (subscription.plan_id === planId && subscription.funding_mode === state.funding)) return;
     if (webPurchaseBlock()) { say(WEB_PURCHASE_BLOCK_COPY[webPurchaseBlock()], true); return; }
     const body = JSON.stringify({ plan_id: planId, funding_mode: state.funding });
     const quoted = state.quote && state.quote.to_plan_id === planId && state.quote.funding_mode === state.funding
@@ -472,6 +500,7 @@
     state.busy = true;
     render();
     try {
+      if (!await requireConnectedAi()) { state.busy = false; render(); return; }
       if (!quoted) {
         const quote = await api('/membership/toss/plan/quote', { method: 'POST', body });
         state.quote = { ...quote, funding_mode: state.funding };
