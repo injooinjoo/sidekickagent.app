@@ -74,6 +74,19 @@
   // returns to the account page rather than to /membership/: a sign-in started
   // on a page the app opens must not end on the web checkout.
   const RETURN_PATHS = ['/ai/', '/account/'];
+  // An external-app login returns to one public request/job identifier, never a token or arbitrary URL.
+  function validWebReturnPath(value) {
+    if (RETURN_PATHS.includes(value)) return true;
+    if (typeof value !== 'string' || !value.startsWith('/ai-apps/') || value.startsWith('//')) return false;
+    try {
+      const target = new URL(value, 'https://sidekickagent.app');
+      if (target.origin !== 'https://sidekickagent.app' || target.pathname !== '/ai-apps/' || target.hash) return false;
+      const fields = [...target.searchParams];
+      return fields.length === 0 || (fields.length === 1 && ['connect', 'prepare', 'job'].includes(fields[0][0])
+        && /^[A-Za-z0-9_-]{1,160}$/.test(fields[0][1]));
+    } catch (_) { return false; }
+  }
+
   const DEFAULT_RETURN_PATH = '/account/';
   // Per tab (sessionStorage), left by the retired fragment sign-in: where it
   // started, and a message to say on the page it came back to. Nothing writes
@@ -126,7 +139,7 @@
   // address or the name, not "the account you used in the app"); see appLoginSentence. Only when the server named nothing
   // in time, in general words.
   const APP_LOGIN_IDENTITY_MS = 3000;
-  const APP_LOGIN_KNOWN_COPY = '앱에서 쓰던 계정으로 이어졌어요.';
+  const APP_LOGIN_KNOWN_COPY = '사이드킥에 로그인했지만 계정 정보를 불러오지 못했어요. 이메일을 다시 확인해 주세요.';
   // The grammar of what the app puts in /ai/'s fragment: an attempt id and three 43-character proofs.
   const APP_LOGIN_ATTEMPT = /^ah_[A-Za-z0-9_-]{32}$/;
   const APP_LOGIN_PROOF = /^[A-Za-z0-9_-]{43}$/;
@@ -1044,11 +1057,10 @@
     const known = info && typeof info === 'object' ? info : {};
     const email = plainText(known.email, 254);
     const address = (/^[^\s@]+@[^\s@]+$/.test(email) ? email : '') || maskedPhone(known.phone_masked);
-    if (address) return `${address} 계정으로 이어졌어요.`;
+    if (address) return `사이드킥 로그인 계정: ${address}`;
     const name = plainText(known.display_name, 80);
     if (name && !name.includes('@') && /\p{L}/u.test(name)) return `${name} 님의 계정으로 이어졌어요.`;
-    const door = Object.hasOwn(METHOD_LABELS, known.method) ? METHOD_LABELS[known.method] : '';
-    return door ? `${door}로 로그인한 계정으로 이어졌어요.` : APP_LOGIN_KNOWN_COPY;
+    return APP_LOGIN_KNOWN_COPY;
   }
 
   // A display hint only. Anything that does not look like one is dropped.
@@ -1123,6 +1135,8 @@
   // this tab's own session. Another tab may have signed in again in the
   // meantime; its newer session is not this tab's to delete.
   function clearLocalSession() {
+    const toast = $('auth-toast');
+    if (toast) toast.hidden = true;
     removeAppLoginNotice();
     invalidateWebLogin();
     retireWebHandoff();
@@ -1258,6 +1272,20 @@
       throw error;
     }
     return data;
+  }
+
+  async function refreshAiMembershipNotice() {
+    if (!session.token || !session.checked) return;
+    const token = session.token;
+    try {
+      const status = await api('/membership/status', {
+        method: 'GET', headers: { Authorization: `Bearer ${token}` }
+      });
+      if (session.token !== token || !session.checked) return;
+      if (status && status.ai_connection_required === true) {
+        showToast('AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 다시 연결하거나 구독한 곳에서 AI 포함 멤버십으로 변경해 주세요.', true, 12000);
+      }
+    } catch (_) { /* Access is enforced by the backend; a notice must not block sign-in. */ }
   }
 
   // The backend is the authority on who this is; a provider only proved the
@@ -1788,7 +1816,7 @@
         || !Number.isInteger(p.expires_at) || p.expires_at <= now || p.expires_at > p.created_at + 600
         || !Number.isInteger(p.oauth_expires_at) || p.oauth_expires_at <= now
         || p.oauth_expires_at > p.created_at + (korean ? 600 : 300) || p.oauth_expires_at > p.expires_at
-        || !RETURN_PATHS.includes(p.return_path)
+        || !validWebReturnPath(p.return_path)
         || typeof p.source_user_id !== 'string' || !(p.source_user_id === '' || SAFE_ID.test(p.source_user_id))
         || typeof p.source_fingerprint !== 'string' || !(p.source_fingerprint === '' || WEB_PROOF.test(p.source_fingerprint))) throw { status: 400 };
     return p;
@@ -1904,12 +1932,12 @@
       assertStart();
       const fingerprint = source.token ? await webDigest(source.token + ':' + source.expiresAt) : '';
       assertStart();
-      const here = window.location.pathname;
+      const here = window.location.pathname + window.location.search;
       const now = nowSeconds();
       webAttempt = { id: webProof(), state: webProof(), verifier, provider_intent: provider,
         phase: 'provider', generation, created_at: now, expires_at: now + 600,
         oauth_expires_at: now + 300, source_user_id: sourceId, source_fingerprint: fingerprint,
-        return_path: RETURN_PATHS.includes(here) ? here : DEFAULT_RETURN_PATH };
+        return_path: validWebReturnPath(here) ? here : DEFAULT_RETURN_PATH };
       persistWebAttempt(true);
       await checkWebSource();
       const redirect = new URL('https://sidekickagent.app/login/');
@@ -1964,12 +1992,12 @@
       assertStart();
       const fingerprint = source.token ? await webDigest(source.token + ':' + source.expiresAt) : '';
       assertStart();
-      const here = window.location.pathname;
+      const here = window.location.pathname + window.location.search;
       const now = nowSeconds();
       webAttempt = { id: webProof(), state: '', verifier, provider_intent: provider,
         phase: 'provider', generation, created_at: now, expires_at: now + 600,
         oauth_expires_at: now + 600, source_user_id: sourceId, source_fingerprint: fingerprint,
-        return_path: RETURN_PATHS.includes(here) ? here : DEFAULT_RETURN_PATH };
+        return_path: validWebReturnPath(here) ? here : DEFAULT_RETURN_PATH };
       persistWebAttempt(true);
       await checkWebSource();
       showSocialStatus(KOREAN_PROVIDERS[provider] + ' 로그인으로 이동하고 있어요.', false);
@@ -2307,8 +2335,11 @@
       actions.className = 'app-login-actions';
       const keep = document.createElement('button');
       keep.type = 'button';
-      keep.textContent = '확인';
-      keep.addEventListener('click', removeAppLoginNotice);
+      keep.textContent = sentence === APP_LOGIN_KNOWN_COPY ? '계정 다시 확인' : '확인';
+      keep.addEventListener('click', () => {
+        removeAppLoginNotice();
+        if (sentence === APP_LOGIN_KNOWN_COPY) showAppLoginNotice(token);
+      });
       const undo = document.createElement('button');
       undo.type = 'button';
       undo.className = 'app-login-undo';
@@ -2380,6 +2411,7 @@
       return;
     }
     if (sessionExpired()) { expireSession(); return; }
+    refreshAiMembershipNotice();
   });
 
   // A ChatGPT sign-in used to prove a ChatGPT account the person might want their
@@ -2752,7 +2784,7 @@
     return initialized;
   }
 
-  document.addEventListener('DOMContentLoaded', () => { init(); });
+  document.addEventListener('DOMContentLoaded', () => { init().then(refreshAiMembershipNotice); });
 
   window.SidekickAuth = Object.freeze({
     API_ORIGIN,

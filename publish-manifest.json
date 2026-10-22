@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "9e24a0572d72d11081e5209fe3cab1b15d13d58b63cb81bec2418c68301d1bbe",
+  "export_rules_sha256": "5cdbceda46f0eeb9bcf3e9e52e5c776556e0199044915fde1695841c41820b1b",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -25,13 +25,29 @@
       "bytes": 7761,
       "sha256": "165e0cf5154aae6299007424b2a107a4322e283915b4b15dcb54cff50f4dff6f"
     },
+    "ai-apps/ai-apps.css": {
+      "bytes": 2219,
+      "sha256": "5f17e7bb659443b26e9ff6954a47e635063d07050a2f767b418e670622625889"
+    },
+    "ai-apps/ai-apps.js": {
+      "bytes": 7969,
+      "sha256": "0cec8a68ed605cc4c4ce437a1f178e5b571eee39641adccaf5781f17844ffb56"
+    },
+    "ai-apps/index.html": {
+      "bytes": 8358,
+      "sha256": "592965a9b7cfd497f7ba933343dabf9bd4fb97f1a3bacd3983eee952facfee31"
+    },
+    "ai-apps/view.js": {
+      "bytes": 4906,
+      "sha256": "986b5c9dee496766b8f5109520d0f796cb347379c0b0caf155d9ad92ed8b2482"
+    },
     "ai/ai.css": {
       "bytes": 16626,
       "sha256": "18f30179ff17b9d3870ad781444c4bc03987dbe76bad01f398924fcad7a67b88"
     },
     "ai/ai.js": {
-      "bytes": 97947,
-      "sha256": "f57d9d51a6a30f796848d71dc7af44a748aa650f52bf23199b1e229b2f624e1a"
+      "bytes": 98502,
+      "sha256": "78cdc886927f6a755b18313225f35f4aef06b4670c532e7dc37d7a5dfee65d65"
     },
     "ai/index.html": {
       "bytes": 16691,
@@ -46,8 +62,8 @@
       "sha256": "3d7a3006128b3ae7620cf33af144058df9ad9b87f472774f75c1c5cd5ad39098"
     },
     "analytics-runtime.js": {
-      "bytes": 11517,
-      "sha256": "054e46c625131e109058915c2cbe8a98500c24045fa76e3b8fb7f31252b50096"
+      "bytes": 11938,
+      "sha256": "1a9442d9a3ead4db200bf2ecf1e8df9168d9c79b80f8f9bc3fd5b2abdfcf4342"
     },
     "analytics.css": {
       "bytes": 2890,
@@ -141,6 +157,382 @@
       "bytes": 631,
       "sha256": "c906638f128ca11aed10e7a0863f285df9ba9075909a3bc5e294af8503fe1bae"
     },
+    "assets/fonts/pretendard/LICENSE.txt": {
+      "bytes": 4418,
+      "sha256": "d31ddd9f2bed32fd7e302a205cf2380ba0de6529152d239ef99cfb6f261bfc04"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.0.woff2": {
+      "bytes": 34568,
+      "sha256": "8713e83342c3f5ed316bf22bf50a3d991a5b5dd16c0c45c54a6ad81f62be7df3"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.1.woff2": {
+      "bytes": 32044,
+      "sha256": "b1c51b35964614cf67d44166752af0c6cf3a2a4a50daf304af2a7327611242ae"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.10.woff2": {
+      "bytes": 33032,
+      "sha256": "544f73152519f43c01aeda9489554a82e907019010795aab2fabc990a4e91f5a"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.11.woff2": {
+      "bytes": 37400,
+      "sha256": "52f3cb7bf5d9feeadbe77902217113ea49b89a9bc0f135748e5ad599f322549f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.12.woff2": {
+      "bytes": 37940,
+      "sha256": "ba87086a06c38a8eba037034c54756415b5eee8bd386866adf79ccae5e63213d"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.13.woff2": {
+      "bytes": 35708,
+      "sha256": "f9473c59d65080b75327d6b5f8ea53a3e2c417542d609fd1f12b0e084079e0b2"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.14.woff2": {
+      "bytes": 36512,
+      "sha256": "dbf5fc513294d1942090faa226a53e882c8a72bebc1c701399b47cf7566c11ec"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.15.woff2": {
+      "bytes": 35668,
+      "sha256": "d043fdd0fb1d707a57ddec602d3c9c5dd230fe1e8921ae1a6a3d0f6f5c504d6a"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.16.woff2": {
+      "bytes": 37916,
+      "sha256": "f9da3e1e2f6ab97babdaaaf67f74308a3c4cb75a7c0e70efab295aaa62ecde67"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.17.woff2": {
+      "bytes": 34940,
+      "sha256": "62a20965ab703ba906359c01e56ac49cb28651e5e23efc4777412ef775e949dd"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.18.woff2": {
+      "bytes": 41600,
+      "sha256": "253726dfde6320f522bd7e7895df56e02312b677abb609c17ecbbb7952ce68cf"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.19.woff2": {
+      "bytes": 42328,
+      "sha256": "0c005e3239d3f44ede30e7464171c93d8f4063b1279bb4805508c256ebe83929"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.2.woff2": {
+      "bytes": 43920,
+      "sha256": "ddc9557de55b6534fb6802da96e03ca334449474eae71ec1a1eefa9b3fa40fd3"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.20.woff2": {
+      "bytes": 36128,
+      "sha256": "06a4d6ce1c3e1c277239f490df8f17002cd6524b33a2d1e105b0ed16b2e061a1"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.21.woff2": {
+      "bytes": 37268,
+      "sha256": "30d4f324dc4e480890682086d9873e4e6ea53617d5cc1526509ac4322b0abcc7"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.22.woff2": {
+      "bytes": 38680,
+      "sha256": "5712a4ee03e83532b8c3efeeefcbf2dd105beea873f735a6373dab370c9d38e2"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.23.woff2": {
+      "bytes": 40284,
+      "sha256": "bf5e603a72bcbd65ef80522c722caca2df7399dbc6dbd14c3b428f2c4571abdb"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.24.woff2": {
+      "bytes": 32300,
+      "sha256": "d0cecc926613d63ef9e82b990f5a7dc721f87360bb5047fb53623b9a24e4be01"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.25.woff2": {
+      "bytes": 42032,
+      "sha256": "4b520857cb0e6272a3582a504f7706e530f0f9718a82fec1c7b9cd13fd57f261"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.26.woff2": {
+      "bytes": 40324,
+      "sha256": "608a2c01bc4ebe327b68fadf6b78dd842a912582950d16d56c2696594bd4242d"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.27.woff2": {
+      "bytes": 35424,
+      "sha256": "8dcc8a46af7069935ab1209094bb8e1c890f854bfce377711bdcc99516e228ef"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.28.woff2": {
+      "bytes": 38468,
+      "sha256": "484aaea385bf22d20a06a50c74202275a7a245446451c80ea1da7a96111f494e"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.29.woff2": {
+      "bytes": 39288,
+      "sha256": "5481a19ad6067630f96a54432fa76a77943c1234bbd37537fba9aeea54710c9f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.3.woff2": {
+      "bytes": 40648,
+      "sha256": "3af919db7b7432ae34a0ea725f5dbbe4b80f6b351a349437339a07760ae02a62"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.30.woff2": {
+      "bytes": 38448,
+      "sha256": "c1ed2a2f2927a3ccef124b6763147e12feb497157edc26752cba38646085d888"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.31.woff2": {
+      "bytes": 41892,
+      "sha256": "95bd711a06b3a13b23b44d1b9aa49dc36e759a5ff1989a239fd6af3d750f8fef"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.32.woff2": {
+      "bytes": 40216,
+      "sha256": "a2fb59661363e8f3ce21e344f6cd0c85fe7901b9e910d10a6f805a13c0c2d261"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.33.woff2": {
+      "bytes": 34916,
+      "sha256": "ec28ff655691820931a57f7b6960922a0f3b7f655fe062c2fd11de86d6893269"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.34.woff2": {
+      "bytes": 34720,
+      "sha256": "bdaffbd5c9fed912fb2d92866f2476953c6075a1c396817011b158fa146ef29f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.35.woff2": {
+      "bytes": 35352,
+      "sha256": "2f3c1deae8147772bf706b561701ee9a3ba7459436e9fad45c8102066e90f802"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.36.woff2": {
+      "bytes": 34688,
+      "sha256": "d4e7580fb6bd8db8ac2daf2df3a41082b608476b9e4d8867756b28fb941bc6f8"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.37.woff2": {
+      "bytes": 27916,
+      "sha256": "e5e19247f5eb141d5ee84994518a3f2fe7f2e4d2978e7451988b8fae73ac52a5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.38.woff2": {
+      "bytes": 34808,
+      "sha256": "17226de7caa3a041d9deb369db637a8480afa5ee9eeb8e5f8169a28ff54f57bd"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.39.woff2": {
+      "bytes": 34256,
+      "sha256": "647e3532e8e5b2f5271c85eca2d909f32ae4791a17911cf66a635e8f6f4726c0"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.4.woff2": {
+      "bytes": 35156,
+      "sha256": "993fcd2747f4d21f17b4a60bf5528d1c31825ca6a29ed942280bfba47825bedc"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.40.woff2": {
+      "bytes": 29840,
+      "sha256": "12fb5a30e92ed1397b25125c9b75449f24b3b164ed28455968e8eefefd0cae0a"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.41.woff2": {
+      "bytes": 33188,
+      "sha256": "41d390d3f3201a3714fb37f968f132ee78892d382655b64eb94688046fa97e35"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.42.woff2": {
+      "bytes": 34608,
+      "sha256": "3e347fc722ea29c4c3347b204a139c4e76fe68884bde24159b25b8e0988bd8b5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.43.woff2": {
+      "bytes": 30384,
+      "sha256": "97a8be68deee3f724890b64cea61a4f59b2886a1d9f39604e24adec371c457a3"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.44.woff2": {
+      "bytes": 32136,
+      "sha256": "8bd3bdcc7481b9a61bb570ab14ad1801b5f8a13df3f61d9bf2625bdad28e2a3b"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.45.woff2": {
+      "bytes": 34664,
+      "sha256": "dff46d20074b8f3d9eeb05f7bea4ba0746d7d9887f8ec2dcb2280cadd2889ff7"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.46.woff2": {
+      "bytes": 36540,
+      "sha256": "c443e627e1bc68e004d028eeeef57fad78e6b996ff03adfccc4ab05d551b82e4"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.47.woff2": {
+      "bytes": 35720,
+      "sha256": "f242e40d23d0aac4583574da52d460b2a804f31d5f7aa435e5dc58ceaab35ac2"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.48.woff2": {
+      "bytes": 37776,
+      "sha256": "e3dde5ed049d0a2a07050aca649ce4a1a1d7659b30b7871fa1d1bef1fec4da16"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.49.woff2": {
+      "bytes": 36052,
+      "sha256": "5bbf61d013a4a9362841671cc56096a356377773d8b92dcb7ce71c89e3ce23da"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.5.woff2": {
+      "bytes": 33624,
+      "sha256": "a4ad435d7abd68580606a20397920be734d9d49f1c420829a6493084e855912f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.50.woff2": {
+      "bytes": 33228,
+      "sha256": "f3bb8007d522f3d67cf6930ed417b0b911189eaaff08a5ab41eed790d18b6bb0"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.51.woff2": {
+      "bytes": 36024,
+      "sha256": "530c8e2d2a5e01cc5bfacc40a947f2b3162ee084a718f3f938e5f084b3458462"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.52.woff2": {
+      "bytes": 34356,
+      "sha256": "93f30e304a97b867e21f8e8a6dbc86df6047e7d1f2d34818261c381e859e1ded"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.53.woff2": {
+      "bytes": 34572,
+      "sha256": "d0fe78c3e77b3f2b9ad3ceae3cfcd539b5f39a948af850b7912942cfbf7feefc"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.54.woff2": {
+      "bytes": 33344,
+      "sha256": "37ed0b796e61205cabe4e20590d8800106a9a646d8a6f9e1da38581e637c3b80"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.55.woff2": {
+      "bytes": 34184,
+      "sha256": "4b170f37c7be9dfa2ca332ce97e35dc02da7cb43531d7e2907d733f291b09222"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.56.woff2": {
+      "bytes": 35184,
+      "sha256": "0f3624847670e49b273c0d638d0c1385a7178c8e38c70f9cd4afc1971880d279"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.57.woff2": {
+      "bytes": 35960,
+      "sha256": "7c6aa4751ceb44a9a4af9c0ed80a7e95bc89d334a89231996ed84634093e128b"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.58.woff2": {
+      "bytes": 41564,
+      "sha256": "cff4a57ea5e9c11218c9a0ca1380a5d6fb8fa7e9d13499038a7b4df12d0e4331"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.59.woff2": {
+      "bytes": 38972,
+      "sha256": "4ae337e8895ac35b02a749e19d2b49ccb46ecdfabd09c51433c5eed206221579"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.6.woff2": {
+      "bytes": 33968,
+      "sha256": "48b5ad9306b00b620b6d4acb3b8ba697cac7b271ee20da2f6351ba7c1406afa3"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.60.woff2": {
+      "bytes": 37776,
+      "sha256": "4f6724848817f8a893c21686fd3c666492176cc453a82f2a1c7fad3170bbd13c"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.61.woff2": {
+      "bytes": 35640,
+      "sha256": "0f36628cfb62fb7c6e4c26c0cac303d07578640c0328cd8cce9dbeaa2290af23"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.62.woff2": {
+      "bytes": 34876,
+      "sha256": "1a2f8d760e6bfeb7f8611db8df550260145a7d48e8a4336016b21d699502c90f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.63.woff2": {
+      "bytes": 28816,
+      "sha256": "cced20f4434401b2088f1b6e414eaa193779e1575afb51ea43301066e9fec95a"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.64.woff2": {
+      "bytes": 8264,
+      "sha256": "4d73796ddeaf1d1584f701f3d3761d091160cd78fd2ef05255f605c747e63ad7"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.65.woff2": {
+      "bytes": 11108,
+      "sha256": "3bea94ae7ab0adfe697bcbf7a4366da48ae4518ff9ec9bc798ba2e0a271376fa"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.66.woff2": {
+      "bytes": 8252,
+      "sha256": "73d60e9ad890a3b2674fe1fe7daf869708d7af6f4e93e364b19bb0a8bffde8d5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.67.woff2": {
+      "bytes": 21840,
+      "sha256": "24e38abacceaba8979f58c6b06bf0b56e915c32921b08be439befa016268abf5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.68.woff2": {
+      "bytes": 16340,
+      "sha256": "a0f33cbfd1a49928487778b69574191ea9f636581860aa8d299156c470a6d0f5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.69.woff2": {
+      "bytes": 34784,
+      "sha256": "c9aa76582f8ffb946f59639a265ca988a6a794e6d6e2582e9aedad18e6bc4adb"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.7.woff2": {
+      "bytes": 31912,
+      "sha256": "0edd124bf5f5fee66118c25ce0f7257c701169603817b0ea385707043151bd9c"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.70.woff2": {
+      "bytes": 27548,
+      "sha256": "8bccc361d2d7ad5c3891a7914505ffd0ed89cf0bd9a5f1f6c320f85af54cb041"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.71.woff2": {
+      "bytes": 28324,
+      "sha256": "78ca0ca3a02fb86ff29c68e80c50555c29aa522f37f286e7ab5b3cd8fb0b2a51"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.72.woff2": {
+      "bytes": 19508,
+      "sha256": "a2df48a0029fb84736c5570930e1e0f33af665bd1ec18b5930c7ee1077317e22"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.73.woff2": {
+      "bytes": 18336,
+      "sha256": "fe4874885e6450739e9067af520b94cc5f60e56c36538b6db3df3aa7a37baf42"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.74.woff2": {
+      "bytes": 22392,
+      "sha256": "b935b4839e30b68835341cb7c195ec2653d5df502281a14574af1593f03e63ff"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.75.woff2": {
+      "bytes": 19996,
+      "sha256": "07f0ddae65c844dfe5d294087749e19b05e95cfd904b20df3501b040f1a5f61e"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.76.woff2": {
+      "bytes": 24924,
+      "sha256": "20ccaae02a27753fe5f5b2cc0e6bb7ee3f4c5b61b6bf91cccc515334e97213ac"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.77.woff2": {
+      "bytes": 26044,
+      "sha256": "9ab92ab7b4e3770a6f3a17ed34b0a26df5a0faf2c4f8e2d2685b36cf248ff751"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.78.woff2": {
+      "bytes": 26548,
+      "sha256": "67f065415552e8c66da5e60fc67a891ec1ba74bfb9370078261bbf9a718a182f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.79.woff2": {
+      "bytes": 26224,
+      "sha256": "0bbdf492d859723843e118154b24573abdd62e781cb3827378e5dc65eeb8e0e9"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.8.woff2": {
+      "bytes": 36696,
+      "sha256": "0fcc3858ccf1bfae9d1a13852583f7273e8a9bcb32b6f42fa47fe19d3041905c"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.80.woff2": {
+      "bytes": 28796,
+      "sha256": "3802ad32c6c1bfa889c1019bd22d265c19392a6d52bbbd38e3a6fb99fdb0cf8f"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.81.woff2": {
+      "bytes": 26300,
+      "sha256": "f0ae631ec332bbaf686a493d126ff56a8ac0c6284bdbb7542cef8fedd946fa66"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.82.woff2": {
+      "bytes": 26500,
+      "sha256": "493e29967aa59d0f5326ae95fe163ca6e0ce9d95610838cc07a1f543a4a2e289"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.83.woff2": {
+      "bytes": 26964,
+      "sha256": "f8f1fe652aaf3c759d78f37e48afe1c58c1d335e9261c5be2a2d90ff5bbfb9cc"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.84.woff2": {
+      "bytes": 24492,
+      "sha256": "d28ace2d199ca5c6304a6191f4233e28ddb225d341d6e0b41db040e9447c2cc9"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.85.woff2": {
+      "bytes": 25104,
+      "sha256": "757b9fc85ad85a1024fcacc04a9b688ace2db7af393e9ddc3b5dd2ba605b5a9b"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.86.woff2": {
+      "bytes": 25716,
+      "sha256": "3e680901e55f16848b58d16d25870596495a6a073d9e3127fe481583ac4439b6"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.87.woff2": {
+      "bytes": 24664,
+      "sha256": "04ca8277cfe3d27235573956255b0211575504cb695cdeab644c583df774e257"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.88.woff2": {
+      "bytes": 25640,
+      "sha256": "192abc4c6ad933f53d809d8a46ee6237ae71e766bf66199fdce4678841fe12d7"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.89.woff2": {
+      "bytes": 21864,
+      "sha256": "44634e793e0d50fcdf803a2ad513d8bf0482d9adccbbd4ef534325cae9b2ee01"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.9.woff2": {
+      "bytes": 34012,
+      "sha256": "523e91cb7665f4a87767e3b0b5099753decba1bd33e3ce7733b92f71001da9a5"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.90.woff2": {
+      "bytes": 20852,
+      "sha256": "ed2d605d80cbe4f2c1df801852f7a1d8ad5e1a4972b26d8fee93427317f32f09"
+    },
+    "assets/fonts/pretendard/PretendardVariable.subset.91.woff2": {
+      "bytes": 37996,
+      "sha256": "fc9fcd1bea9c8f43f97136a1e89bfa6e34db85f820f86538288647b4c24c5b06"
+    },
+    "assets/fonts/pretendard/pretendard.css": {
+      "bytes": 55944,
+      "sha256": "8521b60254bc31ea5e359f1f901f0da21b5e47093f863067c2cd342e33e2a26c"
+    },
     "assets/icon-512.png": {
       "bytes": 23931,
       "sha256": "b93a947b419eec8f79434632c3bdffd900452263e8637dfb80e60f1809742fe7"
@@ -182,24 +574,44 @@
       "sha256": "64f2880499720996076963366b16f28a9fcc3e6ae643373b282bf4a7b5cf663c"
     },
     "assets/landing-v2/film/hero-m.mp4": {
-      "bytes": 1858010,
-      "sha256": "9f2e0ed78cee4782bbd78789c0ef8038989edb363511d6b1c685d374bc201acd"
+      "bytes": 442053,
+      "sha256": "249cc129f7d70bf6921603c78dd2ad3a73b1d6417e18add3bf528dd9d5056763"
+    },
+    "assets/landing-v2/film/hero-m.webm": {
+      "bytes": 655184,
+      "sha256": "b1c9935b595b6b3a3603bb370040f3568069ca9b182d20686b7efeee24fd60b2"
     },
     "assets/landing-v2/film/hero-poster-m.jpg": {
       "bytes": 42536,
       "sha256": "dd19781390fc6454164ef21ada38acb89ba1e29b5ae1494e9eec155bb15987a3"
     },
+    "assets/landing-v2/film/hero-poster-m.webp": {
+      "bytes": 20618,
+      "sha256": "7bb66980b41983a541bb09bb908e8b9dc7ae151c7c5acec48c16a25e6298f442"
+    },
     "assets/landing-v2/film/hero-poster.jpg": {
       "bytes": 57643,
       "sha256": "c1a2c12622200d9558d16f059b94cc97727049eaccff06cb0168ef7c844fa0ea"
     },
+    "assets/landing-v2/film/hero-poster.webp": {
+      "bytes": 30094,
+      "sha256": "b021378995bb2194e4fd055b602d3458cb765906005c6ccd586598d192af5632"
+    },
     "assets/landing-v2/film/hero.mp4": {
-      "bytes": 2775345,
-      "sha256": "cf2943fff6b793be0a51327c4c18f9fee91dc216ba3ff1e935d0420f01e60f94"
+      "bytes": 879196,
+      "sha256": "e2e38d8349d7b6b25da127e1e074ee189482a4a285ae322c5b25d8e33eac2ad8"
+    },
+    "assets/landing-v2/film/hero.webm": {
+      "bytes": 953145,
+      "sha256": "1847b3e315eebf1743405abdec3c37a2e8e3356b3569072f4cd6b77e1a80837d"
     },
     "assets/og-image.png": {
       "bytes": 178088,
       "sha256": "f42dc379fe3181cebe305b99159545de7e35f6b180c603ed9820894fc2589602"
+    },
+    "assets/product-story/01-idea-hero.mp4": {
+      "bytes": 16525,
+      "sha256": "971548ac0482727ad94e2ebe3237d77ae6075e9c19f99b7ed29b5d918db0e1e7"
     },
     "assets/product-story/01-idea.jpg": {
       "bytes": 7784,
@@ -209,6 +621,10 @@
       "bytes": 71232,
       "sha256": "f43cdd3674bfbaa2ffe62df5a03cbae036fb8d06600aedb715810d534e2e433c"
     },
+    "assets/product-story/02-plan-hero.mp4": {
+      "bytes": 18606,
+      "sha256": "f59b26e67e9d86bd7c3d78945fe0d368aefee62092f875dd1045a583c1b07775"
+    },
     "assets/product-story/02-plan.jpg": {
       "bytes": 9693,
       "sha256": "a7553b38302505861af76986d1cfa01f7ef1b3cdee52cb98c869254b246eb5ec"
@@ -216,6 +632,10 @@
     "assets/product-story/02-plan.mp4": {
       "bytes": 89930,
       "sha256": "050b16212734b7c03b469b552cabb72a01c62fc23def92dbc19d328880226c9c"
+    },
+    "assets/product-story/03-record-hero.mp4": {
+      "bytes": 18032,
+      "sha256": "010b15aaa8093fb9816d6b0e16071410e0fe1d78de28b0867400d4595d3fc4db"
     },
     "assets/product-story/03-record.jpg": {
       "bytes": 9219,
@@ -225,6 +645,10 @@
       "bytes": 82962,
       "sha256": "412f43bfab4652f66c08e5ee0241a3f00d0e01f4d75d02e73f52e723fcaf0e13"
     },
+    "assets/product-story/04-organize-hero.mp4": {
+      "bytes": 16717,
+      "sha256": "5d07eefa50472323aa561b0405125e189c3cb415613f0fba9b5f14452f32d680"
+    },
     "assets/product-story/04-organize.jpg": {
       "bytes": 9382,
       "sha256": "cb9137ca914ba1934542de277fa4d6cd5ad57d28690074407901c2ebabe9406b"
@@ -232,6 +656,10 @@
     "assets/product-story/04-organize.mp4": {
       "bytes": 79813,
       "sha256": "2aa289fe834d8ad6b8502e2df644eb7545e7d26de293748aea3ade3e8dd88846"
+    },
+    "assets/product-story/05-cheer-hero.mp4": {
+      "bytes": 17049,
+      "sha256": "d83ea3af243c82c9ec4a3a03dc0e838bc6213e43540210e81486a6a5eabd4827"
     },
     "assets/product-story/05-cheer.jpg": {
       "bytes": 9554,
@@ -241,6 +669,10 @@
       "bytes": 81192,
       "sha256": "623d44481c4be736e7fe08c656b8df371b5c8929283dc0469c392be3cbc663bf"
     },
+    "assets/product-story/06-inspire-hero.mp4": {
+      "bytes": 16791,
+      "sha256": "9f7209fef57707aa9fbb1d97dcf51d61b7dd7031ad349492d3615198beff10ec"
+    },
     "assets/product-story/06-inspire.jpg": {
       "bytes": 9000,
       "sha256": "24a4e2bd6e781fe2f4489dda9c2e7cd5074d89cbaf8bc8f00e28805f000e4f9e"
@@ -248,6 +680,10 @@
     "assets/product-story/06-inspire.mp4": {
       "bytes": 81230,
       "sha256": "d0efcf846b191f859a2426308336d5db7daa26fc8b0cd5cef651831ab7f6f4f5"
+    },
+    "assets/product-story/07-focus-hero.mp4": {
+      "bytes": 17551,
+      "sha256": "7c08d77035d865ce1de25cae783171650a95cc2f03e89a444661ca2a86608b57"
     },
     "assets/product-story/07-focus.jpg": {
       "bytes": 8811,
@@ -257,6 +693,10 @@
       "bytes": 94034,
       "sha256": "4c66d07cb0bc5299503a61a64646095b0e5d33ff3647a5e355347c278275edfd"
     },
+    "assets/product-story/08-explore-hero.mp4": {
+      "bytes": 16084,
+      "sha256": "94873910b10dc4f04b547ef3a8267631fc47722d165b170f994b5e0dbe8f4b66"
+    },
     "assets/product-story/08-explore.jpg": {
       "bytes": 10523,
       "sha256": "07269a2c85ba315e0ddb4d91112bef92aac34d6d5fda74f2f3f6f5939547c9e3"
@@ -264,6 +704,10 @@
     "assets/product-story/08-explore.mp4": {
       "bytes": 79099,
       "sha256": "8022263268d7a1543899922f7e932c815ba564767d05a786aeb306cc46587f02"
+    },
+    "assets/product-story/09-remind-hero.mp4": {
+      "bytes": 16658,
+      "sha256": "21f8a6c809f1f0a7de8aabca723b0e3f4269a1e400ff31bb20b35697b792d67e"
     },
     "assets/product-story/09-remind.jpg": {
       "bytes": 9745,
@@ -277,13 +721,17 @@
       "bytes": 481,
       "sha256": "5aded62574c4181f3d5d8cd9d1ee7c5ea4925137fd6ab1594581f3a1635dcfe8"
     },
+    "assets/sidekick-wordmark-dark.png": {
+      "bytes": 19486,
+      "sha256": "f8543cb18964749f3c57b9e3d95944970e9a25c873549633e019465c6e9c1363"
+    },
     "assets/sidekick-wordmark.png": {
       "bytes": 23074,
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 138876,
-      "sha256": "4aaa41f85373eb610994922cf372c1188ace6b6b36f14e22333fcae6105e266e"
+      "bytes": 140601,
+      "sha256": "f43f7bb348bee4ebd870969ec78cfe5844ed46a7ef43c37c943c10133ef2dd61"
     },
     "connections/connections.css": {
       "bytes": 3208,
@@ -294,8 +742,12 @@
       "sha256": "1d969083ec30a9a494f2e984ef8aa078420792b660079c799496994e3f376de9"
     },
     "connections/index.html": {
-      "bytes": 6797,
-      "sha256": "0066231c41adf6de710b64259ceb28c1194e7119695b233197f7ff3e54a0641b"
+      "bytes": 6948,
+      "sha256": "cdfb24855756d92ee170f896339eb6ac1d21851938ac9cab19e6f355e5bd7125"
+    },
+    "day.json": {
+      "bytes": 6586,
+      "sha256": "0d74643ac989f3c4ba041566ae3234f51e1f9b293dac3fbd7eb1a15839ceced0"
     },
     "delete-account/index.html": {
       "bytes": 8326,
@@ -311,7 +763,7 @@
     },
     "demo/index.html": {
       "bytes": 21388,
-      "sha256": "b485b7e267dc3517b64c6933907fa0a3c1ca127d592f860c21c799ac545ec864"
+      "sha256": "9f1c2dcca76d804107c96b0e9cefeeda4f3fc6be275347675c803285cad1ee3b"
     },
     "favicon.ico": {
       "bytes": 15086,
@@ -322,8 +774,8 @@
       "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
     },
     "index.html": {
-      "bytes": 41791,
-      "sha256": "b4fcc563ee223b0af066ce58a5496eef07dd3227622237eae2b15083ca107443"
+      "bytes": 39403,
+      "sha256": "7f0e66f71b6b6713e239a2e1cac372dd94b82d4e66d9357b28e718f7af90e1ff"
     },
     "invite/index.html": {
       "bytes": 10579,
@@ -333,9 +785,25 @@
       "bytes": 10758,
       "sha256": "82d061487e262fc8d896381edf3f98e409a9daafcfd93ad5b886683dac359f84"
     },
+    "landing-day.js": {
+      "bytes": 6286,
+      "sha256": "2cba0d0e1552bd232d27779a0846f8f900973b82b41a5a92387600aa444f3a54"
+    },
+    "landing-notice.js": {
+      "bytes": 843,
+      "sha256": "4253689322b1b260c732fb8fc3f7ec7c00b150e7336a2b577b9000fb8659b513"
+    },
+    "landing-start.js": {
+      "bytes": 1812,
+      "sha256": "a86d3856e39178e46c4a57ad93f002c45c02499daed6d88d29b5bc98ecc93eb6"
+    },
+    "landing-titles.js": {
+      "bytes": 1325,
+      "sha256": "a13313e6d13ef28db4299f25046621fb8c520cf60d30a63ee65795fc677039e3"
+    },
     "landing.js": {
-      "bytes": 39836,
-      "sha256": "06dc7581a78f6ce4cb1299b12a9c812cae97c883e114d78e211dfc5baee8bf0e"
+      "bytes": 39925,
+      "sha256": "a37283cd4c782cebf4b27135f44653954c571d3ce6c8388cec6c7305fe19d0f5"
     },
     "licenses/index.html": {
       "bytes": 410540,
@@ -347,7 +815,7 @@
     },
     "login/index.html": {
       "bytes": 15802,
-      "sha256": "35ad4cd6602e71c909bde241640390a20bae8137afb2b39070d080bf92fc44e1"
+      "sha256": "ada436941d29941b5158100944c60bd1df7c5aecf954d0c42749b16a9c7bcdf3"
     },
     "maintenance.js": {
       "bytes": 13901,
@@ -366,12 +834,12 @@
       "sha256": "699f4e37e2c6c0e65c26bf73536d76bb975705cfd6e48c8208160b986706ca24"
     },
     "membership/membership.js": {
-      "bytes": 33600,
-      "sha256": "c8ff05023be9701217fc1187a7035c6838a4b4f6f97a7d960b5e579fdc95608e"
+      "bytes": 35227,
+      "sha256": "4be07f2fe5183186e2726251b8ae6de8c0113aa23db91cb3b2f8fe3f927c50b7"
     },
     "motion.css": {
-      "bytes": 8038,
-      "sha256": "0982693bccae417c941e486ef629baafe8ad7fb05e20d8335a37cfbec18acf69"
+      "bytes": 8872,
+      "sha256": "47e0d1d4113b8e738a01688b92284ad2cd4faaf8adfb9b8ea6d07c21a3c7899f"
     },
     "privacy/index.html": {
       "bytes": 64598,
@@ -390,12 +858,12 @@
       "sha256": "394b07444a7f9ca69541761a3229932c4eedc505b3ce28e30f7424783e9477e7"
     },
     "styles.css": {
-      "bytes": 81178,
-      "sha256": "6994f1b79bf8d1ad665922abac4f669bcbd11c4eb4ea984b72b0dc58c934689c"
+      "bytes": 98236,
+      "sha256": "d7b2476605d6a29cb0e36a95dcce14e54646289a927032b6232268ab70bb246d"
     },
     "support/index.html": {
-      "bytes": 12757,
-      "sha256": "271273a89e5990cf40380c1ac74e5a95708bc760dfdfb18f2290c04e5199e0a5"
+      "bytes": 13375,
+      "sha256": "f14b05451bdb07de31827e8ed7c7b0cced87b2c131203755106182c30d58850e"
     },
     "terms/index.html": {
       "bytes": 23529,
@@ -407,42 +875,42 @@
     },
     "use/blog/index.html": {
       "bytes": 15606,
-      "sha256": "3e231dcfe9d7ce41c0bcdc11231d5cca6dca7c2517d05be5e2d39e4ec76ce632"
+      "sha256": "7ca27b322157abc4d3332a95f4988ae81afcb160f1545cade8e5c248a172a239"
     },
     "use/briefing/index.html": {
       "bytes": 14654,
-      "sha256": "b040288baef6fd4f81c01f7f1aae2675368f386573431d2f27043e3042f5a2e3"
+      "sha256": "7cde529dc95e9f109e1d2ed2e667cc3dbae891ca795c3215cc506a64f6c60c54"
     },
     "use/index.html": {
       "bytes": 11966,
-      "sha256": "d1d6ba88f7fd99fda806c05e60b2d41dd53bc55c45cf149ad9ca065fbb76aacb"
+      "sha256": "d603f16a233026f1672bb478a490542af99890fa581bba33f3fd77dae886d525"
     },
     "use/instagram/index.html": {
       "bytes": 15394,
-      "sha256": "01054e80251fee41cbaa916dfe3a81dfb1eed16d4960fbc404183785d1e30d0d"
+      "sha256": "acc036246ce40f0a1dcc66a184eb35a3856207de31ad0302c545065ade33ef59"
     },
     "use/price-watch/index.html": {
       "bytes": 14609,
-      "sha256": "77f3faa558aaa13dac0330c5656fd6b652bf3b06311ad8df6a5e2d7734712eb5"
+      "sha256": "7530129e7434046a0c95b3ce1b477c1bc4eb6b4f58d664e11b767102aa564155"
     },
     "use/real-estate/index.html": {
       "bytes": 15317,
-      "sha256": "d2007bc596101dc198d76bcd28a49bfab14b0405a1e2359e9376e34e0dfc1ec5"
+      "sha256": "a5e5977c717921196a3dd601702925404d05911c1ca836c0fd1d58f8653c88f9"
     },
     "use/store-cs/index.html": {
       "bytes": 15516,
-      "sha256": "5d62f88a3adc03eec0a496de887661a5407654bb3a019beae73a62e7c69532ed"
+      "sha256": "f4cbc3d5846ff74925b17d3ab65f6ccc987f97187ffef6ad59a85d23c006322e"
     },
     "use/tax/index.html": {
       "bytes": 15069,
-      "sha256": "e7de7906d7bdc8cc26a6b53afe4cc6f04bc44b1ab5f7d08359caf6adb9c54549"
+      "sha256": "c8232edc412ba7fa2c1846cfde8f7a74af1125dcfb6029f64468e09b634c2b0c"
     },
     "use/youtube/index.html": {
       "bytes": 15401,
-      "sha256": "68481a102bd722748ab33ed1097e52000fcb8b5cc9e426bf56c67f8af4da7b1c"
+      "sha256": "c68ce1101518040256f6f19805a2f4d4b1648fab9f170f274883b96c92575a10"
     }
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "de842701094ea832f1ab8575d912673e312e6433"
+  "source_sha": "27158af0a3e02bf732a453400cee06ea82f1044b"
 }

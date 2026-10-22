@@ -12,7 +12,14 @@
   const surfaces = [['/account', 'web_account'], ['/membership', 'web_checkout'],
     ['/ai', 'web_oauth'], ['/privacy', 'web_settings'], ['/terms', 'web_settings']];
   const surface = (surfaces.find(([path]) => location.pathname.startsWith(path)) || ['', 'web_marketing'])[1];
-  const safePage = () => !location.search && !location.hash;
+  const safePage = () => {
+    if (location.hash) return false;
+    if (!location.search) return true;
+    // A public, enumerated goal is navigation state, never the visitor's input.
+    const params = new URLSearchParams(location.search);
+    return location.pathname === '/' && [...params.keys()].length === 1 && params.getAll('goal').length === 1
+      && ['youtube','blog','instagram','store-cs','briefing','price-watch','real-estate','tax'].includes(params.get('goal'));
+  };
   const permittedHost = () => Array.isArray(config.allowedHosts) && config.allowedHosts.includes(location.hostname);
   try {
       const saved = JSON.parse(stored(key));

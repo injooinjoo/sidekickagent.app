@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko"><head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="다른 AI 앱에서 사이드킥을 연결하는 방법과 프로젝트 권한을 확인하고, 연결을 관리하세요." />
+  <title>다른 AI 앱에서 쓰기 · 사이드킥</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="canonical" href="https://sidekickagent.app/ai-apps/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="다른 AI 앱에서 쓰기 · 사이드킥" />
+  <meta property="og:description" content="다른 AI 앱에서 사이드킥을 연결하는 방법과 프로젝트 권한을 확인하고, 연결을 관리하세요." />
+  <meta property="og:url" content="https://sidekickagent.app/ai-apps/" />
+  <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/analytics.css" />
+  <link rel="stylesheet" href="/ai-apps/ai-apps.css" />
+  <script src="/app-mode.js"></script>
+  <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <script src="/maintenance.js" defer></script>
+  <script src="/auth.js" defer></script>
+  <script type="module" src="/ai-apps/ai-apps.js"></script>
+</head>
+<body><header class="site-header">
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+    <nav class="nav" aria-label="주요 메뉴"><a href="/support/">도움말</a></nav>
+    <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
+  </header><main><h1>다른 AI 앱에서 쓰기</h1><p>연결한 AI와 일과를 진행하고, 필요한 서비스와 결과를 한곳에서 관리해요.</p>
+<p id="notice" role="status" aria-live="polite"></p>
+<section id="connect" class="card" hidden><h2 id="client-name">AI 앱 연결</h2><p id="scope-copy"></p><label for="project">함께 사용할 프로젝트</label><select id="project"></select><button id="allow" type="button">이 프로젝트에 연결</button><button id="deny" type="button">연결하지 않기</button></section>
+<section class="card" id="card" hidden></section><section id="media"></section><section class="card" id="grants" hidden><h2>연결한 AI 앱</h2><div id="grant-list"></div></section>
+<section class="card connection-guide" aria-labelledby="guide-heading">
+  <h2 id="guide-heading">연결은 이렇게 해요</h2>
+  <p>연결한 AI가 대화와 일과를 이어가고, 사이드킥은 필요한 서비스 실행과 결과 보관을 맡아요.</p>
+  <ol>
+    <li><strong>AI 앱에서 사이드킥 연결을 열어요.</strong><p>지금은 사전 등록한 연결로 시험 중이에요. 연결 주소만 입력하면 모든 AI 앱에서 바로 쓸 수 있는 단계는 아니에요.</p></li>
+    <li><strong>사이드킥에 로그인하고 프로젝트를 골라요.</strong><p>앱에서 쓰던 계정으로 로그인해요. AI 앱 이름과 읽기·일과 진행·수정 및 중단 권한을 확인한 뒤 연결을 허용해 주세요.</p></li>
+    <li><strong>AI 채팅으로 돌아가 일을 이어가요.</strong><p>먼저 “사이드킥에서 가능한 일과 필요한 연결을 알려줘”라고 물어보세요. 부족한 서비스는 <a href="/connections/">서비스 연결</a>에서 연결하고 이어가면 돼요.</p></li>
+  </ol>
+  <details>
+    <summary>ChatGPT 시험 연결 설정</summary>
+    <p>ChatGPT의 플러그인 관리에서 사용자 지정 연결을 추가하고 이름은 Sidekick, 인증 방식은 OAuth로 선택해요. 메뉴는 계정과 버전에 따라 다를 수 있어요.</p>
+    <label for="connection-address">연결 주소</label>
+    <input id="connection-address" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" />
+    <p>설정에 표시되는 정확한 콜백 주소의 사전 등록과 발급받은 공개 클라이언트 ID가 필요해요. 비밀번호나 비밀 키를 입력하는 방식이 아니에요. 등록되지 않았거나 연결할 수 없으면 <a href="/support/">도움말</a>에서 문의 방법을 확인해 주세요.</p>
+    <p><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt" target="_blank" rel="noopener noreferrer">ChatGPT 공식 연결 안내</a></p>
+  </details>
+  <details>
+    <summary>허용한 권한과 연결 해제</summary>
+    <p>허용한 프로젝트의 작업과 결과가 연결한 AI 앱에 전달돼요. 일과 진행 권한을 허용해도 제작 조건과 사용량을 확인해야 제작을 시작해요. 유료 제작은 별도 확인을 받아요.</p>
+    <p>이 페이지에 로그인하면 “연결한 AI 앱”에서 연결을 해제할 수 있어요. 해제하면 그 연결의 접근 권한이 사라져요. 이미 접수한 작업은 별도로 중단해야 하고, 기존 결과는 사이드킥에 남아요.</p>
+  </details>
+  <details>
+    <summary>연결이 안 되거나 채팅 안에 화면이 보이지 않아요</summary>
+    <p>같은 계정으로 로그인했는지, 연결이 사전 등록됐는지 확인해 주세요. 인증 화면이 만료되면 AI 앱에서 연결을 다시 시작해요. 승인을 취소하면 연결되지 않아요.</p>
+    <p>채팅 안의 조작 화면 지원은 AI 앱마다 달라요. 화면이 없으면 텍스트와 사이드킥 작업 링크로 확인해요. Claude·Grok의 실제 연결과 화면 지원은 확인 중이에요.</p>
+    <p>이 연결이 AI 앱의 구독을 사이드킥으로 옮기거나 별도 AI 엔진을 연결해 주는 것은 아니에요.</p>
+  </details>
+</section>
+<a href="/connections/">서비스 연결</a><footer class="footer"><a href="/">홈</a><a href="/support/">도움말</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/delete-account/">계정 및 데이터 삭제</a><small>© 2026 Sidekick</small><address class="biz"><span>비욘드</span><span>대표 김인주</span><span>사업자등록번호 552-20-02389</span><span>서울특별시 서초구 효령로23길 54-6</span><span>전화 010-5060-6843</span><span>이메일 support@sidekickagent.app</span><span>호스팅 서비스 제공자 GitHub, Inc.(웹사이트) · Google LLC(Google Cloud, 앱 서비스)</span></address></footer></main></body></html>
