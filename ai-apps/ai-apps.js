@@ -1,4 +1,54 @@
 import { renderCard, safeHttps } from './view.js';
+// The public guide works before sign-in and never calls an account API.
+function initConnectionGuide() {
+  const list = document.getElementById('guide-tabs');
+  if (!list) return;
+  const tabs = [...list.querySelectorAll('[role="tab"]')];
+  function select(tab, focus = false) {
+    for (const candidate of tabs) {
+      const active = candidate === tab;
+      candidate.setAttribute('aria-selected', String(active));
+      candidate.tabIndex = active ? 0 : -1;
+      const panel = document.getElementById(candidate.getAttribute('aria-controls'));
+      panel.hidden = !active;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', candidate.id);
+      panel.tabIndex = 0;
+    }
+    document.getElementById('guide-copy-status').textContent = '';
+    if (focus) { tab.focus(); tab.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+  }
+  for (const [index, tab] of tabs.entries()) {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', (event) => {
+      let next;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault(); select(tabs[next], true);
+    });
+  }
+  const fragment = location.hash.slice(1);
+  select(tabs.find((tab) => tab.getAttribute('aria-controls') === fragment) || tabs[0]);
+  list.hidden = false;
+  for (const copy of document.querySelectorAll('[data-copy-address]')) {
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      const input = copy.closest('.guide-address').querySelector('input');
+      const status = document.getElementById('guide-copy-status');
+      try {
+        await navigator.clipboard.writeText(input.value);
+        status.textContent = '연결 주소를 복사했어요.';
+      } catch {
+        input.focus(); input.select();
+        status.textContent = '자동 복사가 안 돼 주소를 선택했어요. 직접 복사해 주세요.';
+      }
+    });
+  }
+}
+initConnectionGuide();
 const auth = window.SidekickAuth;
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
