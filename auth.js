@@ -77,10 +77,10 @@
   // An external-app login returns to one public request/job identifier, never a token or arbitrary URL.
   function validWebReturnPath(value) {
     if (RETURN_PATHS.includes(value)) return true;
-    if (typeof value !== 'string' || !value.startsWith('/ai-apps/') || value.startsWith('//')) return false;
+    if (typeof value !== 'string' || !['/ai-apps/', '/mcp/'].some((path) => value.startsWith(path)) || value.startsWith('//')) return false;
     try {
       const target = new URL(value, 'https://sidekickagent.app');
-      if (target.origin !== 'https://sidekickagent.app' || target.pathname !== '/ai-apps/' || target.hash) return false;
+      if (target.origin !== 'https://sidekickagent.app' || !['/ai-apps/', '/mcp/'].includes(target.pathname) || target.hash) return false;
       const fields = [...target.searchParams];
       return fields.length === 0 || (fields.length === 1 && ['connect', 'prepare', 'job'].includes(fields[0][0])
         && /^[A-Za-z0-9_-]{1,160}$/.test(fields[0][1]));

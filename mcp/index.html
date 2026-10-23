@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko"><head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="다른 AI 앱에서 사이드킥을 연결하는 방법과 프로젝트 권한을 확인하고, 연결을 관리하세요." />
+  <title>MCP 연결 · 사이드킥</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="canonical" href="https://sidekickagent.app/mcp/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="사이드킥" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="MCP 연결 · 사이드킥" />
+  <meta property="og:description" content="다른 AI 앱에서 사이드킥을 연결하는 방법과 프로젝트 권한을 확인하고, 연결을 관리하세요." />
+  <meta property="og:url" content="https://sidekickagent.app/mcp/" />
+  <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/analytics.css" />
+  <link rel="stylesheet" href="/ai-apps/ai-apps.css" />
+  <script src="/app-mode.js"></script>
+  <script src="/analytics.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script defer src="/analytics-runtime.js"></script>
+  <script src="/maintenance.js" defer></script>
+  <script src="/auth.js" defer></script>
+  <script type="module" src="/ai-apps/ai-apps.js"></script>
+</head>
+<body><header class="site-header">
+    <a class="brand" href="/"><img src="/assets/sidekick-wordmark.png" width="457" height="96" alt="사이드킥 홈으로" decoding="async" /></a>
+    <nav class="nav" aria-label="주요 메뉴"><a href="/support/">도움말</a></nav>
+    <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
+  </header><main><h1>MCP 연결</h1><p>연결한 AI와 일과를 진행하고, 필요한 서비스와 결과를 한곳에서 관리해요.</p>
+<p id="notice" role="status" aria-live="polite"></p>
+<section id="connect" class="card" hidden><h2 id="client-name">AI 앱 연결</h2><p id="scope-copy"></p><label for="project">함께 사용할 프로젝트</label><select id="project"></select><button id="allow" type="button">이 프로젝트에 연결</button><button id="deny" type="button">연결하지 않기</button></section>
+<section class="card" id="card" hidden></section><section id="media"></section><section class="card" id="grants" hidden><h2>연결한 AI 앱</h2><div id="grant-list"></div></section>
+<section class="card connection-guide" aria-labelledby="guide-heading">
+  <p class="guide-eyebrow">연결 가이드</p>
+  <h2 id="guide-heading">쓰던 AI 앱에서, 사이드킥과 이어가요.</h2>
+  <p>앱을 고르면 설정 위치와 연결 방법을 확인할 수 있어요.</p>
+  <p class="guide-readiness">현재는 시험 연결 안내예요. 실제 계정 연결과 공개 마켓 등록은 검증 중이에요. 사전 등록한 공개 클라이언트 ID와 정확한 HTTPS 복귀 주소가 필요하며, 주소만 복사하면 바로 사용할 수 있는 단계는 아니에요.</p>
+  <div id="guide-tabs" class="guide-tabs" role="tablist" aria-label="연결할 앱" hidden>
+    <div class="guide-tab-row" role="presentation">
+      <button id="tab-chatgpt" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="chatgpt">ChatGPT</button>
+      <button id="tab-claude" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="claude">Claude</button>
+      <button id="tab-claude-code" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="claude-code">Claude Code</button>
+      <button id="tab-telegram" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="telegram">Telegram</button>
+      <button id="tab-cli" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="cli">CLI</button>
+      <button id="tab-other" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="other">Other</button>
+    </div>
+    <div class="guide-tab-row" role="presentation">
+      <button id="tab-gemini" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="gemini">Gemini</button>
+      <button id="tab-grok-bot" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="grok-bot">Grok Bot</button>
+      <button id="tab-cursor" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="cursor">Cursor</button>
+      <button id="tab-codex" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="codex">Codex (CLI)</button>
+      <button id="tab-openclaw" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="openclaw">OpenClaw</button>
+      <button id="tab-hermes" class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="hermes">Hermes</button>
+    </div>
+  </div>
+  <section id="chatgpt" class="guide-panel" aria-labelledby="heading-chatgpt">
+    <div class="guide-panel-heading"><h3 id="heading-chatgpt">ChatGPT</h3><span class="guide-status">시험 연결 · 사전 등록 필요</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>ChatGPT 플러그인 설정을 열어요</h4><a class="guide-settings" href="https://chatgpt.com/plugins" target="_blank" rel="noopener noreferrer">플러그인 설정 열기 <span aria-hidden="true">↗</span></a></div><p>플러그인 관리에서 사용자 지정 연결을 추가하고 이름은 Sidekick, 인증은 OAuth로 선택해요. 계정에 따라 메뉴가 다를 수 있어요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address">ChatGPT용 연결 주소</label><div class="guide-copy-row"><input id="connection-address" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="ChatGPT 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인하고 대화로 돌아와요</h4><p>발급받은 공개 클라이언트 ID와 ChatGPT에 표시되는 정확한 복귀 주소가 사전 등록돼 있어야 해요. 사이드킥 로그인·프로젝트 선택·권한 동의를 마친 뒤 대화에서 사이드킥을 선택해요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt" target="_blank" rel="noopener noreferrer">ChatGPT 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="claude" class="guide-panel" aria-labelledby="heading-claude">
+    <div class="guide-panel-heading"><h3 id="heading-claude">Claude</h3><span class="guide-status">시험 연결 · 사전 등록 필요</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Claude 커넥터 설정을 열어요</h4><a class="guide-settings" href="https://claude.ai/customize/connectors" target="_blank" rel="noopener noreferrer">커넥터 설정 열기 <span aria-hidden="true">↗</span></a></div><p>사용자 지정 → 커넥터 → 추가 → 사용자 지정 커넥터 추가를 열어요. 조직 계정은 관리자가 먼저 추가해야 할 수 있어요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-claude">Claude용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-claude" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Claude 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인한 뒤 커넥터를 켜요</h4><p>이름은 Sidekick, 인증은 로그인, OAuth 클라이언트는 자체 클라이언트 사용을 선택해요. 사전 등록한 공개 클라이언트 ID·복귀 주소로 동의한 뒤 대화에서 커넥터를 켜요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp" target="_blank" rel="noopener noreferrer">Claude 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="claude-code" class="guide-panel" aria-labelledby="heading-claude-code">
+    <div class="guide-panel-heading"><h3 id="heading-claude-code">Claude Code</h3><span class="guide-status">인증 호환성 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Claude Code의 연결 설정을 확인해요</h4><a class="guide-settings" href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">설정 방법 보기 <span aria-hidden="true">↗</span></a></div><p>공식 문서의 HTTP 연결 방식과 /mcp 메뉴를 확인해요. claude mcp add --transport http 명령은 주소 등록 형식이며, 등록만으로 사이드킥 인증이 끝나지는 않아요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-claude-code">Claude Code용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-claude-code" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Claude Code 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인 복귀 방식을 먼저 맞춰요</h4><p>Claude Code의 로컬 로그인 복귀 주소와 사이드킥의 사전 등록 HTTPS 주소 정책을 맞춰야 해요. 호환성을 확인하기 전에는 로그인 성공이나 실제 사용을 보장하지 않아요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">Claude Code 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="telegram" class="guide-panel" aria-labelledby="heading-telegram">
+    <div class="guide-panel-heading"><h3 id="heading-telegram">Telegram</h3><span class="guide-status">전용 봇 준비 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Telegram 연결은 봇 안내를 기다려 주세요</h4><a class="guide-settings" href="https://core.telegram.org/bots" target="_blank" rel="noopener noreferrer">봇 연결 방식 보기 <span aria-hidden="true">↗</span></a></div><p>Telegram은 이 주소를 직접 붙여 넣는 연결 앱이 아니에요. 사이드킥 계정 연결을 지원하는 별도의 공식 봇과 안내가 필요해요.</p></li>
+      <li><h4>공식 봇과 계정 연결을 확인해요</h4><p>현재 제공하는 봇 링크는 없어요. 이 웹 연결 주소는 Telegram 채팅에 붙여 넣는 봇 주소가 아니에요.</p></li>
+      <li><h4>공식 봇이 준비되면 안내할게요</h4><p>지금은 공개된 사이드킥 봇 연결 경로를 안내하지 않아요. 봇 이름이나 링크를 임의로 만들지 않으며, 준비되면 로그인·권한 동의·채팅에서 요청하는 순서를 이곳에 제공할게요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://core.telegram.org/bots" target="_blank" rel="noopener noreferrer">Telegram 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="cli" class="guide-panel" aria-labelledby="heading-cli">
+    <div class="guide-panel-heading"><h3 id="heading-cli">CLI</h3><span class="guide-status">사용할 도구 선택 필요</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>사용하는 명령줄 도구를 확인해요</h4><a class="guide-settings" href="https://modelcontextprotocol.io/docs/learn/client-concepts" target="_blank" rel="noopener noreferrer">연결 원리 보기 <span aria-hidden="true">↗</span></a></div><p>CLI마다 연결 명령과 로그인 방식이 달라요. 아래 줄에서 Codex (CLI), Hermes 또는 OpenClaw를 고르면 해당 도구의 안내를 볼 수 있어요. 공통 설치 명령은 제공하지 않아요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-cli">CLI용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-cli" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="CLI 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>선택한 도구의 인증 조건을 확인해요</h4><p>원격 HTTP 연결, OAuth, 공개 클라이언트 ID와 사전 등록 복귀 주소를 지원하는지 확인해요. 로컬 HTTP 복귀 주소만 사용하는 도구는 현재 사이드킥과의 호환성 보완이 필요해요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://modelcontextprotocol.io/docs/learn/client-concepts" target="_blank" rel="noopener noreferrer">CLI 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="other" class="guide-panel" aria-labelledby="heading-other">
+    <div class="guide-panel-heading"><h3 id="heading-other">Other</h3><span class="guide-status">호환성 확인 필요</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>다른 앱의 원격 연결 설정을 확인해요</h4><a class="guide-settings" href="https://modelcontextprotocol.io/docs/learn/client-concepts" target="_blank" rel="noopener noreferrer">연결 원리 보기 <span aria-hidden="true">↗</span></a></div><p>앱의 공식 문서에서 원격 HTTP 연결과 OAuth 지원 여부를 먼저 확인해요. 연결 주소를 넣는 기능이 없으면 바로 추가할 수 없어요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-other">Other용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-other" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Other 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>호환성을 확인한 뒤 연결해요</h4><p>앱 이름과 공식 연결 문서를 도움말로 알려 주세요. 사이드킥의 사전 등록 정책과 맞는지 확인해야 하며, 목록에 없다는 이유로 임의의 비밀 키나 로그인 정보를 넣지 마세요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://modelcontextprotocol.io/docs/learn/client-concepts" target="_blank" rel="noopener noreferrer">Other 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="gemini" class="guide-panel" aria-labelledby="heading-gemini">
+    <div class="guide-panel-heading"><h3 id="heading-gemini">Gemini</h3><span class="guide-status">시험 연결 · 사전 등록 필요</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Gemini의 연결된 앱을 열어요</h4><a class="guide-settings" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">Gemini 열기 <span aria-hidden="true">↗</span></a></div><p>설정 → 연결된 앱(Connected Apps) → Custom apps에서 사용자 지정 앱을 추가해요. 메뉴가 없으면 Personal Intelligence 아래를 확인해요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-gemini">Gemini용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-gemini" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Gemini 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>추가 설정과 로그인 동의를 확인해요</h4><p>주소를 넣고 Advanced features에서 사전 등록한 클라이언트 정보를 설정해요. 실제 인증 호환성은 검증 중이에요. 연결이 완료된 계정에서는 대화에 @를 입력해 앱을 선택해요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://support.google.com/gemini/answer/17209137" target="_blank" rel="noopener noreferrer">Gemini 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="grok-bot" class="guide-panel" aria-labelledby="heading-grok-bot">
+    <div class="guide-panel-heading"><h3 id="heading-grok-bot">Grok Bot</h3><span class="guide-status">목록 등록·연결 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Grok Bot의 Connect apps를 열어요</h4><a class="guide-settings" href="https://docs.x.ai/grok-bot/computer-and-apps" target="_blank" rel="noopener noreferrer">앱 연결 방법 보기 <span aria-hidden="true">↗</span></a></div><p>사이드바의 Connect apps에서 연결 앱을 찾을 수 있어요. 공식 문서는 목록에서 앱을 추가하는 방식을 안내하며, 임의 주소 추가가 된다고 가정하지 않아요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-grok-bot">Grok Bot용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-grok-bot" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Grok Bot 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>사이드킥 등록과 인증을 먼저 확인해요</h4><p>Grok Bot과 Grok 웹의 사용자 지정 커넥터는 별도로 확인해야 해요. 사이드킥 목록 등록·권한 동의·실제 도구 호출을 검증하기 전에는 연결 완료로 표시하지 않아요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://docs.x.ai/grok-bot/computer-and-apps" target="_blank" rel="noopener noreferrer">Grok Bot 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="cursor" class="guide-panel" aria-labelledby="heading-cursor">
+    <div class="guide-panel-heading"><h3 id="heading-cursor">Cursor</h3><span class="guide-status">인증 호환성 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Cursor의 연결 설정을 확인해요</h4><a class="guide-settings" href="https://cursor.com/docs/mcp" target="_blank" rel="noopener noreferrer">설정 방법 보기 <span aria-hidden="true">↗</span></a></div><p>설정의 Tools &amp; MCP에서 추가하거나 기존 .cursor/mcp.json의 mcpServers에 원격 url을 설정해요. 다른 연결은 유지해 주세요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-cursor">Cursor용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-cursor" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Cursor 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인 설정을 확인하고 연결해요</h4><p>OAuth 지원만으로 사이드킥 인증이 보장되지는 않아요. 공개 클라이언트 ID와 복귀 주소의 사전 등록·호환성을 먼저 확인한 뒤 인증하고, Agent에서 연결을 사용할 수 있는지 확인해요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://cursor.com/docs/mcp" target="_blank" rel="noopener noreferrer">Cursor 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="codex" class="guide-panel" aria-labelledby="heading-codex">
+    <div class="guide-panel-heading"><h3 id="heading-codex">Codex (CLI)</h3><span class="guide-status">인증 호환성 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Codex의 원격 연결 설정을 확인해요</h4><a class="guide-settings" href="https://learn.chatgpt.com/docs/extend/mcp?surface=cli" target="_blank" rel="noopener noreferrer">설정 방법 보기 <span aria-hidden="true">↗</span></a></div><p>공식 문서의 codex mcp add sidekick --url 형식으로 주소를 등록할 수 있어요. 발급받은 공개 클라이언트 ID 설정이 필요하며 주소 등록과 인증은 별도예요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-codex">Codex (CLI)용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-codex" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Codex (CLI) 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인 복귀 방식을 먼저 맞춰요</h4><p>codex mcp login sidekick으로 로그인하기 전에 복귀 주소가 사이드킥 정책과 맞는지 확인해야 해요. 기본 로컬 HTTP 방식은 현재 HTTPS 사전 등록 정책과 달라 호환성 검증이 필요해요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://learn.chatgpt.com/docs/extend/mcp?surface=cli" target="_blank" rel="noopener noreferrer">Codex (CLI) 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="openclaw" class="guide-panel" aria-labelledby="heading-openclaw">
+    <div class="guide-panel-heading"><h3 id="heading-openclaw">OpenClaw</h3><span class="guide-status">인증 호환성 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>OpenClaw의 MCP 설정을 열어요</h4><a class="guide-settings" href="https://docs.openclaw.ai/tools/mcp" target="_blank" rel="noopener noreferrer">설정 방법 보기 <span aria-hidden="true">↗</span></a></div><p>관리자 화면 Settings → MCP 또는 대화의 + → Plugins → Add MCP server에서 원격 연결을 추가해요. 전송 방식은 Streamable HTTP예요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-openclaw">OpenClaw용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-openclaw" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="OpenClaw 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>OAuth와 실제 연결을 확인해요</h4><p>OAuth 방식과 필요한 클라이언트 정보를 설정한 뒤 Sign in으로 로그인해요. 사전 등록 복귀 주소와의 호환성이 확인돼야 해요. 목록 등록·상태 검사만으로 실제 작업 실행 성공을 뜻하지 않아요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://docs.openclaw.ai/tools/mcp" target="_blank" rel="noopener noreferrer">OpenClaw 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <section id="hermes" class="guide-panel" aria-labelledby="heading-hermes">
+    <div class="guide-panel-heading"><h3 id="heading-hermes">Hermes</h3><span class="guide-status">인증 호환성 확인 중</span></div>
+    <ol class="guide-steps">
+      <li><div class="guide-step-top"><h4>Hermes의 원격 연결 설정을 확인해요</h4><a class="guide-settings" href="https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp" target="_blank" rel="noopener noreferrer">설정 방법 보기 <span aria-hidden="true">↗</span></a></div><p>기존 ~/.hermes/config.yaml의 mcp_servers에서 연결을 설정해요. 사이드킥 주소와 OAuth 인증 방식을 사용하며 기존 설정은 유지해 주세요.</p></li>
+      <li><h4>사이드킥 연결 주소를 복사해요</h4><p>원격 연결 주소를 입력하는 앱에서 사용해요. 인증 조건은 아래에서 확인해 주세요.</p><div class="guide-address"><label class="guide-field-label" for="connection-address-hermes">Hermes용 연결 주소</label><div class="guide-copy-row"><input id="connection-address-hermes" type="text" readonly value="https://api.sidekickagent.app/assistant/mcp" spellcheck="false" /><button type="button" data-copy-address aria-label="Hermes 연결 주소 복사" hidden>주소 복사</button></div></div></li>
+      <li><h4>로그인 복귀 방식을 먼저 맞춰요</h4><p>Hermes의 기본 로그인은 로컬 HTTP 주소로 돌아오지만 사이드킥은 사전 등록한 HTTPS 주소만 허용해요. 호환되는 방식과 공개 클라이언트 ID를 먼저 준비해야 하며 지금은 설정을 반복하지 않아도 돼요.</p></li>
+    </ol>
+    <p class="guide-docs"><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp" target="_blank" rel="noopener noreferrer">Hermes 공식 안내 <span aria-hidden="true">↗</span></a></p>
+  </section>
+  <p id="guide-copy-status" class="guide-copy-status" role="status" aria-live="polite"></p>
+  <div class="guide-after"><h3>연결을 마쳤다면 이렇게 요청해 보세요</h3><p>“사이드킥에서 가능한 일과 필요한 연결을 알려줘”</p><p>작업을 맡긴 뒤에는 진행 상황을 묻고, 완료되면 결과와 사이드킥 작업 링크를 요청할 수 있어요. 채팅 안의 조작 화면이 없어도 텍스트와 링크로 확인해요.</p></div>
+  <details><summary>권한 확인과 연결 해제</summary><p>사이드킥 로그인 → 프로젝트 선택 → 읽기·일과 진행·수정 및 중단 권한 확인 → 동의 순서예요. 비밀번호나 비밀 키를 AI 채팅에 넣지 마세요. 유료 제작은 조건과 사용량을 따로 확인해요.</p><p>이 페이지에 로그인하면 “연결한 AI 앱”에서 해제할 수 있어요. 이미 접수한 작업은 별도로 중단해야 하며 결과는 사이드킥에 남아요.</p></details>
+  <details><summary>연결이 안 되나요?</summary><p>같은 사이드킥 계정인지, 연결이 사전 등록됐는지, 복귀 주소가 맞는지 확인해 주세요. 인증 화면이 만료되면 앱에서 연결을 다시 시작해요. 연결이 준비되지 않은 대상은 설정을 반복하지 말고 <a href="/support/">도움말</a>로 문의해 주세요.</p><p>이 연결은 AI 앱의 구독을 사이드킥으로 옮기거나 별도 AI 엔진을 연결하는 기능이 아니에요. 연결 안내·실제 사용 검증·공개 마켓 등록은 서로 다른 상태예요.</p></details>
+</section>
+<a href="/connections/">서비스 연결</a><footer class="footer"><a href="/">홈</a><a href="/support/">도움말</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/delete-account/">계정 및 데이터 삭제</a><small>© 2026 Sidekick</small><address class="biz"><span>비욘드</span><span>대표 김인주</span><span>사업자등록번호 552-20-02389</span><span>서울특별시 서초구 효령로23길 54-6</span><span>전화 010-5060-6843</span><span>이메일 support@sidekickagent.app</span><span>호스팅 서비스 제공자 GitHub, Inc.(웹사이트) · Google LLC(Google Cloud, 앱 서비스)</span></address></footer></main></body></html>

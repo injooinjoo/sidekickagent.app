@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "5cdbceda46f0eeb9bcf3e9e52e5c776556e0199044915fde1695841c41820b1b",
+  "export_rules_sha256": "d5fe473b75c94cbfba4e9f9d705254ab08bd9d9b2ae39b316ff72472b8b8d239",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -34,8 +34,12 @@
       "sha256": "c0a78a92b9d3a4fe84b9c52c57b38ad0afca032357b2d4b6867bfdd4dab30fa4"
     },
     "ai-apps/index.html": {
-      "bytes": 30730,
-      "sha256": "fc141de45f091a78aabbd17b1db580bf510fdafaa7e4f91f06b4fb5b80764682"
+      "bytes": 4354,
+      "sha256": "e428fa3b2c9a94e26a24dac24ab7557339e22ee76b2adabc534efe96ee3a1eea"
+    },
+    "ai-apps/redirect.js": {
+      "bytes": 164,
+      "sha256": "db8548b155a784e3faeed253b292530ed2e94451176ab91bad5ad4090661e014"
     },
     "ai-apps/view.js": {
       "bytes": 4906,
@@ -730,8 +734,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 140601,
-      "sha256": "f43f7bb348bee4ebd870969ec78cfe5844ed46a7ef43c37c943c10133ef2dd61"
+      "bytes": 140651,
+      "sha256": "ded9848e708136be691227169fcc8f43417db2c8c14576ae7f34ec94c1d27ccf"
     },
     "connections/connections.css": {
       "bytes": 3208,
@@ -774,8 +778,8 @@
       "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
     },
     "index.html": {
-      "bytes": 39589,
-      "sha256": "b89c62f97179dbfc1fe60f0a74ebcc09198198102f86a33236341cf061aa0821"
+      "bytes": 39585,
+      "sha256": "14b68f3269dfdad267b507daee45bad60f53f050304a7eaf73636dd2323e03a7"
     },
     "invite/index.html": {
       "bytes": 10579,
@@ -824,6 +828,10 @@
     "manifest.json": {
       "bytes": 591,
       "sha256": "f00ceac48003dafd1ae005ce4e4218ad5b0e1a269d6315481590c1a235034535"
+    },
+    "mcp/index.html": {
+      "bytes": 30674,
+      "sha256": "1010830e33995caaa5ac7436b0da6d36fa32e547e229a44ef420d0b9967a9e34"
     },
     "membership/index.html": {
       "bytes": 18462,
@@ -912,5 +920,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "3643d753bfa468bd1677fb6a8e80bab382722af2"
+  "source_sha": "75564a27d0fa2cd72414b96c1b6364aa41170141"
 }
