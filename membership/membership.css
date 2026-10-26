@@ -128,13 +128,14 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
    prefers-reduced-motion이면 전부 즉시 상태로만 남는다. */
 /* Cards in one row stretch to the row's height; each card's action slot sits at the
    bottom (margin-top: auto), so every 구독하기 button lines up whatever the copy above it. */
-.plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: stretch; margin: 26px 0 0; }
-.plan-card { display: flex; flex-direction: column; padding: 24px; border: 1px solid var(--line); border-radius: 21px;
+.plan-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin: 26px 0 0; }
+.plan-card { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 21px;
   background: var(--card); box-shadow: var(--shadow-sm); opacity: 0; transform: translateY(10px);
   animation: card-in .42s cubic-bezier(.22,.61,.36,1) forwards; }
 .plan-card:nth-child(2) { animation-delay: .06s; }
 .plan-card:nth-child(3) { animation-delay: .12s; }
 .plan-card:nth-child(4) { animation-delay: .18s; }
+.plan-card:nth-child(5) { animation-delay: .24s; }
 .plan-card--free { background: var(--bg); }
 .plan-card.is-featured { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), 0 8px 24px rgba(26,29,33,.09); }
 .plan-card.is-current { border-color: #a9c3b3; box-shadow: 0 0 0 1px #a9c3b3; }
@@ -162,9 +163,9 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-visual-work:not(.plan-visual-work--grid) .plan-visual-task:last-child { grid-column: 2; }
 .plan-visual-task b { overflow: hidden; color: var(--ink-soft); font-size: 9px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .plan-visual-task small { overflow: hidden; color: var(--soft); font-size: 7px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
-/* The price and its "/ 월" line stack, so four cards line up whatever the number's width. */
+/* The price and its "/ 월" line stack, so five cards line up whatever the number's width. */
 .plan-price { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 14px 0 0; }
-.plan-price strong { font-size: clamp(26px, 3vw, 34px); letter-spacing: -.03em; }
+.plan-price strong { font-size: clamp(24px, 2.3vw, 30px); letter-spacing: -.03em; }
 .plan-price span { color: var(--muted); font-size: 14px; }
 .plan-price strong.just-changed { animation: price-in .34s cubic-bezier(.22,.61,.36,1); }
 @keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
@@ -173,9 +174,11 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 /* The bottom slot every card has: the buy button, Free's "what starts it" line, or the
    button's own 준비 중 text. No fixed height; the free space above it is the card's. */
 .card-action { margin-top: auto; padding-top: 22px; }
-.plan-card .card-action .checkout-button { margin: 0; }
+/* Five cards make a narrow column, where a long label ("금액을 불러오는 중이에요") takes two lines.
+   Both lines fit inside the same min-height as Free's line, so every slot keeps one height. */
+.plan-card .card-action .checkout-button { margin: 0; min-height: 56px; padding: 6px 10px; line-height: 1.25; }
 /* Free's place for a button: what starts it, at the same height, never a control. */
-.plan-start { display: flex; align-items: center; justify-content: center; min-height: 52px; margin: 0;
+.plan-start { display: flex; align-items: center; justify-content: center; min-height: 56px; margin: 0;
   border: 1px dashed var(--line); border-radius: 15px; color: var(--ink-soft); font-size: 14px; font-weight: 700; }
 .plan-includes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
 .plan-includes li { display: flex; gap: 9px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
@@ -191,6 +194,9 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .ghost-button { margin-left: auto; min-height: 44px; padding: 0 18px; border: 1px solid var(--line);
   border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
 
+@media (max-width: 1180px) {
+  .plan-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 1040px) {
   .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

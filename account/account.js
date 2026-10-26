@@ -7,8 +7,9 @@
   // sign-in gate on the shared sheet; Google and Apple come back here (auth.js
   // RETURN_PATHS).
   //
-  // It reads six routes and changes one setting: the tickets' auto-use switch
-  // (PUT /usage/tickets/auto-use). GET /usage/credits and GET /usage/tickets give
+  // It reads seven routes and changes two settings: the tickets' auto-use switch
+  // (PUT /usage/tickets/auto-use) and 실행 방식 (PUT /settings/execution-policy, FREE-5 2026-10-26: 무료만 쓰기 /
+  // 무료 먼저(기본) / 품질 우선, the same words as the app; the monthly paid budget in credits is not shown). GET /usage/credits and GET /usage/tickets give
   // the numbers, GET /usage/breakdown where the credits went (사용량, owner
   // 2026-10-25: everything, refreshed while the page is looked at); a route an
   // older server does not have yet leaves its card saying so, never a guess. GET /account answers who is
@@ -45,8 +46,8 @@
   const ACCOUNT_FAILED_COPY = '계정 정보를 불러오지 못했어요.';
   const MEMBERSHIP_FAILED_COPY = '멤버십 상태를 불러오지 못했어요.';
   const AI_FAILED_COPY = 'AI 연결을 불러오지 못했어요.';
-  const CREDITS_FAILED_COPY = '크레딧을 불러오지 못했어요.';
-  const CREDITS_UNAVAILABLE_COPY = '지금은 크레딧을 볼 수 없어요.';
+  const CREDITS_FAILED_COPY = '사용량을 불러오지 못했어요.';
+  const CREDITS_UNAVAILABLE_COPY = '지금은 사용량을 볼 수 없어요.';
   const TICKETS_FAILED_COPY = '티켓을 불러오지 못했어요.';
   const TICKETS_UNAVAILABLE_COPY = '지금은 티켓을 쓸 수 없어요.';
   const EXPIRED_COPY = '로그인이 만료됐어요. 다시 로그인해 주세요.';
@@ -56,9 +57,26 @@
   const USAGE_REFRESH_MS = 30000;
   const USAGE_PERIODS = ['current', 'previous'];
   // The services, in the order the owner listed them; `tts` is every voice use.
-  const SPEND_LABELS = [['text', '텍스트'], ['image', '이미지'], ['video', '영상'], ['tts', '음성'], ['music', '음악'],
+  const SPEND_LABELS = [['text', '글'], ['image', '이미지'], ['video', '영상'], ['tts', '음성'], ['music', '음악'],
     ['search', '검색'], ['server', '서버'], ['storage', '저장소']];
   const SERVER_LABELS = { compute: '서버', storage: '저장소' };
+  // 서비스별 (FREE-5): which service did the work and along which route; the app's words (data/usageBreakdown.js).
+  const ROUTE_LABELS = { user: '내 계정', user_free: '내 키(무료)', local_free: '기기 안 무료 모델', platform: '사이드킥 AI' };
+  const PROVIDER_LABELS = {
+    gemini_api: 'Gemini API', groq: 'Groq', cloudflare_ai: 'Cloudflare Workers AI', mistral: 'Mistral',
+    google_cloud_tts: 'Google Cloud 음성 합성', azure_speech: 'Azure 음성', local: '기기 안 모델', sidekick: '사이드킥'
+  };
+  const CAPABILITY_LABELS = { ...Object.fromEntries(SPEND_LABELS), stt: '받아쓰기', vision: '이미지 이해', embedding: '검색 준비' };
+  const POLICIES = ['free_only', 'free_first', 'quality_first'];
+  const POLICY_COPY = {
+    free_only: { label: '무료만 쓰기', line: '무료로 할 수 있는 일만 해요. 무료 한도를 다 쓰면 다시 채워질 때까지 기다려요. 유료로 처리하지 않아요.' },
+    free_first: { label: '무료 먼저(기본)', line: '무료로 먼저 해 보고, 유료가 필요하면 쓰기 전에 물어봐요.' },
+    quality_first: { label: '품질 우선', line: '결과가 더 좋은 쪽을 먼저 써요. 유료가 필요하면 쓰기 전에 물어봐요.' }
+  };
+  const BUDGET_MAX = 100000;
+  const POLICY_UNAVAILABLE_COPY = '지금은 실행 방식을 바꿀 수 없어요. 무료 먼저(기본)로 처리해요.';
+  const POLICY_FAILED_COPY = '실행 방식을 불러오지 못했어요.';
+  const POLICY_SAVE_FAILED_COPY = '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.';
 
   // `notice` is what /auth.js said while the page was starting (a session that
   // ended, a dropped connection), kept so the gate can still say it. `account` and
@@ -67,6 +85,8 @@
   // 사용량: the period shown, its last good answer and when it came, the 30-second timer, and `ask`, which makes an
   // answer to an older question (another period, an earlier refresh) count for nothing.
   const usage = { period: 'current', data: null, updatedAt: 0, timer: null, busy: false, ask: 0, unavailable: false };
+  // 실행 방식: the server's value, whether it can be changed here, and one change at a time.
+  const policy = { value: null, status: 'loading', saving: false, ask: 0 };
   const $ = (id) => document.getElementById(id);
 
   function el(tag, props, children) {
@@ -303,34 +323,54 @@
     };
   }
 
-  // Free with a fifth or less of today's credits left (not none): the app's and the server notice's sentence,
-  // with when they come back -- '오늘 크레딧이 거의 다 떨어졌어요. 내일 오전 9시에 30크레딧으로 채워져요.'
+  // Owner 2026-10-27: people never see credit numbers, tokens or $. Usage is a percentage of the period's allowance
+  // (Free: of today's), and each service's share of what was used.
+  function percentOf(part, whole) {
+    if (!(whole > 0) || !(part >= 0)) return null;
+    const value = Math.round((part / whole) * 100);
+    if (part > 0 && value === 0) return '1% 미만';
+    return `${Math.min(100, value)}%`;
+  }
+
+  function gauge(used, allowance, label) {
+    return el('progress', { className: 'usage-quota', max: Math.max(1, allowance), value: Math.min(used, allowance), 'aria-label': label });
+  }
+
+  // Free with a fifth or less of today's allowance left (not none): the app's sentence, with when it comes back,
+  // and no credit number -- '오늘 사용량을 거의 다 썼어요. 내일 오전 9시에 다시 채워져요.'
   function freeNearLimitNotice(credits, now = Date.now()) {
     if (!credits.daily || !credits.allowance || credits.remaining <= 0 || credits.remaining * 5 > credits.allowance) return '';
-    const head = '오늘 크레딧이 거의 다 떨어졌어요.';
+    const head = '오늘 사용량을 거의 다 썼어요.';
     if (!credits.nextRefill) return head;
     const days = kstDay(credits.nextRefill) - kstDay(now);
     const day = days <= 0 ? '오늘' : days === 1 ? '내일' : koreanTime(credits.nextRefill).replace(/\s*(오전|오후).*$/, '');
     const clock = new Date(credits.nextRefill).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit' })
       .replace(/:00$/, '시').replace(/:(\d\d)$/, '시 $1분');
-    return `${head} ${day} ${clock}에 ${number(credits.allowance)}크레딧으로 채워져요.`;
+    return `${head} ${day} ${clock}에 다시 채워져요.`;
   }
 
-  // Remaining plan credits, when they come back (Free: every day at 09:00), the
-  // top-up balance and, on Free, today's work runs.
+  // This period's usage as a percentage with a gauge (Free: of today's allowance), when it comes back (Free: every day
+  // at 09:00), whether a top-up is left and, on Free, today's work runs.
   function renderCredits(credits) {
     const rows = [];
     if (credits.plan) rows.push(['플랜', credits.plan]);
-    rows.push(['남은 크레딧', `${number(credits.remaining)} / ${number(credits.allowance)}`]);
+    const title = credits.daily ? '오늘 사용량' : '이번 달 사용량';
+    const used = Math.max(0, credits.allowance - credits.remaining);
+    rows.push([title, percentOf(used, credits.allowance) || '0%']);
     if (credits.daily) rows.push(['다음 충전', koreanTime(credits.nextRefill) || '매일 오전 9시']);
     else if (credits.periodEnd || credits.nextRefill) rows.push(['다음 초기화', dateOf((credits.periodEnd || credits.nextRefill) / 1000)]);
-    if (credits.topup !== null) rows.push(['충전 크레딧', number(credits.topup)]);
+    if (credits.topup !== null) rows.push(['충전한 사용량', credits.topup > 0 ? '남아 있어요' : '없어요']);
     if (credits.runs) rows.push(['오늘 업무 실행', `${number(credits.runs.used)} / ${number(credits.runs.limit)}회`]);
     fill($('credits-rows'), rowsOf(rows));
     $('credits-rows').hidden = false;
+    const bar = $('credits-gauge');
+    bar.setAttribute('max', String(Math.max(1, credits.allowance)));
+    bar.setAttribute('value', String(Math.min(used, credits.allowance)));
+    bar.setAttribute('aria-label', title);
+    bar.hidden = false;
     const note = credits.daily
-      ? '매일 오전 9시에 다시 채워지고, 남은 크레딧은 쌓이지 않아요. 충전 크레딧은 플랜 크레딧을 다 쓴 뒤에 써요.'
-      : '충전 크레딧은 플랜 크레딧을 다 쓴 뒤에 쓰고, 해지해도 남아요.';
+      ? '매일 오전 9시에 다시 채워지고, 남은 사용량은 쌓이지 않아요. 충전한 사용량은 플랜 사용량을 다 쓴 뒤에 써요.'
+      : '충전한 사용량은 플랜 사용량을 다 쓴 뒤에 쓰고, 해지해도 남아요.';
     const nearLimit = freeNearLimitNotice(credits);
     $('credits-note').textContent = nearLimit ? `${nearLimit} ${note}` : note;
     $('credits-note').hidden = false;
@@ -347,7 +387,7 @@
       $('credits-rows').hidden = true;
       $('credits-note').hidden = true;
       $('credits-actions').hidden = true;
-      setStatus('credits-status', '크레딧을 불러오고 있어요.', false);
+      setStatus('credits-status', '사용량을 불러오고 있어요.', false);
     }
     state.creditsBusy = true;
     let credits = null;
@@ -470,9 +510,6 @@
     return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
   }
 
-  function creditText(value) {
-    return `${number(value)}크레딧`;
-  }
 
   // The day in Korea, as a whole number, so "today" and "tomorrow" are Korea's.
   function kstDay(ms) {
@@ -519,40 +556,81 @@
       own: own && count(own.count) !== null && count(own.estimated_credits) !== null
         ? { count: own.count, estimated: own.estimated_credits } : null,
       purchases: bought && ['count', 'credits', 'refunds', 'refunded_credits'].every((key) => count(bought[key]) !== null)
-        ? { count: bought.count, credits: bought.credits, refunds: bought.refunds, refunded: bought.refunded_credits } : null
+        ? { count: bought.count, credits: bought.credits, refunds: bought.refunds, refunded: bought.refunded_credits } : null,
+      providers: sanitizeProviders(value.providers),
+      policy: POLICIES.includes(value.policy) ? value.policy : null
     };
   }
 
-  function usageBlock(title, pairs, note) {
+  // providers[] (FREE-5), line by line: a line that does not parse is left out; an older answer without it has none.
+  function sanitizeProviders(value) {
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((line) => {
+      const row = objectOf(line);
+      if (!row || !Object.hasOwn(ROUTE_LABELS, String(row.route_kind))) return [];
+      const provider = /^[a-z0-9][a-z0-9_.-]{0,63}$/.test(String(row.provider)) ? String(row.provider) : '';
+      const capability = /^[a-z][a-z0-9_]{0,31}$/.test(String(row.capability)) ? String(row.capability) : '';
+      if (!provider || !capability || count(row.requests) === null || count(row.credits) === null) return [];
+      const quota = objectOf(row.free_quota);
+      const limit = quota && count(quota.limit) ? quota.limit : 0;
+      const used = quota ? count(quota.used) : null;
+      return [{ provider, capability, route: String(row.route_kind), requests: row.requests, credits: row.credits,
+        quota: limit && used !== null ? { limit, used } : null }];
+    });
+  }
+
+  // 서비스별: one row per service and route, the free quota left as a bar under it.
+  function providersBlock(lines, policyId) {
+    const rows = lines.map((line) => {
+      const name = PROVIDER_LABELS[line.provider] || line.provider;
+      const what = CAPABILITY_LABELS[line.capability];
+      // Owner 2026-10-27: no credit, request or token counts — only how much of the free quota is used, as a percentage.
+      const value = el('dd', { text: ROUTE_LABELS[line.route] });
+      if (line.quota) {
+        const copy = ` · 무료 한도 ${Math.min(100, Math.round((line.quota.used / line.quota.limit) * 100))}% 사용`;
+        value.append(el('span', { text: copy }),
+          el('progress', { className: 'usage-quota', max: line.quota.limit, value: Math.min(line.quota.used, line.quota.limit), 'aria-label': copy.slice(3) }));
+      }
+      return el('div', {}, [el('dt', { text: what ? `${name} · ${what}` : name }), value]);
+    });
+    return el('div', { className: 'usage-block' }, [
+      el('h3', { text: '서비스별' }),
+      el('dl', { className: 'account-rows' }, rows),
+      policyId ? el('p', { className: 'account-note', text: `실행 방식: ${POLICY_COPY[policyId].label}` }) : null
+    ]);
+  }
+
+  function usageBlock(title, pairs, note, bar = null) {
     return el('div', { className: 'usage-block' }, [
       el('h3', { text: title }),
       pairs.length ? el('dl', { className: 'account-rows' }, rowsOf(pairs)) : null,
+      bar,
       note ? el('p', { className: 'account-note', text: note }) : null
     ]);
   }
 
-  // When the plan credits come back, said in Korea's time (Free: every day at 09:00).
+  // When the plan's usage comes back, said in Korea's time (Free: every day at 09:00). No credit number.
   function refillNote(data) {
     if (data.period !== 'current' || !data.plan.refill) return '';
-    const amount = creditText(data.plan.allowance);
     if (data.free) {
       const days = kstDay(data.plan.refill) - kstDay(Date.now());
-      if (days === 0) return `오늘 오전 9시에 ${amount}으로 채워져요.`;
-      if (days === 1) return `내일 오전 9시에 ${amount}으로 채워져요.`;
+      if (days === 0) return '오늘 오전 9시에 다시 채워져요.';
+      if (days === 1) return '내일 오전 9시에 다시 채워져요.';
     }
-    return `${koreanTime(data.plan.refill)}에 ${amount}으로 ${data.free ? '' : '다시 '}채워져요.`;
+    return `${koreanTime(data.plan.refill)}에 다시 채워져요.`;
   }
 
-  // The server's daily settlement, newest day first: one row per day with what the server and the storage cost.
-  function serverBlock(lines) {
+  // The server's daily settlement, newest day first: one row per day with the server's and the storage's share of
+  // what this period used.
+  function serverBlock(lines, total) {
     const days = new Map();
     lines.forEach((line) => {
       const day = days.get(line.date) || {};
       day[line.category] = (day[line.category] || 0) + line.credits;
       days.set(line.date, day);
     });
-    const pairs = [...days.entries()].reverse().map(([date, day]) => [dayLabel(date),
-      ['compute', 'storage'].filter((key) => Object.hasOwn(day, key)).map((key) => `${SERVER_LABELS[key]} ${creditText(day[key])}`).join(' · ')]);
+    const pairs = total > 0 ? [...days.entries()].reverse().map(([date, day]) => [dayLabel(date),
+      ['compute', 'storage'].filter((key) => Object.hasOwn(day, key)).map((key) => `${SERVER_LABELS[key]} ${percentOf(day[key], total)}`).join(' · ')]) : [];
     return usageBlock('서버 이용', pairs, pairs.length ? '하루치를 다음 날 정산해 날짜별로 보여 줘요.' : '아직 정산된 서버 이용이 없어요.');
   }
 
@@ -566,20 +644,25 @@
     const range = data.starts && data.ends ? `${koreanTime(data.starts)} ~ ${koreanTime(data.ends)}` : '';
     $('usage-range').textContent = range;
     $('usage-range').hidden = !range;
+    const total = data.spend.total;
+    const usedTitle = `${word} 사용량`;
+    const usageCard = usageBlock('사용량', [[usedTitle, percentOf(data.plan.used, data.plan.allowance) || '0%']],
+      [refillNote(data), data.topup > 0 ? '충전한 사용량이 남아 있어요.' : ''].filter(Boolean).join(' '),
+      gauge(data.plan.used, data.plan.allowance, usedTitle));
+    const shares = total > 0 ? SPEND_LABELS.map(([key, label]) => [label, percentOf(data.spend[key], total)]) : [];
+    const summary = shares.filter((_, index) => data.spend[SPEND_LABELS[index][0]] > 0).map(([label, value]) => `${label} ${value}`).join(' · ');
     const blocks = [
-      usageBlock('플랜 크레딧', [['받은 크레딧', creditText(data.plan.allowance)], ['쓴 크레딧', creditText(data.plan.used)],
-        ['남은 크레딧', creditText(data.plan.remaining)]], refillNote(data)),
-      data.topup !== null ? usageBlock('충전 크레딧', [['충전 크레딧 남음', creditText(data.topup)]], '플랜 크레딧을 다 쓴 뒤에 써요.') : null,
+      usageCard,
+      usageBlock('서비스별 사용', shares, total > 0 ? summary : '이 기간에 쓴 사용량이 없어요.'),
       data.tickets ? usageBlock('초기화 티켓', [['전체 초기화 남음', `${number(data.tickets.full)}장`],
         ['절반 초기화 남음', `${number(data.tickets.half)}장`],
         [`${word} 쓴 티켓`, `전체 ${number(data.tickets.usedFull)}장 · 절반 ${number(data.tickets.usedHalf)}장`]]) : null,
-      data.server ? serverBlock(data.server) : null,
-      usageBlock('서비스별 사용', [...SPEND_LABELS.map(([key, label]) => [label, creditText(data.spend[key])]),
-        ['합계', creditText(data.spend.total)]]),
-      data.own ? usageBlock('내 계정으로 처리', [['처리한 작업', `${number(data.own.count)}건 · 0크레딧`],
-        ['사이드킥 크레딧이었다면', `약 ${creditText(data.own.estimated)}`]], '내 계정으로 처리한 작업은 크레딧이 들지 않아요.') : null,
-      data.purchases ? usageBlock('구매·환불 내역', [['구매', `${number(data.purchases.count)}건 · ${creditText(data.purchases.credits)}`],
-        ['환불', `${number(data.purchases.refunds)}건 · ${creditText(data.purchases.refunded)}`]]) : null
+      data.server ? serverBlock(data.server, total) : null,
+      data.providers.length ? providersBlock(data.providers, data.policy) : null,
+      data.own ? usageBlock('내 계정으로 처리', [['처리한 작업', `${number(data.own.count)}건`]],
+        '내 계정으로 처리한 작업은 사이드킥 사용량이 들지 않아요.') : null,
+      data.purchases ? usageBlock('구매·환불 내역', [['구매', `${number(data.purchases.count)}건`],
+        ['환불', `${number(data.purchases.refunds)}건`]]) : null
     ];
     fill($('usage-body'), blocks);
     $('usage-body').hidden = false;
@@ -686,6 +769,83 @@
     if ($('account-view').hidden) return;
     refreshUsage();
     startUsageRefresh();
+  }
+
+  // ---- 실행 방식 (FREE-5) --------------------------------------------------------
+  function sanitizePolicy(answer) {
+    const value = objectOf(answer);
+    if (!value || !POLICIES.includes(value.execution_policy)) return null;
+    const budget = count(value.paid_budget_credits_per_month);
+    if (budget === null) return null;
+    return { policy: value.execution_policy, budget: Math.min(budget, BUDGET_MAX) };
+  }
+
+  function renderPolicy(message, isError) {
+    const value = policy.value || { policy: 'free_first', budget: 0 };
+    const locked = policy.status !== 'ready' || policy.saving;
+    POLICIES.forEach((id) => {
+      const button = $(`policy-${id}`);
+      button.setAttribute('aria-pressed', String(id === value.policy));
+      button.disabled = locked;
+    });
+    $('policy-line').textContent = POLICY_COPY[value.policy].line;
+    // Owner 2026-10-27: no credit numbers. The server's monthly paid budget is not shown; a choice sends it back unchanged.
+    const line = message !== undefined ? message
+      : policy.status === 'unavailable' ? POLICY_UNAVAILABLE_COPY
+        : policy.status === 'loading' ? '실행 방식을 확인하고 있어요.'
+          : policy.saving ? '바꾸고 있어요.' : '';
+    setStatus('policy-status', line, isError);
+  }
+
+  async function loadPolicy(seq) {
+    const ask = ++policy.ask;
+    policy.status = 'loading';
+    policy.saving = false;
+    $('policy-actions').hidden = true;
+    renderPolicy();
+    let answer = null;
+    let failure = null;
+    try { answer = await api('/settings/execution-policy', { method: 'GET' }); } catch (error) { failure = error; }
+    if (seq !== state.seq || ask !== policy.ask) return;
+    if (failure && refused(failure)) return;
+    if (failure && failure.status === 404) { policy.status = 'unavailable'; policy.value = null; renderPolicy(); return; }
+    const value = failure ? null : sanitizePolicy(answer);
+    if (!value) {
+      policy.status = 'failed';
+      renderPolicy(failure && failure.network ? NETWORK_COPY : POLICY_FAILED_COPY, true);
+      fill($('policy-actions'), [retryButton('다시 불러오기', () => loadPolicy(state.seq))]);
+      $('policy-actions').hidden = false;
+      return;
+    }
+    policy.status = 'ready';
+    policy.value = value;
+    renderPolicy();
+  }
+
+  // One change at a time: shown at once, put back if the server does not take it.
+  async function savePolicy(next) {
+    if (policy.status !== 'ready' || policy.saving || !policy.value) return;
+    const before = policy.value;
+    const wanted = { ...before, ...next };
+    if (!POLICIES.includes(wanted.policy) || (wanted.policy === before.policy && wanted.budget === before.budget)) return;
+    const seq = state.seq;
+    const ask = ++policy.ask;
+    policy.saving = true;
+    policy.value = wanted;
+    renderPolicy();
+    let answer = null;
+    let failure = null;
+    try {
+      answer = await api('/settings/execution-policy', { method: 'PUT',
+        body: JSON.stringify({ execution_policy: wanted.policy, paid_budget_credits_per_month: wanted.budget }) });
+    } catch (error) { failure = error; }
+    if (seq !== state.seq || ask !== policy.ask) return;
+    policy.saving = false;
+    if (failure && refused(failure)) return;
+    if (failure && failure.status === 404) { policy.status = 'unavailable'; policy.value = null; renderPolicy(); return; }
+    if (failure) { policy.value = before; renderPolicy(failure.network ? NETWORK_COPY : POLICY_SAVE_FAILED_COPY, true); return; }
+    policy.value = sanitizePolicy(answer) || wanted;
+    renderPolicy();
   }
 
   function sanitizeWorkspaces(value) {
@@ -844,13 +1004,14 @@
     usage.unavailable = false;
     markPeriod();
     startUsageRefresh();
-    await Promise.all([loadAccount(seq), loadAi(seq), loadCredits(seq), loadTickets(seq), loadUsage(seq, false)]);
+    await Promise.all([loadAccount(seq), loadAi(seq), loadCredits(seq), loadTickets(seq), loadUsage(seq, false), loadPolicy(seq)]);
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());
   $('signout-button').addEventListener('click', () => auth.signOut());
   $('auto-use-toggle').addEventListener('click', () => setAutoUse());
   $('usage-current').addEventListener('click', () => choosePeriod('current'));
+  POLICIES.forEach((id) => $(`policy-${id}`).addEventListener('click', () => savePolicy({ policy: id })));
   $('usage-previous').addEventListener('click', () => choosePeriod('previous'));
   if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => onVisibility());
   if (typeof window.addEventListener === 'function') window.addEventListener('focus', () => onVisibility());

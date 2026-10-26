@@ -14,16 +14,16 @@
       "sha256": "f462a1a3a4e1374b29d19f66b5566c5a8ca3ddbbb67a14c1741884ff300a229c"
     },
     "account/account.css": {
-      "bytes": 5109,
-      "sha256": "726d92c1d767441e5b534aa85a87c4542340cefeb9ce251edc5606dbaccaeb00"
+      "bytes": 5859,
+      "sha256": "79cc6f658e99f80ccb3b803c66eadb901ef149ca91e7f9c45428a07f7305f92d"
     },
     "account/account.js": {
-      "bytes": 42400,
-      "sha256": "fc26ce3470ca2fafe94e41da563045bf31ba17cd880237c05b2a25a7b504ebc9"
+      "bytes": 51530,
+      "sha256": "012cdac81c452640c8b4a110c4d25487912e143f07933c2d13038cbfdb81d878"
     },
     "account/index.html": {
-      "bytes": 10622,
-      "sha256": "1740a41d5a0f007ce798ff6610d19d5fa06e228ccbcbd874bf26cc8f0700d82c"
+      "bytes": 12032,
+      "sha256": "fe76cb6d1380977dc36d33d02a4ea314e483dec1290683a059f25ffde7a17c4d"
     },
     "ai-apps/ai-apps.css": {
       "bytes": 5063,
@@ -774,12 +774,12 @@
       "sha256": "ded9848e708136be691227169fcc8f43417db2c8c14576ae7f34ec94c1d27ccf"
     },
     "connections/connections.css": {
-      "bytes": 4049,
-      "sha256": "2bed2947621428877a63f377ddeef05f860350b44bf0ff1d3bb2c473d4adcfa8"
+      "bytes": 4339,
+      "sha256": "7006e51d129c79ca14162fc693e0e98b561dcedb4e76867ea0fd706405d8f137"
     },
     "connections/connections.js": {
-      "bytes": 47465,
-      "sha256": "2ce0e0f9b0417778abdca06de2b921872a4c0aef9377afae13289a1bf2f54dbe"
+      "bytes": 52258,
+      "sha256": "7aa029cb5c52a4df15e52626ee180d07a43f8db2c97373009b3ad36e1fee5868"
     },
     "connections/index.html": {
       "bytes": 6633,
@@ -814,8 +814,8 @@
       "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
     },
     "index.html": {
-      "bytes": 39580,
-      "sha256": "c6e8243f4e0e3a620d981623d063103a72ad3c9c28c1f601bbdadd2cec2fe6fd"
+      "bytes": 40162,
+      "sha256": "69c316f2c7db61ece2c5ce0577da23f1589732999b0c87e7680be9f15d40042c"
     },
     "invite/index.html": {
       "bytes": 10579,
@@ -870,16 +870,16 @@
       "sha256": "1010830e33995caaa5ac7436b0da6d36fa32e547e229a44ef420d0b9967a9e34"
     },
     "membership/index.html": {
-      "bytes": 24682,
-      "sha256": "e241e2daf57c237668a69d60c700d2846e58b04f5fb73ae56d8899c448430085"
+      "bytes": 26384,
+      "sha256": "ef9a5d111200f4b665e122ad1a358c6fedb0c0da8b26c03d97b6c97ce7358cf0"
     },
     "membership/membership.css": {
-      "bytes": 18091,
-      "sha256": "939dc62d18aeacc4ecd7cdbc7e1ba9673f5eebff12df3d1e71cf925f34674251"
+      "bytes": 18506,
+      "sha256": "b4f629379d91e7e286f85cbc37cc2082da700f9a7b0bc1e389f8bbf1cd1aa391"
     },
     "membership/membership.js": {
-      "bytes": 46046,
-      "sha256": "4a5280b82e3a2994ddea4b16d80753c2589f2fe826dc842b731ded137b70cd99"
+      "bytes": 46609,
+      "sha256": "88e5b7adea4bb7c43f48a8b305cf368193a9168e14f730cc5df3cfbed20db371"
     },
     "motion.css": {
       "bytes": 8872,
@@ -906,12 +906,12 @@
       "sha256": "d7b2476605d6a29cb0e36a95dcce14e54646289a927032b6232268ab70bb246d"
     },
     "support/index.html": {
-      "bytes": 14612,
-      "sha256": "25b24dfa0bc85ffdca5b3853f23eef8cecef2a927d82ce1be6e1087f4960aaef"
+      "bytes": 14671,
+      "sha256": "a9f0eaf674c20cf691f8482aab8eb3bb658d8141a7690e940c813464fa3513f7"
     },
     "terms/index.html": {
-      "bytes": 28368,
-      "sha256": "e4245f1d5357ba8eb32ab478dac7a294d085a67e5e84bcb55b4385871f0c4823"
+      "bytes": 28580,
+      "sha256": "233b9c82fdb3290249d9b9587f174af67e740313d4f1ec65d2e47fa6afacef48"
     },
     "use.js": {
       "bytes": 3854,
@@ -956,5 +956,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "f3346c1d2dd8954b01a4d983f8633eac49a8c14d"
+  "source_sha": "c01435b2fdb94de891937274fc53a66197450670"
 }

@@ -21,7 +21,19 @@
   const CONNECT_PATH = /^\/connections\/([a-z][a-z0-9_]{0,119})\/(mcp|managed|oauth)\/connect$/;
   const POLL_MS = 15000;
   const WAIT_MS = 240000;
-  const KINDS = ['ai_engine', 'service', 'external_account', 'browser_login', 'store', 'notification', 'claude_code'];
+  const KINDS = ['ai_engine', 'service', 'external_account', 'browser_login', 'store', 'notification', 'claude_code', 'free_api'];
+  // 무료 API 키 (owner 2026-10-26, FREE-5): the person's own free-tier keys. Sidekick uses them first, inside their free
+  // quota. Connected through the managed key route; GET /integrations lists them as kind 'free_api' with
+  // free_quota {limit, used, resets_at}. The same table as the app (apps/mobile/app/data/integrations.js FREE_API_SERVICES).
+  const FREE_API_SERVICES = [
+    { id: 'gemini_api', name: 'Gemini API', what: '글·이미지 이해' },
+    { id: 'groq', name: 'Groq', what: '빠른 글 처리' },
+    { id: 'cloudflare_ai', name: 'Cloudflare Workers AI', what: '글·이미지', accountId: true },
+    { id: 'mistral', name: 'Mistral', what: '글 처리' },
+    { id: 'google_cloud_tts', name: 'Google Cloud 음성 합성', what: '음성' },
+    { id: 'azure_speech', name: 'Azure 음성', what: '음성·받아쓰기' }
+  ];
+  const FREE_API_IDS = FREE_API_SERVICES.map((service) => service.id);
   const METHODS = ['oauth', 'api_key', 'login', 'device_code', 'none'];
   const STATUSES = ['connected', 'expired', 'error', 'disconnected', 'unavailable'];
   const ACTIONS = ['connect', 'reconnect', 'change_key', 'test', 'disconnect'];
@@ -32,6 +44,7 @@
   const WEB_OAUTH = ['youtube', 'x', 'naver'];
   const GROUPS = [
     { id: 'ai', title: 'AI 엔진', line: '내 AI 계정으로 하는 일에는 사이드킥 크레딧이 들지 않아요.' },
+    { id: 'free', title: '무료 API 키', line: '내 무료 API 키로 하는 일에는 사이드킥 크레딧이 들지 않아요. 무료 한도를 다 쓰면 정한 실행 방식대로 해요.' },
     { id: 'tools', title: '미디어·도구', line: '내 키로 연결한 서비스를 쓰는 일에는 사이드킥 크레딧이 들지 않아요.' },
     { id: 'accounts', title: '외부 계정', line: '내 계정으로 하는 일에는 사이드킥 크레딧이 들지 않아요.' },
     { id: 'app', title: '앱에서만 연결', line: '휴대폰에서 로그인해야 하는 연결이에요. 연결한 내 계정으로 하는 일에는 크레딧이 들지 않아요.' }
@@ -168,6 +181,7 @@
   function groupOf(kind, webManageable) {
     if (DEVICE_KINDS.includes(kind) || !webManageable) return 'app';
     if (kind === 'ai_engine') return 'ai';
+    if (kind === 'free_api') return 'free';
     return kind === 'service' ? 'tools' : 'accounts';
   }
   function hintOf(value) {
@@ -214,6 +228,32 @@
     return text(value, 80).replace(/\b(?:MCP|API key|server|token|provider)\b/gi, '서비스') || '서비스';
   }
 
+  // A free key's quota: a whole limit above 0 and a whole amount used, or nothing (no bar is guessed).
+  function freeQuota(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const limit = Number.isSafeInteger(value.limit) && value.limit > 0 ? value.limit : 0;
+    const used = Number.isSafeInteger(value.used) && value.used >= 0 ? value.used : -1;
+    if (!limit || used < 0) return null;
+    const resets = typeof value.resets_at === 'string' && Number.isFinite(Date.parse(value.resets_at)) ? value.resets_at : null;
+    return { limit, used, resetsAt: resets };
+  }
+  // The same sentence as the app (integrations.freeQuotaPresentation): a percentage only, no request counts (owner 2026-10-27).
+  function quotaCopy(quota) {
+    const remaining = Math.max(0, quota.limit - quota.used);
+    const percent = Math.min(100, Math.round((quota.used / quota.limit) * 100));
+    let reset = '';
+    const at = quota.resetsAt ? Date.parse(quota.resetsAt) : NaN;
+    if (Number.isFinite(at)) {
+      const day = new Date(at + 9 * 3600000);
+      reset = `${day.getUTCMonth() + 1}월 ${day.getUTCDate()}일에 다시 채워져요`;
+    }
+    return { remaining, reset, label: remaining > 0 ? `무료 한도 ${percent}% 사용`
+      : `무료 한도를 다 썼어요${reset ? ` · ${reset}` : ''}` };
+  }
+  function freeService(id) {
+    return FREE_API_SERVICES.find((service) => service.id === id) || null;
+  }
+
   // GET /integrations. Rows that do not parse are left out; an answer that is not the contract's shape is a failure.
   function integrationItems(answer) {
     if (!answer || typeof answer !== 'object' || !Array.isArray(answer.items)) throw new Error('invalid_integrations');
@@ -232,7 +272,8 @@
         status: STATUSES.includes(row.status) ? row.status : 'disconnected',
         keyHint: hintOf(row.key_hint), accountLabel: text(row.account_label, 120),
         webManageable, connect: webManageable ? connectPlan(kind, serviceId, row.connect) : null,
-        notFree: row.uses_own_account_credits_free === false
+        notFree: row.uses_own_account_credits_free === false,
+        ...(kind === 'free_api' ? { freeQuota: freeQuota(row.free_quota) } : {})
       }, Array.isArray(row.actions) ? row.actions : [])];
     });
   }
@@ -264,15 +305,17 @@
       const web = way !== 'oauth' || WEB_OAUTH.includes(row.service);
       if (!web && !record) return [];
       const ready = row.connectionReady === true && !['planned', 'not_ready'].includes(row.adapterStatus);
+      const freeApi = FREE_API_IDS.includes(row.service) && way === 'managed';
       return [finish({
-        id: `service:${row.service}`, kind: way === 'oauth' ? 'external_account' : 'service', serviceId: row.service, source: 'connections',
+        id: `service:${row.service}`, kind: freeApi ? 'free_api' : way === 'oauth' ? 'external_account' : 'service', serviceId: row.service, source: 'connections',
         name: serviceName(row.displayName),
         method: method === 'oauth' ? 'oauth' : method === 'none' ? 'none' : 'api_key',
         status: record ? (record.status === 'connected' ? 'connected' : 'expired') : ready ? 'disconnected' : 'unavailable',
         keyHint: method === 'api_key' && record ? hintOf(record.credentialHint) : '',
         accountLabel: record ? text(record.external_identity_label, 120) : '',
         webManageable: web, connect: web ? { type: 'route', way, authMethod: method } : null, ready,
-        keyChange: method === 'api_key', testable: way === 'mcp'
+        keyChange: method === 'api_key', testable: way === 'mcp',
+        ...(freeApi ? { freeQuota: null } : {})
       }, ['connect', 'reconnect', 'change_key', 'test', 'disconnect'])];
     });
   }
@@ -428,6 +471,19 @@
     if (item.status === 'error' && !item.info) card.append(node('p', '연결에 문제가 있어요. 다시 연결해 주세요.'));
     if (item.status === 'unavailable' && !item.info) card.append(node('p', '지금은 새 연결을 준비하고 있어요.'));
     if (item.notFree) card.append(node('p', '이 연결로 하는 일에는 크레딧이 들어요.'));
+    if (item.kind === 'free_api') {
+      const service = freeService(item.serviceId);
+      if (service) card.append(node('p', service.what, 'service-free-what'));
+      if (item.freeQuota) {
+        const copy = quotaCopy(item.freeQuota);
+        const bar = node('progress', '', 'service-quota');
+        bar.setAttribute('max', String(item.freeQuota.limit));
+        bar.setAttribute('value', String(Math.min(item.freeQuota.used, item.freeQuota.limit)));
+        bar.setAttribute('aria-label', copy.label);
+        card.append(bar, node('p', copy.label, 'service-quota-line'));
+        if (copy.reset && copy.remaining > 0) card.append(node('p', copy.reset, 'service-quota-line'));
+      }
+    }
     if (item.group === 'app') {
       card.append(node('p', `앱에서 연결 · ${item.reason}`, 'service-app-reason'));
     }
@@ -460,7 +516,7 @@
         if (!mine.length) state.expanded.add(group.id);
         more.open = Boolean(search) || state.expanded.has(group.id) || Boolean(state.flow && rest.some((item) => item.id === state.flow.item.id));
         more.addEventListener('toggle', () => { if (search) return; if (more.open) state.expanded.add(group.id); else state.expanded.delete(group.id); });
-        more.append(node('summary', `연결할 수 있는 ${group.id === 'ai' ? 'AI' : '서비스'} ${rest.length}개`));
+        more.append(node('summary', `연결할 수 있는 ${group.id === 'ai' ? 'AI' : group.id === 'free' ? '무료 API 키' : '서비스'} ${rest.length}개`));
         const list = node('div', '', 'service-grid'); rest.forEach((item) => list.append(rowNode(item))); more.append(list);
         section.append(more);
       }
@@ -535,9 +591,21 @@
     const label = node('label', changing ? '새 키' : '연결 정보'); label.htmlFor = 'connection-secret';
     const input = node('input'); input.id = 'connection-secret'; input.type = 'password'; input.required = true; input.maxLength = 4096;
     flow.input = input;
+    // Cloudflare Workers AI also needs the account id; it is not a secret, so it is a plain field before the token.
+    const needsAccount = item.kind === 'free_api' && Boolean(freeService(item.serviceId)?.accountId);
+    let account = null;
+    if (needsAccount) {
+      account = node('input'); account.id = 'connection-account'; account.type = 'text'; account.required = true; account.maxLength = 64;
+      account.setAttribute('autocomplete', 'off'); account.setAttribute('autocapitalize', 'off'); account.setAttribute('spellcheck', 'false');
+      label.textContent = 'API 토큰';
+    } else if (item.kind === 'free_api') label.textContent = changing ? '새 API 키' : 'API 키';
     input.setAttribute('autocomplete', 'off'); input.setAttribute('autocapitalize', 'off'); input.setAttribute('spellcheck', 'false');
     const submit = node('button', changing ? '바꾸기' : '연결 확인', 'service-button'); submit.id = 'submit-connection'; submit.type = 'submit';
     const actions = node('div', '', 'service-actions'); actions.append(submit, cancel(flow));
+    if (account) {
+      const accountLabel = node('label', '계정 ID'); accountLabel.htmlFor = 'connection-account';
+      form.append(accountLabel, account);
+    }
     form.append(label, input, actions);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -545,6 +613,11 @@
       const credential = input.value.trim(); input.value = '';
       if (!credential || /[\r\n]/.test(credential)) { status('action-status', '발급받은 키를 확인해 주세요.', true); return; }
       if (flow.item.kind === 'ai_engine' && credential.length < 20) { status('action-status', '키가 너무 짧아요. 발급받은 키 전체를 붙여넣어 주세요.', true); return; }
+      if (account) {
+        const accountId = account.value.trim();
+        if (!/^[A-Za-z0-9_-]{6,64}$/.test(accountId)) { status('action-status', '계정 ID를 확인해 주세요.', true); return; }
+        flow.accountId = accountId;
+      }
       start(flow, credential);
     });
     show(flow, node('p', changing
@@ -579,6 +652,7 @@
         provider: item.serviceId, auth_method: 'credential', credential }) }];
     }
     const body = { authMethod: item.connect.authMethod }; if (credential) body.credential = credential;
+    if (item.kind === 'free_api' && flow.accountId) body.account_id = flow.accountId;
     return [`/connections/${encodeURIComponent(item.serviceId)}/${item.connect.way}/connect?${query(scope)}`, { method: 'POST', body: JSON.stringify(body) }];
   }
   function connectedNow(item) {

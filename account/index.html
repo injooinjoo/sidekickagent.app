@@ -78,8 +78,9 @@
 
       <!-- D79: credits in numbers. GET /usage/credits; nothing here is bought. -->
       <section class="account-card" aria-labelledby="credits-heading">
-        <h2 id="credits-heading">크레딧</h2>
+        <h2 id="credits-heading">이번 기간 사용량</h2>
         <dl class="account-rows" id="credits-rows" hidden></dl>
+        <progress class="usage-quota" id="credits-gauge" max="1" value="0" hidden></progress>
         <p class="account-note" id="credits-note" hidden></p>
         <p class="account-status" id="credits-status" aria-live="polite">크레딧을 불러오고 있어요.</p>
         <div class="account-actions" id="credits-actions" hidden></div>
@@ -95,6 +96,20 @@
         </div>
         <p class="account-note" id="tickets-note" hidden>켜 두면 한도에 닿았을 때 절반 티켓부터 써요.</p>
         <p class="account-status" id="tickets-status" aria-live="polite">티켓을 불러오고 있어요.</p>
+      </section>
+
+      <!-- FREE-5 (owner, 2026-10-26): GET/PUT /settings/execution-policy. The same three choices and the same words as the
+           app's 실행 방식; a server without the route says so and the choices stay locked. -->
+      <section class="account-card" aria-labelledby="policy-heading" id="policy-card">
+        <h2 id="policy-heading">실행 방식</h2>
+        <div class="policy-options" role="group" aria-label="실행 방식 고르기" id="policy-options">
+          <button class="policy-option" type="button" id="policy-free_only" data-policy="free_only" aria-pressed="false" disabled>무료만 쓰기</button>
+          <button class="policy-option" type="button" id="policy-free_first" data-policy="free_first" aria-pressed="true" disabled>무료 먼저(기본)</button>
+          <button class="policy-option" type="button" id="policy-quality_first" data-policy="quality_first" aria-pressed="false" disabled>품질 우선</button>
+        </div>
+        <p class="account-note" id="policy-line">무료로 먼저 해 보고, 유료가 필요하면 쓰기 전에 물어봐요.</p>
+        <p class="account-status" id="policy-status" aria-live="polite">실행 방식을 확인하고 있어요.</p>
+        <div class="account-actions" id="policy-actions" hidden></div>
       </section>
 
       <!-- GET /usage/breakdown?period=current|previous: where the credits went (owner, 2026-10-25). Refreshed on focus and
