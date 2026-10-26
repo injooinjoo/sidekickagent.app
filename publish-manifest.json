@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "d5fe473b75c94cbfba4e9f9d705254ab08bd9d9b2ae39b316ff72472b8b8d239",
+  "export_rules_sha256": "eef8ecb105c4256821a74d01d752291af8e188ce7d77ced5979bcbe9d6c3d379",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -14,16 +14,16 @@
       "sha256": "f462a1a3a4e1374b29d19f66b5566c5a8ca3ddbbb67a14c1741884ff300a229c"
     },
     "account/account.css": {
-      "bytes": 2907,
-      "sha256": "0fd46cb5ee271f8d543cc965570f9aa38685b280446cd7685381cf9532d0ad37"
+      "bytes": 5109,
+      "sha256": "726d92c1d767441e5b534aa85a87c4542340cefeb9ce251edc5606dbaccaeb00"
     },
     "account/account.js": {
-      "bytes": 19629,
-      "sha256": "46635affbf2b3d8aa57fbbce4ad86746fdc5834817a4653fa0394a4fed426689"
+      "bytes": 42400,
+      "sha256": "fc26ce3470ca2fafe94e41da563045bf31ba17cd880237c05b2a25a7b504ebc9"
     },
     "account/index.html": {
-      "bytes": 7761,
-      "sha256": "165e0cf5154aae6299007424b2a107a4322e283915b4b15dcb54cff50f4dff6f"
+      "bytes": 10622,
+      "sha256": "1740a41d5a0f007ce798ff6610d19d5fa06e228ccbcbd874bf26cc8f0700d82c"
     },
     "ai-apps/ai-apps.css": {
       "bytes": 5063,
@@ -46,16 +46,16 @@
       "sha256": "986b5c9dee496766b8f5109520d0f796cb347379c0b0caf155d9ad92ed8b2482"
     },
     "ai/ai.css": {
-      "bytes": 16626,
-      "sha256": "18f30179ff17b9d3870ad781444c4bc03987dbe76bad01f398924fcad7a67b88"
+      "bytes": 17626,
+      "sha256": "13f16520da3c253fbf2288ef21c15e689512f5a6552fe3400412f5702c529d16"
     },
     "ai/ai.js": {
-      "bytes": 98502,
-      "sha256": "78cdc886927f6a755b18313225f35f4aef06b4670c532e7dc37d7a5dfee65d65"
+      "bytes": 109649,
+      "sha256": "190eaa97445b35fd58dbd61693b65ae15708f7d976f8b799bf1c5c744fcfcbb4"
     },
     "ai/index.html": {
-      "bytes": 16691,
-      "sha256": "fee0029e893c39b5f25743c725b529f8a1effa2deb010a9dd0f0b6141fcb51b7"
+      "bytes": 17719,
+      "sha256": "0609ab0a5bab96b1c5e761d864eb45ca0f86c9514f2d65685139bf63493c3600"
     },
     "analytics-config.js": {
       "bytes": 343,
@@ -81,6 +81,10 @@
       "bytes": 5568,
       "sha256": "8e7d915b8ee26d26447ff47c1bd80e50d7ca868af4c6487bdf4be88b140520b2"
     },
+    "assets/ai/ai-gateway.png": {
+      "bytes": 2419,
+      "sha256": "1c0aa1796cc217d8445545f22493e61459aac2b2fb2ca980303168137d2260b8"
+    },
     "assets/ai/anthropic.png": {
       "bytes": 23088,
       "sha256": "e378bef46f6e58696b77bc40afcfe4322ab20b79db20f19e4c0e419214876c8f"
@@ -93,9 +97,21 @@
       "bytes": 14002,
       "sha256": "d83027617569c9e0cddb1bbab1acc3f90cb72754c6cc72a99570c20ac3814fa0"
     },
+    "assets/ai/fireworks.png": {
+      "bytes": 8214,
+      "sha256": "d040a47f4e573ea498a10623fc1db6a10cc6b36be5d4b1909b03d100f93bd803"
+    },
     "assets/ai/gemini.png": {
       "bytes": 19712,
       "sha256": "2691cc39ae4753ba53452e59f64b590f06cce8daea663ba17c3b3416f044f170"
+    },
+    "assets/ai/huggingface.png": {
+      "bytes": 30773,
+      "sha256": "4c91cb2a14da108e4155bfc98ea1c0f476f6e16e08e3ffddccbd16ba31eb90cb"
+    },
+    "assets/ai/kilocode.png": {
+      "bytes": 4745,
+      "sha256": "92f40e382c14d3a47dae06227409b18773f1cd0f4ec3d5c520dbcc7c3991752f"
     },
     "assets/ai/kimi.png": {
       "bytes": 3920,
@@ -117,9 +133,17 @@
       "bytes": 14807,
       "sha256": "8c00552600650e5e9f8db000e42eeaf83616b1a49196a85f22f295c93f7a9439"
     },
+    "assets/ai/novita.png": {
+      "bytes": 8914,
+      "sha256": "1b4257a6deb3a5ec8e8c49dabf882065f8737563fa496d65403692c3e9cdbf5a"
+    },
     "assets/ai/nvidia.png": {
       "bytes": 13813,
       "sha256": "200fbdaf10d63e0c33b99ae3b19d475dde9e31f801508dff3adac5f557fa609c"
+    },
+    "assets/ai/ollama-cloud.png": {
+      "bytes": 11190,
+      "sha256": "66bcc9d15e47ad5ccfa577d5b97af6759a7a1c7464787947f86569e1f996f105"
     },
     "assets/ai/openai.png": {
       "bytes": 10724,
@@ -133,9 +157,21 @@
       "bytes": 8842,
       "sha256": "006687e72a13be16079e7888b0d9473e4b5d4d0a07b1070d32aad4329a718020"
     },
+    "assets/ai/stepfun.png": {
+      "bytes": 8600,
+      "sha256": "9acc2dac4a7f60a9d21f3b6f96864da085255e0aab47c85e5bfe5559f9a0b095"
+    },
+    "assets/ai/tencent-tokenhub.png": {
+      "bytes": 9131,
+      "sha256": "5f66f9658022ff3b8084ca9cdad02d29b4b2f7c6efb5abbaf22643d9896da38d"
+    },
     "assets/ai/xai.png": {
       "bytes": 6770,
       "sha256": "942c10d1535ca60df908dfbeedeb098f4701a3155c5539f58ddeb0a381c933fc"
+    },
+    "assets/ai/xiaomi.png": {
+      "bytes": 6703,
+      "sha256": "5b6ede8bc3cab7771fada83e3d887b0ce173702a9e4cccbd56b7dd6c5dac64d1"
     },
     "assets/ai/zai.png": {
       "bytes": 7817,
@@ -738,16 +774,16 @@
       "sha256": "ded9848e708136be691227169fcc8f43417db2c8c14576ae7f34ec94c1d27ccf"
     },
     "connections/connections.css": {
-      "bytes": 3208,
-      "sha256": "8a69aabce7ca278b4d55b94bb224ec7a90ade92c09210302ec28b91a4ca579f8"
+      "bytes": 4049,
+      "sha256": "2bed2947621428877a63f377ddeef05f860350b44bf0ff1d3bb2c473d4adcfa8"
     },
     "connections/connections.js": {
-      "bytes": 22053,
-      "sha256": "1d969083ec30a9a494f2e984ef8aa078420792b660079c799496994e3f376de9"
+      "bytes": 47465,
+      "sha256": "2ce0e0f9b0417778abdca06de2b921872a4c0aef9377afae13289a1bf2f54dbe"
     },
     "connections/index.html": {
-      "bytes": 6948,
-      "sha256": "cdfb24855756d92ee170f896339eb6ac1d21851938ac9cab19e6f355e5bd7125"
+      "bytes": 6633,
+      "sha256": "a4b3cc60c3111c0236f83c40f041715971bc7efc6a098fdb304b128118c69327"
     },
     "day.json": {
       "bytes": 6586,
@@ -778,8 +814,8 @@
       "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
     },
     "index.html": {
-      "bytes": 39585,
-      "sha256": "14b68f3269dfdad267b507daee45bad60f53f050304a7eaf73636dd2323e03a7"
+      "bytes": 39580,
+      "sha256": "c6e8243f4e0e3a620d981623d063103a72ad3c9c28c1f601bbdadd2cec2fe6fd"
     },
     "invite/index.html": {
       "bytes": 10579,
@@ -834,24 +870,24 @@
       "sha256": "1010830e33995caaa5ac7436b0da6d36fa32e547e229a44ef420d0b9967a9e34"
     },
     "membership/index.html": {
-      "bytes": 18462,
-      "sha256": "6fc3c26d068ff6f7a0e54a2073addcc54de8e1e508b7603d5279c46d9a729bbb"
+      "bytes": 23208,
+      "sha256": "2499c6e16421e2e8d466282d2d758fdddec9be078105cc4bd32ff7c9d392d5eb"
     },
     "membership/membership.css": {
-      "bytes": 16273,
-      "sha256": "699f4e37e2c6c0e65c26bf73536d76bb975705cfd6e48c8208160b986706ca24"
+      "bytes": 17426,
+      "sha256": "94aee8a48775ab888f84de8fe3f2fdfcbad7936cd76180d6e6a7a10e926ac9e8"
     },
     "membership/membership.js": {
-      "bytes": 35227,
-      "sha256": "4be07f2fe5183186e2726251b8ae6de8c0113aa23db91cb3b2f8fe3f927c50b7"
+      "bytes": 44849,
+      "sha256": "d573e53b16ba934021ecaa646f7efb56fca36a3445ccf323581e2dd67605db1d"
     },
     "motion.css": {
       "bytes": 8872,
       "sha256": "47e0d1d4113b8e738a01688b92284ad2cd4faaf8adfb9b8ea6d07c21a3c7899f"
     },
     "privacy/index.html": {
-      "bytes": 64598,
-      "sha256": "d4d0dc623b3b45ae21e7a87bb84b29f184a2b9be84de74e1f384682ca0aa4300"
+      "bytes": 68213,
+      "sha256": "8e8db1ec159f71b1943086723d6628e56dce0a3eaf0f512bba1f1c2434661d1b"
     },
     "robots.txt": {
       "bytes": 71,
@@ -870,12 +906,12 @@
       "sha256": "d7b2476605d6a29cb0e36a95dcce14e54646289a927032b6232268ab70bb246d"
     },
     "support/index.html": {
-      "bytes": 13375,
-      "sha256": "f14b05451bdb07de31827e8ed7c7b0cced87b2c131203755106182c30d58850e"
+      "bytes": 14612,
+      "sha256": "25b24dfa0bc85ffdca5b3853f23eef8cecef2a927d82ce1be6e1087f4960aaef"
     },
     "terms/index.html": {
-      "bytes": 23529,
-      "sha256": "998c73eca9802f34ba306a7d2ff1d4950e31e44420fff9c588d2423c907aa358"
+      "bytes": 28368,
+      "sha256": "e4245f1d5357ba8eb32ab478dac7a294d085a67e5e84bcb55b4385871f0c4823"
     },
     "use.js": {
       "bytes": 3854,
@@ -920,5 +956,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "75564a27d0fa2cd72414b96c1b6364aa41170141"
+  "source_sha": "8b7bc055b6acf80e7f5131d4ced2426a237e992b"
 }

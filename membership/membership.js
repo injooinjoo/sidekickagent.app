@@ -9,42 +9,62 @@
   const auth = window.SidekickAuth;
   const { api } = auth;
   const TOSS_SDK_URL = 'https://js.tosspayments.com/v2/standard';
-  // Plan identity only. What each combination costs is Korean won held in the
-  // backend's own catalog and served by /membership/toss/config, so this page
-  // has no price table to drift from — it renders what the server said or it
-  // renders nothing. `sold` is here because the page must know before the
-  // backend answers whether a plan may open a card window at all.
+  // The plans this page sells through Toss, identity only. What each one costs
+  // is Korean won held in the backend's catalog (GET /membership/catalog?schema=v3,
+  // D79), so this page has no price table to drift from — it renders what the
+  // server said or it renders nothing. `sold` is here because the page must know
+  // before the backend answers whether a plan may open a card window at all.
   //
-  // D76 removed the permanent Free tier: these three paid plans are the whole
-  // catalog. Free entry is the one cardless account trial, which the backend
-  // opens at signup — it is not a plan, so it is not here.
+  // D79 brought back a permanent Free plan. It is drawn on the page as its own
+  // card, but it is not in this table: nothing about it is bought here.
   const PLANS = {
     birdie: { label: 'Birdie', storage: '5GB', sold: true },
     eagle: { label: 'Eagle', storage: '25GB', sold: true },
     albatross: { label: 'Albatross', storage: '100GB', sold: true }
   };
   // The first paid plan, and the landing place for any plan value this page does
-  // not sell — including the removed `free`, which older links still carry.
+  // not sell — including `free`, which the landing's Free row links with.
   const DEFAULT_PLAN = 'birdie';
+  // The landing's Free row links here as ?plan=free: a public choice to clean
+  // from the address, with nothing to preselect.
+  const FREE_PLAN_LINK = 'free';
+  // One-time purchases (D79 6·7): the item ids are fixed by the API contract.
+  // A group closes as a whole when its catalog entry or its purchase route is
+  // missing, so one unready product never opens a payment window for another.
+  const ITEMS = {
+    credits_1000: { group: 'credits', action: '충전하기' },
+    credits_3000: { group: 'credits', action: '충전하기' },
+    credits_10000: { group: 'credits', action: '충전하기' },
+    reset_full: { group: 'tickets', action: '구매하기' },
+    reset_half: { group: 'tickets', action: '구매하기' }
+  };
+  const TICKET_NAMES = { full: '전체', half: '절반' };
   // The one thing that has to survive Toss's redirect. It is the same public
   // choice the person already made on this page — never an amount, an account,
   // an order or an entitlement, because none of those would be believed by the
   // backend anyway.
   const SELECTION_KEY = 'sidekick_toss_selection';
+  // The order this tab opened a one-time payment window for; cleared once the
+  // window fails or the server has answered the way back.
+  const PURCHASE_KEY = 'sidekick_toss_purchase';
 
   const state = {
     plan: DEFAULT_PLAN,
-    // 내 AI 계정 연결이 기본이다 (2026-10-07 소유자 방향: 가격은 더 싼 AI 연결
-    // 기준부터 보여 준다 — 2026-10-02 의 'Sidekick AI 포함 기본'을 대체한다).
-    // Sidekick AI 포함은 스위치를 끄면 보이는 두 번째 선택지다. 링크의
-    // ?funding= 은 그대로 따른다. 마크업의 첫 켜짐(aria-checked="true")도 이 값과 같다.
-    funding: 'connected',
-    storage: 'managed',
+    // The plan a link arrived with (?plan=eagle), marked on its card until a card is pressed.
+    requestedPlan: '',
     // A copy of the shared sign-in's bearer, refreshed whenever it changes, so
     // every "is this person signed in" below reads one field.
     token: auth.token(),
     user: null,
     billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false },
+    // GET /membership/catalog?schema=v3, read once. null until it answered or
+    // when it could not be read; `catalogChecked` tells those two apart.
+    catalog: null,
+    catalogChecked: false,
+    // Item groups the server refused to sell (404 or not configured). Closed for this visit.
+    closedGroups: {},
+    // The item whose payment window is being opened.
+    item: null,
     subscription: null,
     // /membership/status 의 답. 이 계정이 웹에서 사도 되는지(can_purchase_on_web)와
     // 어디서 구독 중인지(subscription_state)는 서버만 안다. 아직 못 읽었으면 null 이다.
@@ -57,18 +77,55 @@
   };
 
   const $ = (id) => document.getElementById(id);
-  const planCards = [...document.querySelectorAll('.plan-card')];
+  // The Free card carries no data-plan: it has no price node and no button.
+  const planCards = [...document.querySelectorAll('.plan-card[data-plan]')];
+  const itemCards = [...document.querySelectorAll('.extra-card[data-item]')];
   // 로그인 화면은 구매를 누른 순간에만 열린다. 그때 무엇을 사려던
   // 중이었는지 기억해 두었다가, 로그인이 끝나면 사람이 다시 누르지
   // 않아도 그 구매를 이어서 시작한다.
   let pendingPurchase = null;
+  let pendingItem = null;
+  // A return from a one-time payment is confirmed once per page load, however
+  // many sign-in hooks run after it.
+  let purchaseConfirmSent = false;
 
   function won(value) { return `${Number(value).toLocaleString('ko-KR')}원`; }
-  function priceOf(plan, funding) {
-    const amount = state.billing.plans[`${plan}:${funding}`];
-    return typeof amount === 'number' && amount > 0 ? amount : null;
+  function positiveWon(value) {
+    return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
+  }
+  // The catalog's web price first; a plain plan key in the Toss config second.
+  // Never a price keyed by the removed AI-account choice.
+  function priceOf(plan) {
+    const fromCatalog = state.catalog && state.catalog.plans[plan] ? state.catalog.plans[plan].price : null;
+    return fromCatalog || positiveWon(state.billing.plans[plan]);
+  }
+  function itemPrice(id) {
+    return state.catalog && state.catalog.items[id] ? state.catalog.items[id] : null;
   }
 
+  // Only the fields this page prints, each checked. Anything else in the answer is ignored.
+  function readCatalog(value) {
+    if (!value || typeof value !== 'object' || value.schema_version !== 'membership_catalog.v3') return null;
+    const plans = {};
+    (Array.isArray(value.plans) ? value.plans : []).forEach((row) => {
+      if (!row || !Object.prototype.hasOwnProperty.call(PLANS, row.id)) return;
+      const price = positiveWon(row.price && row.price.web_krw);
+      const credits = row.credits && Number.isInteger(row.credits.amount) && row.credits.amount > 0 ? row.credits.amount : null;
+      if (price) plans[row.id] = { price, credits };
+    });
+    const items = {};
+    (Array.isArray(value.credit_packs) ? value.credit_packs : []).forEach((row) => {
+      if (!row || !Object.prototype.hasOwnProperty.call(ITEMS, row.id) || ITEMS[row.id].group !== 'credits') return;
+      const price = positiveWon(row.price && row.price.web_krw);
+      if (price) items[row.id] = price;
+    });
+    (Array.isArray(value.reset_tickets) ? value.reset_tickets : []).forEach((row) => {
+      const id = row && (row.kind === 'full' || row.kind === 'half') ? `reset_${row.kind}` : '';
+      const price = id ? positiveWon(row.price && row.price.web_krw) : null;
+      if (price) items[id] = price;
+    });
+    return { plans, items };
+  }
 
   function setPriceBlock(id, primary, secondary) {
     const strong = document.createElement('strong');
@@ -99,6 +156,7 @@
   // 열어도 되는지는 서버의 /membership/status 가 정하고, 이 페이지는 그 답을 따른다.
   // 답을 아직 못 받았거나 받지 못했으면 열지 않는다 — 결제는 서버가 한 번 더 막지만,
   // 막힐 결제 창을 여는 것부터 하지 않는다. 아직 로그인하지 않은 방문자에게는 가격과 버튼을 그대로 보여 준다.
+  // 추가 충전과 티켓은 구독이 아니어서 이 규칙과 무관하다: 어디서 구독 중이든 Free든 살 수 있다.
   const WEB_PURCHASE_BLOCK_COPY = {
     pending: '구독 상태를 확인하고 있어요.',
     unconfirmed: '구독 상태를 확인하지 못해 결제를 열지 않았어요. 잠시 뒤 이 페이지를 다시 열어 주세요.',
@@ -140,7 +198,6 @@
     if (error.status === 423) return auth.DELETION_PENDING_COPY;
     const code = String(error.code || error.detail || '');
     if (code === 'provider_rejected') return '카드사에서 결제를 승인하지 않았어요. 청구되지 않았어요. 다른 카드로 다시 시도해 주세요.';
-    if (code === 'ai_connection_required') return 'AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 먼저 연결해 주세요.';
     if (code === 'billing_key_missing') return '등록된 카드를 찾지 못했어요. 청구되지 않았어요. 카드를 다시 등록해 주세요.';
     if (code === 'test_checkout_not_allowed') return '지금은 테스트 모드라 이 주소에서는 결제할 수 없어요. 청구되지 않았어요.';
     if (code === 'sales_disabled' || code === 'selection_not_saleable' || code === 'schema_not_ready') return '지금은 구독할 수 없어요. 청구되지 않았어요.';
@@ -170,8 +227,7 @@
     panel.hidden = !visible;
     if (!visible) return;
     const plan = PLANS[subscription.plan_id];
-    const fundingLabel = subscription.funding_mode === 'included' ? 'Sidekick AI' : '내 AI 계정';
-    $('subscription-line').textContent = `${plan ? plan.label : subscription.plan_id} · ${fundingLabel}`;
+    $('subscription-line').textContent = plan ? plan.label : String(subscription.plan_id || '');
     const until = periodEndLabel(subscription);
     // 다른 곳(App Store)의 구독이 살아 있거나 서버가 웹 결제를 허락하지 않으면 다시 시작하기를
     // 내놓지 않는다. 해지는 언제나 할 수 있어야 하므로 해지 버튼은 이 조건과 무관하다.
@@ -186,6 +242,33 @@
     $('resume-button').hidden = !subscription.resumable || resumeBlocked;
   }
 
+  function itemReady(id) {
+    const item = ITEMS[id];
+    return Boolean(item) && !state.closedGroups[item.group] && itemPrice(id) !== null && publicCheckoutReady();
+  }
+
+  function renderItems() {
+    itemCards.forEach((card) => {
+      const id = card.dataset.item;
+      const item = ITEMS[id];
+      if (!item) return;
+      const price = itemPrice(id);
+      const closed = Boolean(state.closedGroups[item.group]) || (state.catalogChecked && price === null);
+      card.querySelector(`[data-item-price="${id}"]`).textContent = price === null || closed ? '—' : won(price);
+      const button = card.querySelector('[data-buy-item]');
+      const ready = itemReady(id);
+      button.disabled = !ready || state.busy;
+      // 판매가 닫힌 묶음은 결제 창을 열지 않고 "준비 중"으로 남는다.
+      button.textContent = state.busy && state.item === id ? '연결 중…'
+        : closed ? '준비 중이에요'
+        : !state.catalogChecked ? '금액을 불러오는 중이에요'
+        : testModeHere() ? '테스트 모드예요'
+        : !publicCheckoutReady() ? '준비 중이에요'
+        : item.action;
+      card.classList.toggle('is-closed', closed);
+    });
+  }
+
   function render() {
     if (!PLANS[state.plan]) state.plan = DEFAULT_PLAN;
     const authenticated = Boolean(state.token);
@@ -195,44 +278,41 @@
     planCards.forEach((card) => {
       const id = card.dataset.plan;
       const plan = PLANS[id];
-      const amount = plan && plan.sold ? priceOf(id, state.funding) : null;
+      const amount = plan && plan.sold ? priceOf(id) : null;
       const priceNode = card.querySelector(`[data-price="${id}"]`);
       const next = amount === null ? '—' : won(amount);
       if (priceNode.textContent !== next) {
         priceNode.textContent = next;
-        // 금액이 바뀐 카드만 짧게 짚어 준다. 토글 한 번에 세 장이 모두
-        // 뛰면 무엇이 달라졌는지가 오히려 안 보인다.
+        // 금액이 바뀐 카드만 짧게 짚어 준다.
         priceNode.classList.remove('just-changed');
         void priceNode.offsetWidth;
         priceNode.classList.add('just-changed');
       }
+      const credits = state.catalog && state.catalog.plans[id] ? state.catalog.plans[id].credits : null;
       card.querySelector(`[data-sub="${id}"]`).textContent = !plan.sold
         ? '지금은 웹에서 구매할 수 없어요.'
         : amount === null ? '금액을 불러오고 있어요.'
-        : state.funding === 'connected' ? '내 AI 계정 사용'
-        : 'AI 사용료 포함';
+        : credits ? `매월 ${credits.toLocaleString('ko-KR')}크레딧`
+        : '매월 자동 갱신';
 
       const button = card.querySelector('[data-buy]');
       const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
-      const current = subscribed && state.subscription.plan_id === id
-        && state.subscription.funding_mode === state.funding;
+      const current = subscribed && state.subscription.plan_id === id;
       // 구독 중이면 다른 플랜 카드의 버튼은 "바꾸기" 다. 견적을 받은 카드만
       // 결제 문구가 되고, 해지를 예약한 구독은 바꿀 수 없다 — 다음 달에 끝나는
       // 구독 위에 새 금액을 올리는 것은 사람이 원한 적 없는 일이다.
       const changeable = subscribed && !current && publicCheckoutReady() && plan.sold && amount !== null
         && !state.busy && !state.subscription.cancel_at_period_end;
-      const quoted = state.quote && state.quote.to_plan_id === id && state.quote.funding_mode === state.funding
-        ? state.quote : null;
+      const quoted = state.quote && state.quote.to_plan_id === id ? state.quote : null;
       // 로그인은 여기서 요구하지 않는다. 누르면 로그인 화면이 열리고,
       // 끝나면 이 구매가 이어진다.
       // 서버가 웹 결제를 허락하지 않은 계정에는 결제·바꾸기 버튼을 모두 닫는다.
       button.disabled = Boolean(purchaseBlock) || !(ready || (changeable && (!quoted || quoted.applies_now)));
       button.hidden = current;
-      button.textContent = state.busy && state.plan === id ? '연결 중…'
+      button.textContent = state.busy && state.plan === id && !state.item ? '연결 중…'
         : !plan.sold ? '지금은 구매할 수 없어요'
         : purchaseBlock === 'pending' && (ready || changeable) ? '구독 상태를 확인하는 중이에요'
         : purchaseBlock && (ready || changeable) ? '웹에서는 결제할 수 없어요'
-        : ready && authenticated && state.funding === 'connected' && state.membership?.connected_ai_ready !== true ? 'AI 먼저 연결하기'
         : ready ? `${plan.label} 구독하기`
         : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
         : changeable && quoted ? '지금은 바꿀 수 없어요'
@@ -241,27 +321,9 @@
         : testModeHere() ? '테스트 모드예요'
         : '금액을 불러오는 중이에요';
       card.classList.toggle('is-current', current);
+      card.classList.toggle('is-selected', !current && state.requestedPlan === id);
     });
-
-    // 토글의 겉모습은 여기서만 정해진다. 마크업에 켜짐을 적어 두고
-    // 상태를 따로 두면, 스위치는 켜졌는데 가격은 꺼진 값인 화면이 나온다.
-    const connected = state.funding === 'connected';
-    const toggle = $('funding-toggle');
-    toggle.classList.toggle('is-on', connected);
-    toggle.setAttribute('aria-checked', String(connected));
-    $('mode-note').textContent = connected
-      ? '연결한 AI 계정의 사용료는 별도예요.'
-      : 'AI 사용료가 포함돼 있어요. 별도 연결 없이 시작하세요.';
-    if (authenticated && (state.membership?.ai_connection_required === true
-        || (connected && state.membership?.connected_ai_ready !== true))) {
-      const note = $('mode-note');
-      note.textContent = 'AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 연결하거나 AI 포함 방식으로 변경해 주세요. ';
-      const link = document.createElement('a');
-      link.href = '/ai/';
-      link.textContent = 'AI 연결하기';
-      note.appendChild(link);
-    }
-
+    renderItems();
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
@@ -292,6 +354,13 @@
     node.textContent = message;
   }
 
+  // 추가 충전·티켓 카드 아래의 한 줄. 누른 곳 가까이에 답한다.
+  function sayPurchase(message, isError) {
+    const node = $('purchase-status');
+    node.classList.toggle('is-error', Boolean(isError));
+    node.textContent = message;
+  }
+
   // The server stopped accepting this bearer mid-visit (expired, revoked, signed
   // out elsewhere). The page drops to the signed-out view it would have drawn
   // for a new visitor: public prices, a 로그인 slot, no stale 내 계정.
@@ -309,6 +378,7 @@
   // Signed out from the header menu: the same view, and the prices a visitor sees.
   async function afterSignOut() {
     pendingPurchase = null;
+    pendingItem = null;
     signedOutByServer();
     const status = $('checkout-status');
     delete status.dataset.pinned;
@@ -324,7 +394,7 @@
         sales_enabled: config.sales_enabled === true,
         mode: config.mode === 'live' || config.mode === 'test' ? config.mode : 'unavailable',
         client_key: typeof config.client_key === 'string' ? config.client_key : '',
-        // Korean won, server-owned. The page prints these and knows no others.
+        // Korean won, server-owned. Only a plain plan key is read (priceOf).
         plans: config.plans && typeof config.plans === 'object' ? config.plans : {},
         review_checkout_allowed: config.review_checkout_allowed === true
       };
@@ -335,6 +405,18 @@
       }
       state.billing = { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false };
     }
+    render();
+  }
+
+  // The v3 catalog is public product data. An old backend answers 404 here: then
+  // no catalog price is shown and both purchase groups stay 준비 중.
+  async function loadCatalog() {
+    try {
+      state.catalog = readCatalog(await api('/membership/catalog?schema=v3', { method: 'GET' }));
+    } catch (_) {
+      state.catalog = null;
+    }
+    state.catalogChecked = true;
     render();
   }
 
@@ -383,15 +465,16 @@
     return sdkPromise;
   }
 
-  $('funding-toggle').addEventListener('click', () => {
-    state.funding = state.funding === 'connected' ? 'included' : 'connected';
-    state.quote = null;
-    render();
-  });
-
   // 로그인 화면은 /auth.js 가 연다. 여기서는 무엇을 사려던 중이었는지만 기억한다.
   function openSignin(plan) {
     pendingPurchase = plan || null;
+    pendingItem = null;
+    auth.open();
+  }
+
+  function openSigninForItem(itemId) {
+    pendingPurchase = null;
+    pendingItem = itemId;
     auth.open();
   }
 
@@ -404,11 +487,23 @@
     if (!button) return;
     button.addEventListener('click', () => {
       state.plan = card.dataset.plan;
+      state.requestedPlan = '';
       if (state.plan !== (state.quote && state.quote.to_plan_id)) state.quote = null;
       render();
       if (!state.token) { openSignin(card.dataset.plan); return; }
       if (state.subscription && state.subscription.active) { changePlan(card.dataset.plan); return; }
       startCheckout();
+    });
+  });
+
+  itemCards.forEach((card) => {
+    const button = card.querySelector('[data-buy-item]');
+    if (!button) return;
+    button.addEventListener('click', () => {
+      const id = card.dataset.item;
+      if (!itemReady(id) || state.busy) return;
+      if (!state.token) { openSigninForItem(id); return; }
+      startItemPurchase(id);
     });
   });
 
@@ -419,6 +514,7 @@
   // 따라가고, 여기서 누르다 만 구매를 대신 시작하지 않는다.
   async function afterSignIn(user, context) {
     if (context && context.otherTab) pendingPurchase = null;
+    if (context && context.otherTab) pendingItem = null;
     state.token = auth.token();
     state.user = auth.user();
     closeSignin();
@@ -426,6 +522,7 @@
     await loadBillingConfig();
     await loadSubscription();
     await completePendingAuthorization();
+    await completePendingPurchase();
     const subscribed = Boolean(state.subscription && state.subscription.active);
     if (pendingPurchase && !subscribed) {
       state.plan = pendingPurchase;
@@ -433,19 +530,11 @@
       render();
       await startCheckout();
     }
-  }
-
-  async function requireConnectedAi() {
-    if (state.funding !== 'connected') return true;
-    // Re-read just before either a card window or a discounted plan change.
-    const membership = await api('/membership/status', { method: 'GET' });
-    state.membership = membership;
-    state.membershipChecked = true;
-    if (membership?.connected_ai_ready === true) return true;
-    say('이 멤버십을 구매하려면 AI를 먼저 연결해 주세요.', true);
-    render();
-    location.href = '/ai/';
-    return false;
+    if (pendingItem) {
+      const id = pendingItem;
+      pendingItem = null;
+      await startItemPurchase(id);
+    }
   }
 
   async function startCheckout() {
@@ -456,18 +545,16 @@
     state.busy = true;
     render();
     try {
-      if (!await requireConnectedAi()) { state.busy = false; render(); return; }
       // The backend derives the customerKey from the signed-in account. The
       window.SidekickWebAnalytics?.track('subscription_started', { plan: state.plan, payment_provider: 'toss', billing_period: 'monthly' });
       // browser never chooses it, and it carries no amount or order: this
       // hand-off registers a card and cannot move money however it is edited.
+      // D79: the plan is the whole choice. AI connection has nothing to do with it.
       const intent = await api('/membership/toss/authorization', {
         method: 'POST',
-        body: JSON.stringify({ plan_id: state.plan, funding_mode: state.funding, storage_mode: state.storage })
+        body: JSON.stringify({ plan_id: state.plan })
       });
-      sessionStorage.setItem(SELECTION_KEY, JSON.stringify({
-        plan_id: state.plan, funding_mode: state.funding, storage_mode: state.storage
-      }));
+      sessionStorage.setItem(SELECTION_KEY, JSON.stringify({ plan_id: state.plan }));
       const TossPayments = await loadTossSdk();
       const payment = TossPayments(intent.client_key).payment({ customerKey: intent.customer_key });
       await payment.requestBillingAuth({
@@ -484,6 +571,79 @@
     }
   }
 
+  // What POST /purchases/toss/order answered, checked field by field; null if any is off.
+  function readOrder(value) {
+    if (!value || typeof value !== 'object') return null;
+    const orderId = typeof value.order_id === 'string' && /^[A-Za-z0-9_=-]{6,64}$/.test(value.order_id) ? value.order_id : '';
+    const name = typeof value.order_name === 'string' ? value.order_name.trim() : '';
+    const customerKey = typeof value.customer_key === 'string' ? value.customer_key : '';
+    const amount = positiveWon(value.amount_krw);
+    if (!orderId || !name || name.length > 100 || !customerKey || amount === null) return null;
+    return { orderId, name, customerKey, amount };
+  }
+
+  // The purchase routes are missing (an older backend) or switched off: the
+  // whole group closes for this visit and shows 준비 중, never a second try.
+  function purchaseClosed(error) {
+    if (!error) return false;
+    if (error.status === 404 || error.status === 501 || error.status === 503) return true;
+    const code = String(error.code || error.detail || '');
+    return ['purchases_disabled', 'purchases_unavailable', 'sales_disabled', 'schema_not_ready',
+      'not_configured', 'item_not_saleable'].includes(code);
+  }
+
+  // One-time payment (D79 6·7): the server writes the order and its amount, Toss
+  // takes the card, and only POST /purchases/toss/confirm on the way back grants.
+  async function startItemPurchase(itemId) {
+    const item = ITEMS[itemId];
+    const shown = itemPrice(itemId);
+    if (!item || !state.token || state.busy || !itemReady(itemId)) return;
+    state.busy = true;
+    state.item = itemId;
+    sayPurchase('', false);
+    render();
+    try {
+      const order = readOrder(await api('/purchases/toss/order', {
+        method: 'POST',
+        body: JSON.stringify({ item_id: itemId })
+      }));
+      if (!order) throw new Error('order_invalid');
+      // The number on the card is the number charged, or no window opens.
+      if (order.amount !== shown) {
+        state.busy = false;
+        state.item = null;
+        sayPurchase('금액이 바뀌었어요. 청구되지 않았어요. 새 금액을 확인한 뒤 다시 눌러 주세요.', true);
+        await loadCatalog();
+        return;
+      }
+      sessionStorage.setItem(PURCHASE_KEY, JSON.stringify({ order_id: order.orderId, item_id: itemId }));
+      const TossPayments = await loadTossSdk();
+      const payment = TossPayments(state.billing.client_key).payment({ customerKey: order.customerKey });
+      await payment.requestPayment({
+        method: 'CARD',
+        amount: { currency: 'KRW', value: order.amount },
+        orderId: order.orderId,
+        orderName: order.name,
+        successUrl: `${location.origin}/membership/?purchase=paid`,
+        failUrl: `${location.origin}/membership/?purchase=failed`
+      });
+    } catch (error) {
+      state.busy = false;
+      state.item = null;
+      sessionStorage.removeItem(PURCHASE_KEY);
+      if (purchaseClosed(error)) {
+        state.closedGroups[item.group] = true;
+        sayPurchase('아직 준비 중이에요. 청구되지 않았어요.', true);
+      } else if (error && error.code === 'USER_CANCEL') {
+        sayPurchase('결제를 취소했어요. 청구되지 않았어요.', false);
+      } else {
+        sayPurchase(failureCopy(error, '결제 창을 열지 못했어요. 청구되지 않았어요. 잠시 뒤 다시 시도해 주세요.'), true);
+        endSessionIfRefused(error);
+      }
+      render();
+    }
+  }
+
   // 플랜 변경은 두 번 누른다. 첫 번째는 견적(/plan/quote, 아무것도 움직이지 않음),
   // 두 번째는 그 견적 그대로 변경(/plan). 화면의 금액과 청구되는 금액이 같은
   // 함수에서 나오므로, 사람이 본 숫자가 곧 결제되는 숫자다.
@@ -491,19 +651,16 @@
     const plan = PLANS[planId];
     const subscription = state.subscription;
     if (!publicCheckoutReady() || !state.token || !plan || !plan.sold || state.busy) return;
-    if (!subscription || !subscription.active
-        || (subscription.plan_id === planId && subscription.funding_mode === state.funding)) return;
+    if (!subscription || !subscription.active || subscription.plan_id === planId) return;
     if (webPurchaseBlock()) { say(WEB_PURCHASE_BLOCK_COPY[webPurchaseBlock()], true); return; }
-    const body = JSON.stringify({ plan_id: planId, funding_mode: state.funding });
-    const quoted = state.quote && state.quote.to_plan_id === planId && state.quote.funding_mode === state.funding
-      ? state.quote : null;
+    const body = JSON.stringify({ plan_id: planId });
+    const quoted = state.quote && state.quote.to_plan_id === planId ? state.quote : null;
     state.busy = true;
     render();
     try {
-      if (!await requireConnectedAi()) { state.busy = false; render(); return; }
       if (!quoted) {
         const quote = await api('/membership/toss/plan/quote', { method: 'POST', body });
-        state.quote = { ...quote, funding_mode: state.funding };
+        state.quote = quote;
         if (quote.applies_now) {
           say(quote.charge_krw > 0
             ? `${plan.label}로 바꾸면 남은 ${quote.remaining_days}일만큼 ${won(quote.charge_krw)}을 오늘 결제하고 바로 바뀌어요. 지금 플랜의 남은 값 ${won(quote.unused_krw)}은 뺐어요. 버튼을 한 번 더 누르면 결제돼요.`
@@ -546,7 +703,7 @@
     try {
       state.subscription = await api('/membership/toss/cancel', { method: 'POST' });
       const ends = periodEndLabel(state.subscription);
-      say(`해지했어요. 다음 결제는 청구되지 않고, ${ends ? `${ends}까지` : '이미 결제한 기간이 끝날 때까지'} 지금 플랜을 그대로 쓸 수 있어요.`, false);
+      say(`해지했어요. 다음 결제는 청구되지 않고, ${ends ? `${ends}까지` : '이미 결제한 기간이 끝날 때까지'} 지금 플랜을 그대로 쓸 수 있어요. 추가 충전 크레딧과 티켓은 그대로 남아요.`, false);
     } catch (error) {
       say(failureCopy(error, '해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), true);
       endSessionIfRefused(error);
@@ -602,9 +759,7 @@
         body: JSON.stringify({
           auth_key: authKey,
           customer_key: customerKey,
-          plan_id: selection.plan_id,
-          funding_mode: selection.funding_mode,
-          storage_mode: selection.storage_mode
+          plan_id: selection.plan_id
         })
       });
       sessionStorage.removeItem(SELECTION_KEY);
@@ -626,6 +781,55 @@
     render();
   }
 
+  // What the server granted, in words. A replay granted nothing new.
+  function grantCopy(grant) {
+    if (!grant || typeof grant !== 'object') return '결제를 반영했어요.';
+    if (grant.replayed === true) return '이미 반영된 결제예요. 추가로 청구되지 않았어요.';
+    const granted = grant.granted && typeof grant.granted === 'object' ? grant.granted : {};
+    const wallet = grant.wallet && typeof grant.wallet === 'object' ? grant.wallet : {};
+    if (Number.isInteger(granted.credits) && granted.credits > 0) {
+      const left = Number.isInteger(wallet.topup_remaining) ? ` 충전 크레딧은 지금 ${wallet.topup_remaining.toLocaleString('ko-KR')} 남아 있어요.` : '';
+      return `${granted.credits.toLocaleString('ko-KR')}크레딧을 충전했어요.${left}`;
+    }
+    const tickets = granted.tickets && typeof granted.tickets === 'object' ? granted.tickets : null;
+    if (tickets && TICKET_NAMES[tickets.kind] && Number.isInteger(tickets.count) && tickets.count > 0) {
+      return `한도 초기화 티켓(${TICKET_NAMES[tickets.kind]}) ${tickets.count}장을 받았어요.`;
+    }
+    return '결제를 반영했어요.';
+  }
+
+  // Coming back from a one-time payment window. Toss adds paymentKey, orderId
+  // and amount; only the server's confirm grants anything, and it is idempotent,
+  // so a reload asks again and is answered "already done".
+  async function completePendingPurchase() {
+    if (query.get('purchase') !== 'paid') return;
+    const paymentKey = query.get('paymentKey');
+    const orderId = query.get('orderId');
+    const amount = Number(query.get('amount'));
+    if (!paymentKey || !orderId || !Number.isInteger(amount) || amount <= 0) return;
+    if (!state.token) return say('결제를 마치려면 같은 계정으로 다시 로그인해 주세요.', true);
+    if (state.busy || purchaseConfirmSent) return;
+    purchaseConfirmSent = true;
+    state.busy = true;
+    say('결제를 확인하고 있어요.', false);
+    render();
+    try {
+      const grant = await api('/purchases/toss/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ payment_key: paymentKey, order_id: orderId, amount })
+      });
+      sessionStorage.removeItem(PURCHASE_KEY);
+      say(grantCopy(grant), false);
+      // The one-time key leaves the address bar once the server has answered.
+      history.replaceState(history.state, '', location.pathname);
+    } catch (error) {
+      say(failureCopy(error, '결제를 확인하지 못했어요. 중복 청구되지 않으니 잠시 뒤 이 페이지를 다시 열어 주세요.', { chargeUnknown: true }), true);
+      endSessionIfRefused(error);
+    }
+    state.busy = false;
+    render();
+  }
+
   // The app opens this page in the default browser with no session of its own
   // (D75), so the only thing it can hand over is the fact that it sent someone.
   if (query.get('from') === 'app') $('app-hint').hidden = false;
@@ -633,23 +837,28 @@
     sessionStorage.removeItem(SELECTION_KEY);
     say('카드 등록을 마치지 못했어요. 청구되지 않았어요.', true);
   }
-  // The landing page's plan cards link here with the plan and AI-account choice
-  // already made (/membership/?plan=eagle&funding=connected). Preselect exactly
-  // that and nothing more: a value this page does not sell falls back to the
-  // defaults — which is what a bookmarked `?plan=free` now does — and no
-  // authorisation starts without the person clicking the button.
+  if (query.get('purchase') === 'failed') {
+    sessionStorage.removeItem(PURCHASE_KEY);
+    say(query.get('code') === 'PAY_PROCESS_CANCELED' ? '결제를 취소했어요. 청구되지 않았어요.' : '결제를 마치지 못했어요. 청구되지 않았어요.', true);
+  }
+  // The landing page's plan rows link here with the plan already chosen
+  // (/membership/?plan=eagle). Older links still carry the removed AI-account
+  // choice (&funding=…): the plan is preselected and that choice is ignored. A
+  // value this page does not sell falls back to the default — which is what
+  // ?plan=free does — and no authorisation starts without the person clicking.
   const requestedPlan = query.get('plan');
-  if (requestedPlan && Object.prototype.hasOwnProperty.call(PLANS, requestedPlan)) state.plan = requestedPlan;
-  const requestedFunding = query.get('funding');
-  if (requestedFunding === 'included' || requestedFunding === 'connected') state.funding = requestedFunding;
+  if (requestedPlan && Object.prototype.hasOwnProperty.call(PLANS, requestedPlan)) {
+    state.plan = requestedPlan;
+    state.requestedPlan = requestedPlan;
+  }
 
   // Keep the captured selection above. Remove only recognized public choices
   // before the optional recorder starts; auth/billing keys and fragments stay
   // untouched and keep the analytics gate closed.
   const publicSelection = [...query.entries()];
   if (!location.hash && publicSelection.length && publicSelection.every(([name, value]) =>
-    name === 'plan' ? Object.prototype.hasOwnProperty.call(PLANS, value)
-      : name === 'funding' ? ['included', 'connected'].includes(value)
+    name === 'plan' ? Object.prototype.hasOwnProperty.call(PLANS, value) || value === FREE_PLAN_LINK
+      : name === 'funding' ? true
       : name === 'from' && value === 'app')) {
     history.replaceState(history.state, '', location.pathname);
   }
@@ -663,8 +872,10 @@
       state.token = auth.token();
       state.user = auth.user();
       render();
+      loadCatalog();
       return loadBillingConfig();
     })
     .then(loadSubscription)
-    .then(completePendingAuthorization);
+    .then(completePendingAuthorization)
+    .then(completePendingPurchase);
 })();

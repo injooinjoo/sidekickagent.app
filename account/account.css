@@ -47,3 +47,32 @@ button, input { font: inherit; }
   .account-intro > p { font-size: 14px; }
   .account-card { padding: 18px 16px; border-radius: 18px; }
 }
+
+/* The auto-use switch: the one setting this page changes. */
+.account-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 0;
+  border-top: 1px solid var(--hairline); color: var(--ink); font-size: 15px; font-weight: 700; }
+.account-switch { flex: 0 0 auto; width: 52px; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer;
+  display: inline-flex; align-items: center; }
+.account-switch i { position: relative; display: block; width: 46px; height: 28px; border-radius: 999px; background: var(--line); }
+.account-switch i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--card); box-shadow: var(--shadow-sm); transition: transform .18s ease; }
+.account-switch[aria-checked="true"] i { background: var(--ink); }
+.account-switch[aria-checked="true"] i::after { transform: translateX(18px); }
+.account-switch:disabled { cursor: wait; opacity: .6; }
+.account-switch:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 999px; }
+@media (prefers-reduced-motion: reduce) {
+  .account-switch i::after { transition: none; }
+}
+
+/* 사용량: a period switch beside the heading, then one short block per kind of use. */
+.usage-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.usage-head h2 { margin: 0; }
+.usage-periods { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); }
+.usage-period { min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: none;
+  color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+.usage-period[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
+.usage-period:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.usage-period:disabled { cursor: wait; }
+.usage-block { margin-top: 18px; }
+.usage-block h3 { margin: 0 0 2px; color: var(--ink); font-size: 15px; letter-spacing: -.015em; }
+.usage-block .account-note { margin-top: 6px; }
