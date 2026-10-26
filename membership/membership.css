@@ -126,7 +126,9 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
    로그인 화면이 열고 닫힐 때. 그 밖의 것이 움직이면 결제 직전 화면이
    부산해 보이고, 부산한 결제 화면은 사람을 멈추게 한다.
    prefers-reduced-motion이면 전부 즉시 상태로만 남는다. */
-.plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; margin: 26px 0 0; }
+/* Cards in one row stretch to the row's height; each card's action slot sits at the
+   bottom (margin-top: auto), so every 구독하기 button lines up whatever the copy above it. */
+.plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: stretch; margin: 26px 0 0; }
 .plan-card { display: flex; flex-direction: column; padding: 24px; border: 1px solid var(--line); border-radius: 21px;
   background: var(--card); box-shadow: var(--shadow-sm); opacity: 0; transform: translateY(10px);
   animation: card-in .42s cubic-bezier(.22,.61,.36,1) forwards; }
@@ -167,9 +169,13 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-price strong.just-changed { animation: price-in .34s cubic-bezier(.22,.61,.36,1); }
 @keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 .plan-sub { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
-.plan-card .checkout-button { margin: 20px 0 22px; }
+.plan-card > .plan-includes { margin-top: 20px; }
+/* The bottom slot every card has: the buy button, Free's "what starts it" line, or the
+   button's own 준비 중 text. No fixed height; the free space above it is the card's. */
+.card-action { margin-top: auto; padding-top: 22px; }
+.plan-card .card-action .checkout-button { margin: 0; }
 /* Free's place for a button: what starts it, at the same height, never a control. */
-.plan-start { display: flex; align-items: center; justify-content: center; min-height: 52px; margin: 20px 0 22px;
+.plan-start { display: flex; align-items: center; justify-content: center; min-height: 52px; margin: 0;
   border: 1px dashed var(--line); border-radius: 15px; color: var(--ink-soft); font-size: 14px; font-weight: 700; }
 .plan-includes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
 .plan-includes li { display: flex; gap: 9px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
@@ -197,7 +203,7 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .extras { margin-top: 40px; }
 .extras h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
 .extras-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-.extra-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.extra-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-top: 16px; }
 .extra-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .extra-card { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 18px;
   background: var(--card); box-shadow: var(--shadow-sm); }
@@ -206,7 +212,8 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .extra-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin: 12px 0 0; }
 .extra-price strong { font-size: 24px; letter-spacing: -.03em; white-space: nowrap; }
 .extra-price span { color: var(--muted); font-size: 13px; white-space: nowrap; }
-.extra-card .checkout-button { margin-top: 14px; min-height: 48px; font-size: 15px; }
+.extra-card .card-action { padding-top: 14px; }
+.extra-card .checkout-button { min-height: 48px; font-size: 15px; }
 @media (max-width: 720px) {
   .extra-grid, .extra-grid--two { grid-template-columns: minmax(0, 1fr); }
 }
@@ -229,7 +236,8 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 @media (max-width: 720px) {
   .plan-card { padding: 20px; }
   .plan-visual { display: none; }
-  .plan-card .checkout-button { margin: 16px 0; }
+  .plan-card > .plan-includes { margin-top: 16px; }
+  .plan-card .card-action { padding-top: 16px; }
   .plan-includes { gap: 7px; }
 }
 
