@@ -17,12 +17,16 @@
   //
   // D79 brought back a permanent Free plan. It is drawn on the page as its own
   // card, but it is not in this table: nothing about it is bought here.
+  //
+  // Sparrow (owner 2026-10-27) is the paid plan below Birdie. `base` is the plan a card's
+  // "<base>의 모든 기능 + N배 사용량" line compares with; N is floor(credits / base credits).
   const PLANS = {
-    birdie: { label: 'Birdie', storage: '5GB', sold: true },
-    eagle: { label: 'Eagle', storage: '25GB', sold: true },
-    albatross: { label: 'Albatross', storage: '100GB', sold: true }
+    sparrow: { label: 'Sparrow', storage: '2GB', sold: true, base: null },
+    birdie: { label: 'Birdie', storage: '5GB', sold: true, base: 'sparrow' },
+    eagle: { label: 'Eagle', storage: '25GB', sold: true, base: 'birdie' },
+    albatross: { label: 'Albatross', storage: '100GB', sold: true, base: 'birdie' }
   };
-  // The first paid plan, and the landing place for any plan value this page does
+  // The preselected paid plan, and the landing place for any plan value this page does
   // not sell — including `free`, which the landing's Free row links with.
   const DEFAULT_PLAN = 'birdie';
   // The landing's Free row links here as ?plan=free: a public choice to clean
@@ -42,7 +46,8 @@
     reset_half: { group: 'tickets', action: '구매하기' }
   };
   const TICKET_NAMES = { full: '전체', half: '절반' };
-  // The plan every usage multiple and pack share is measured against.
+  // The plan every pack share is measured against ("Birdie 한 달의 N%"). A plan's
+  // multiple is measured against its own `base` in PLANS.
   const BASE_PLAN = 'birdie';
   // The one thing that has to survive Toss's redirect. It is the same public
   // choice the person already made on this page — never an amount, an account,
@@ -134,21 +139,24 @@
     return { plans, items, packCredits };
   }
 
-  // Usage is shown relative to Birdie, never as a credit number: a plan is
-  // "N배" of Birdie's month and a pack is "N%" of it. Both come from the
-  // catalog's amounts, so they cannot drift from the contract.
-  function baseCredits() {
-    const base = state.catalog && state.catalog.plans[BASE_PLAN];
-    return base && base.credits ? base.credits : null;
+  // Usage is shown relative to another plan, never as a credit number: a plan is
+  // "N배" of its base plan's month (floored) and a pack is "N%" of Birdie's.
+  // Both come from the catalog's amounts, so they cannot drift from the contract.
+  function creditsOf(planId) {
+    const plan = planId && state.catalog && state.catalog.plans[planId];
+    return plan && plan.credits ? plan.credits : null;
   }
+  function baseCredits() { return creditsOf(BASE_PLAN); }
   function roundedRatio(value) { return Math.round(value * 10) / 10; }
   function renderUsageRatios() {
+    document.querySelectorAll('[data-usage-multiple]').forEach((node) => {
+      const id = node.dataset.usageMultiple;
+      const credits = creditsOf(id);
+      const base = creditsOf(PLANS[id] && PLANS[id].base);
+      if (credits && base) node.textContent = String(Math.floor(credits / base));
+    });
     const base = baseCredits();
     if (!base) return;
-    document.querySelectorAll('[data-usage-multiple]').forEach((node) => {
-      const plan = state.catalog.plans[node.dataset.usageMultiple];
-      if (plan && plan.credits) node.textContent = String(roundedRatio(plan.credits / base));
-    });
     document.querySelectorAll('[data-usage-share]').forEach((node) => {
       const credits = state.catalog.packCredits[node.dataset.usageShare];
       if (credits) node.textContent = String(roundedRatio((credits * 100) / base));
