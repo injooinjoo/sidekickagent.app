@@ -31,14 +31,19 @@
   // One-time purchases (D79 6·7): the item ids are fixed by the API contract.
   // A group closes as a whole when its catalog entry or its purchase route is
   // missing, so one unready product never opens a payment window for another.
+  // Owner 2026-10-27: four packs, named by size. The page never prints a credit
+  // amount: a pack is a share of one Birdie month, derived from the catalog.
   const ITEMS = {
-    credits_1000: { group: 'credits', action: '충전하기' },
-    credits_3000: { group: 'credits', action: '충전하기' },
-    credits_10000: { group: 'credits', action: '충전하기' },
+    credits_500: { group: 'credits', action: '충전하기', size: 'S' },
+    credits_1500: { group: 'credits', action: '충전하기', size: 'M' },
+    credits_5000: { group: 'credits', action: '충전하기', size: 'L' },
+    credits_15000: { group: 'credits', action: '충전하기', size: 'XL' },
     reset_full: { group: 'tickets', action: '구매하기' },
     reset_half: { group: 'tickets', action: '구매하기' }
   };
   const TICKET_NAMES = { full: '전체', half: '절반' };
+  // The plan every usage multiple and pack share is measured against.
+  const BASE_PLAN = 'birdie';
   // The one thing that has to survive Toss's redirect. It is the same public
   // choice the person already made on this page — never an amount, an account,
   // an order or an entitlement, because none of those would be believed by the
@@ -114,17 +119,40 @@
       if (price) plans[row.id] = { price, credits };
     });
     const items = {};
+    const packCredits = {};
     (Array.isArray(value.credit_packs) ? value.credit_packs : []).forEach((row) => {
       if (!row || !Object.prototype.hasOwnProperty.call(ITEMS, row.id) || ITEMS[row.id].group !== 'credits') return;
       const price = positiveWon(row.price && row.price.web_krw);
       if (price) items[row.id] = price;
+      if (Number.isInteger(row.credits) && row.credits > 0) packCredits[row.id] = row.credits;
     });
     (Array.isArray(value.reset_tickets) ? value.reset_tickets : []).forEach((row) => {
       const id = row && (row.kind === 'full' || row.kind === 'half') ? `reset_${row.kind}` : '';
       const price = id ? positiveWon(row.price && row.price.web_krw) : null;
       if (price) items[id] = price;
     });
-    return { plans, items };
+    return { plans, items, packCredits };
+  }
+
+  // Usage is shown relative to Birdie, never as a credit number: a plan is
+  // "N배" of Birdie's month and a pack is "N%" of it. Both come from the
+  // catalog's amounts, so they cannot drift from the contract.
+  function baseCredits() {
+    const base = state.catalog && state.catalog.plans[BASE_PLAN];
+    return base && base.credits ? base.credits : null;
+  }
+  function roundedRatio(value) { return Math.round(value * 10) / 10; }
+  function renderUsageRatios() {
+    const base = baseCredits();
+    if (!base) return;
+    document.querySelectorAll('[data-usage-multiple]').forEach((node) => {
+      const plan = state.catalog.plans[node.dataset.usageMultiple];
+      if (plan && plan.credits) node.textContent = String(roundedRatio(plan.credits / base));
+    });
+    document.querySelectorAll('[data-usage-share]').forEach((node) => {
+      const credits = state.catalog.packCredits[node.dataset.usageShare];
+      if (credits) node.textContent = String(roundedRatio((credits * 100) / base));
+    });
   }
 
   function setPriceBlock(id, primary, secondary) {
@@ -288,11 +316,9 @@
         void priceNode.offsetWidth;
         priceNode.classList.add('just-changed');
       }
-      const credits = state.catalog && state.catalog.plans[id] ? state.catalog.plans[id].credits : null;
       card.querySelector(`[data-sub="${id}"]`).textContent = !plan.sold
         ? '지금은 웹에서 구매할 수 없어요.'
         : amount === null ? '금액을 불러오고 있어요.'
-        : credits ? `매월 ${credits.toLocaleString('ko-KR')}크레딧`
         : '매월 자동 갱신';
 
       const button = card.querySelector('[data-buy]');
@@ -324,6 +350,7 @@
       card.classList.toggle('is-selected', !current && state.requestedPlan === id);
     });
     renderItems();
+    renderUsageRatios();
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
@@ -703,7 +730,7 @@
     try {
       state.subscription = await api('/membership/toss/cancel', { method: 'POST' });
       const ends = periodEndLabel(state.subscription);
-      say(`해지했어요. 다음 결제는 청구되지 않고, ${ends ? `${ends}까지` : '이미 결제한 기간이 끝날 때까지'} 지금 플랜을 그대로 쓸 수 있어요. 추가 충전 크레딧과 티켓은 그대로 남아요.`, false);
+      say(`해지했어요. 다음 결제는 청구되지 않고, ${ends ? `${ends}까지` : '이미 결제한 기간이 끝날 때까지'} 지금 플랜을 그대로 쓸 수 있어요. 추가 사용량과 다시 채우기는 그대로 남아요.`, false);
     } catch (error) {
       say(failureCopy(error, '해지 요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), true);
       endSessionIfRefused(error);
@@ -786,14 +813,13 @@
     if (!grant || typeof grant !== 'object') return '결제를 반영했어요.';
     if (grant.replayed === true) return '이미 반영된 결제예요. 추가로 청구되지 않았어요.';
     const granted = grant.granted && typeof grant.granted === 'object' ? grant.granted : {};
-    const wallet = grant.wallet && typeof grant.wallet === 'object' ? grant.wallet : {};
     if (Number.isInteger(granted.credits) && granted.credits > 0) {
-      const left = Number.isInteger(wallet.topup_remaining) ? ` 충전 크레딧은 지금 ${wallet.topup_remaining.toLocaleString('ko-KR')} 남아 있어요.` : '';
-      return `${granted.credits.toLocaleString('ko-KR')}크레딧을 충전했어요.${left}`;
+      const item = ITEMS[grant.item_id];
+      return item && item.size ? `추가 사용량 ${item.size} 충전이 끝났어요.` : '추가 사용량 충전이 끝났어요.';
     }
     const tickets = granted.tickets && typeof granted.tickets === 'object' ? granted.tickets : null;
     if (tickets && TICKET_NAMES[tickets.kind] && Number.isInteger(tickets.count) && tickets.count > 0) {
-      return `한도 초기화 티켓(${TICKET_NAMES[tickets.kind]}) ${tickets.count}장을 받았어요.`;
+      return `사용량 다시 채우기(${TICKET_NAMES[tickets.kind]}) ${tickets.count}장을 받았어요.`;
     }
     return '결제를 반영했어요.';
   }

@@ -203,7 +203,7 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .extras { margin-top: 40px; }
 .extras h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
 .extras-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-.extra-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-top: 16px; }
+.extra-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-top: 16px; }
 .extra-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .extra-card { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 18px;
   background: var(--card); box-shadow: var(--shadow-sm); }
@@ -214,6 +214,9 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .extra-price span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .extra-card .card-action { padding-top: 14px; }
 .extra-card .checkout-button { min-height: 48px; font-size: 15px; }
+@media (max-width: 1040px) {
+  .extra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 720px) {
   .extra-grid, .extra-grid--two { grid-template-columns: minmax(0, 1fr); }
 }
