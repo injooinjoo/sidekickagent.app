@@ -89,7 +89,8 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 .connection-head { display: flex; align-items: center; gap: 8px; }
 .connection-head strong { font-size: 16px; }
 .connection-meta { margin: 4px 0 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.connection-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; margin-top: 12px; }
+.connection-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 8px; margin-top: 12px; }
+.rekey-form { padding-top: 12px; border-top: 1px solid var(--line-soft); }
 
 .connect-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .connect-head h2 { margin: 0; }
@@ -136,6 +137,17 @@ html.in-app .return-top:hover { background: var(--sunken); }
 .connected-mark::after { content: ''; position: absolute; left: 18px; top: 10px; width: 12px; height: 22px; border: solid var(--positive);
   border-width: 0 4px 4px 0; border-radius: 1px; transform: rotate(45deg); }
 
+/* Sidekick AI (기본): the AI that works when no AI account of the person's is connected, on Sidekick credits. It needs no
+ * connection, so it has no button; it is marked as the one in use while nothing else is connected. */
+.sidekick-ai-card { display: flex; align-items: center; gap: 12px; padding: 16px; margin: 4px 0 18px; border: 1px solid var(--line-soft);
+  border-radius: 16px; background: var(--bg); }
+.sidekick-ai-card.is-selected { border-color: var(--positive); box-shadow: 0 0 0 1px var(--positive); }
+.sidekick-ai-mark { flex: none; display: block; width: var(--space-10); height: var(--space-10); }
+.sidekick-ai-copy { min-width: 0; }
+.sidekick-ai-copy strong { font-size: 16px; }
+.sidekick-ai-copy p { margin: 2px 0 0; color: var(--ink-soft); font-size: 13.5px; }
+.sidekick-ai-card.is-selected .sidekick-ai-state { color: var(--positive); font-weight: 700; }
+.sidekick-ai-select { margin-top: 10px; }
 .provider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .provider-card { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line-soft);
   border-radius: 16px; background: var(--bg); scroll-margin-top: calc(var(--header-h) + 12px); }

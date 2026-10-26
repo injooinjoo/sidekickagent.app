@@ -2,11 +2,16 @@
   'use strict';
 
   // The account page: who is signed in, the membership state the server holds
-  // for this account, the account's one AI connection with the way into AI 연결,
-  // and 로그아웃. Signed out, it is a sign-in gate on the shared sheet; Google and
-  // Apple come back here (auth.js RETURN_PATHS).
+  // for this account, its credits, reset tickets and invites (D79), the account's
+  // one AI connection with the way into AI 연결, and 로그아웃. Signed out, it is a
+  // sign-in gate on the shared sheet; Google and Apple come back here (auth.js
+  // RETURN_PATHS).
   //
-  // It reads three routes and changes nothing itself. GET /account answers who is
+  // It reads six routes and changes one setting: the tickets' auto-use switch
+  // (PUT /usage/tickets/auto-use). GET /usage/credits and GET /usage/tickets give
+  // the numbers, GET /usage/breakdown where the credits went (사용량, owner
+  // 2026-10-25: everything, refreshed while the page is looked at); a route an
+  // older server does not have yet leaves its card saying so, never a guess. GET /account answers who is
   // signed in -- how, the address or the masked phone number, the display name,
   // since when, which ways in are linked -- and the membership summary, in one
   // answer. The AI is the account's, not one project's (owner, 2026-10-07): it is
@@ -16,7 +21,7 @@
   // connection, the same answer /ai/ lists. No account id is shown: a phone
   // account's id carries the whole number.
   // No payment starts here. Subscribers use the server-derived manage_url;
-  // people without a subscription can view plans on the membership page.
+  // everyone else is on Free and can view plans and top-ups on the membership page.
   const auth = window.SidekickAuth;
   const { api } = auth;
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -29,8 +34,9 @@
     'azure-foundry': 'Azure AI Foundry', '9router': '9Router', omniroute: 'OmniRoute'
   };
   const PLAN_LABELS = { birdie: 'Birdie', eagle: 'Eagle', albatross: 'Albatross' };
+  // The credits card names the plan the credits come from, Free included.
+  const CREDIT_PLAN_LABELS = { free: 'Free', ...PLAN_LABELS };
   const SOURCE_LABELS = { toss: '웹', apple: 'App Store', google: 'Google Play' };
-  const FUNDING_LABELS = { connected: '내 AI 계정 사용', included: 'Sidekick AI 포함' };
   const STATUS_LABELS = { active: '이용 중', cancel_at_period_end: '해지 예약 · 기간 끝까지 이용', grace: '결제 확인 중' };
   // Where a subscription is managed is the server's answer, never this page's;
   // these are the only hosts it may point at.
@@ -39,12 +45,28 @@
   const ACCOUNT_FAILED_COPY = '계정 정보를 불러오지 못했어요.';
   const MEMBERSHIP_FAILED_COPY = '멤버십 상태를 불러오지 못했어요.';
   const AI_FAILED_COPY = 'AI 연결을 불러오지 못했어요.';
+  const CREDITS_FAILED_COPY = '크레딧을 불러오지 못했어요.';
+  const CREDITS_UNAVAILABLE_COPY = '지금은 크레딧을 볼 수 없어요.';
+  const TICKETS_FAILED_COPY = '티켓을 불러오지 못했어요.';
+  const TICKETS_UNAVAILABLE_COPY = '지금은 티켓을 쓸 수 없어요.';
   const EXPIRED_COPY = '로그인이 만료됐어요. 다시 로그인해 주세요.';
+  const USAGE_FAILED_COPY = '사용량을 불러오지 못했어요.';
+  const USAGE_UNAVAILABLE_COPY = '지금은 사용량을 볼 수 없어요.';
+  // 사용량 is read again on focus, when the tab is shown again, and every 30 s while it is visible -- never while hidden.
+  const USAGE_REFRESH_MS = 30000;
+  const USAGE_PERIODS = ['current', 'previous'];
+  // The services, in the order the owner listed them; `tts` is every voice use.
+  const SPEND_LABELS = [['text', '텍스트'], ['image', '이미지'], ['video', '영상'], ['tts', '음성'], ['music', '음악'],
+    ['search', '검색'], ['server', '서버'], ['storage', '저장소']];
+  const SERVER_LABELS = { compute: '서버', storage: '저장소' };
 
   // `notice` is what /auth.js said while the page was starting (a session that
   // ended, a dropped connection), kept so the gate can still say it. `account` and
   // `ai` are this load's two answers the AI card is drawn from, whichever comes first.
-  const state = { seq: 0, notice: null, account: null, ai: null };
+  const state = { seq: 0, notice: null, account: null, ai: null, tickets: null, creditsBusy: false };
+  // 사용량: the period shown, its last good answer and when it came, the 30-second timer, and `ask`, which makes an
+  // answer to an older question (another period, an earlier refresh) count for nothing.
+  const usage = { period: 'current', data: null, updatedAt: 0, timer: null, busy: false, ask: 0, unavailable: false };
   const $ = (id) => document.getElementById(id);
 
   function el(tag, props, children) {
@@ -87,6 +109,30 @@
     return Number.isFinite(value) ? dateOf(value / 1000) : '';
   }
 
+  // An ISO timestamp or epoch seconds, as milliseconds; 0 when it is neither.
+  function whenOf(value) {
+    if (typeof value === 'number') return Number.isFinite(value) && value > 0 ? value * 1000 : 0;
+    const parsed = Date.parse(cleanText(value, 64));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  // Refills happen at 09:00 in Korea, so the time is said in Korea's time.
+  function koreanTime(ms) {
+    return ms ? new Date(ms).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  }
+
+  function count(value) {
+    return Number.isInteger(value) && value >= 0 ? value : null;
+  }
+
+  function number(value) {
+    return Number(value).toLocaleString('ko-KR');
+  }
+
+  function rowsOf(pairs) {
+    return pairs.map(([label, value]) => el('div', {}, [el('dt', { text: label }), el('dd', { text: value })]));
+  }
+
   function retryButton(text, handler) {
     return el('button', { className: 'account-button secondary', type: 'button', text, onClick: handler });
   }
@@ -95,6 +141,7 @@
 
   function showGate(message, isError) {
     state.seq += 1;
+    stopUsageRefresh();
     $('account-loading').hidden = true;
     $('account-view').hidden = true;
     $('account-gate').hidden = false;
@@ -173,33 +220,24 @@
   }
 
   // Rows for what the server said, in words. A paid plan first; otherwise the
-  // one account trial; otherwise no membership. Only the membership page can start checkout.
+  // account is on Free (D79: there is no trial any more). Only the membership page can start checkout.
   function renderMembership(membership) {
     const rows = [];
     let note = '';
     let action = null;
     const plan = PLAN_LABELS[membership.plan_id];
-    const trial = membership.trial && typeof membership.trial === 'object' ? membership.trial : {};
     if (plan && STATUS_LABELS[membership.status]) {
       rows.push(['플랜', plan]);
       rows.push(['상태', STATUS_LABELS[membership.status]]);
       if (SOURCE_LABELS[membership.purchase_source]) rows.push(['구독한 곳', SOURCE_LABELS[membership.purchase_source]]);
-      if (FUNDING_LABELS[membership.funding_mode]) rows.push(['AI 사용', FUNDING_LABELS[membership.funding_mode]]);
       const until = dateOf(membership.current_period_end);
       if (until) rows.push([membership.status === 'cancel_at_period_end' ? '이용 종료일' : '다음 결제일', until]);
       note = '';
       action = manageLink(membership);
-    } else if (trial.status === 'active') {
-      rows.push(['플랜', '7일 무료 체험']);
-      rows.push(['상태', '체험 중']);
-      const ends = dateOf(trial.ends_at);
-      if (ends) rows.push(['체험 종료', ends]);
-      note = '체험이 끝나도 자동으로 결제되지 않아요.';
-      action = el('a', { className: 'account-button', href: '/membership/', text: '요금제 보기' });
     } else {
-      rows.push(['플랜', '없음']);
-      rows.push(['상태', trial.status === 'expired' ? '무료 체험이 끝났어요' : '이용 중인 멤버십이 없어요']);
-      note = trial.status === 'eligible' ? '앱에 가입하면 7일 무료로 체험할 수 있어요.' : '';
+      rows.push(['플랜', 'Free']);
+      rows.push(['상태', '이용 중']);
+      note = '결제수단 없이 계속 쓸 수 있어요.';
       action = el('a', { className: 'account-button', href: '/membership/', text: '요금제 보기' });
     }
     fill($('membership-rows'), rows.map(([label, value]) => el('div', {}, [el('dt', { text: label }), el('dd', { text: value })])));
@@ -246,6 +284,408 @@
     renderAi();
     if (account.membership) renderMembership(account.membership);
     else setStatus('membership-status', MEMBERSHIP_FAILED_COPY, true);
+  }
+
+  // GET /usage/credits, checked field by field. Only what the card shows.
+  function sanitizeCredits(answer) {
+    const credits = answer && typeof answer === 'object' && answer.credits && typeof answer.credits === 'object' ? answer.credits : null;
+    if (!credits || count(credits.remaining) === null || count(credits.allowance) === null) return null;
+    const runs = answer.daily_work_runs && typeof answer.daily_work_runs === 'object' ? answer.daily_work_runs : null;
+    return {
+      plan: CREDIT_PLAN_LABELS[cleanText(credits.plan_id, 40)] || '',
+      daily: credits.period === 'daily',
+      allowance: credits.allowance,
+      remaining: credits.remaining,
+      nextRefill: whenOf(credits.next_refill_at),
+      periodEnd: whenOf(credits.period_end),
+      topup: count(credits.topup_remaining),
+      runs: runs && count(runs.limit) !== null && count(runs.used) !== null ? { limit: runs.limit, used: runs.used } : null
+    };
+  }
+
+  // Free with a fifth or less of today's credits left (not none): the app's and the server notice's sentence,
+  // with when they come back -- '오늘 크레딧이 거의 다 떨어졌어요. 내일 오전 9시에 30크레딧으로 채워져요.'
+  function freeNearLimitNotice(credits, now = Date.now()) {
+    if (!credits.daily || !credits.allowance || credits.remaining <= 0 || credits.remaining * 5 > credits.allowance) return '';
+    const head = '오늘 크레딧이 거의 다 떨어졌어요.';
+    if (!credits.nextRefill) return head;
+    const days = kstDay(credits.nextRefill) - kstDay(now);
+    const day = days <= 0 ? '오늘' : days === 1 ? '내일' : koreanTime(credits.nextRefill).replace(/\s*(오전|오후).*$/, '');
+    const clock = new Date(credits.nextRefill).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit' })
+      .replace(/:00$/, '시').replace(/:(\d\d)$/, '시 $1분');
+    return `${head} ${day} ${clock}에 ${number(credits.allowance)}크레딧으로 채워져요.`;
+  }
+
+  // Remaining plan credits, when they come back (Free: every day at 09:00), the
+  // top-up balance and, on Free, today's work runs.
+  function renderCredits(credits) {
+    const rows = [];
+    if (credits.plan) rows.push(['플랜', credits.plan]);
+    rows.push(['남은 크레딧', `${number(credits.remaining)} / ${number(credits.allowance)}`]);
+    if (credits.daily) rows.push(['다음 충전', koreanTime(credits.nextRefill) || '매일 오전 9시']);
+    else if (credits.periodEnd || credits.nextRefill) rows.push(['다음 초기화', dateOf((credits.periodEnd || credits.nextRefill) / 1000)]);
+    if (credits.topup !== null) rows.push(['충전 크레딧', number(credits.topup)]);
+    if (credits.runs) rows.push(['오늘 업무 실행', `${number(credits.runs.used)} / ${number(credits.runs.limit)}회`]);
+    fill($('credits-rows'), rowsOf(rows));
+    $('credits-rows').hidden = false;
+    const note = credits.daily
+      ? '매일 오전 9시에 다시 채워지고, 남은 크레딧은 쌓이지 않아요. 충전 크레딧은 플랜 크레딧을 다 쓴 뒤에 써요.'
+      : '충전 크레딧은 플랜 크레딧을 다 쓴 뒤에 쓰고, 해지해도 남아요.';
+    const nearLimit = freeNearLimitNotice(credits);
+    $('credits-note').textContent = nearLimit ? `${nearLimit} ${note}` : note;
+    $('credits-note').hidden = false;
+    fill($('credits-actions'), [el('a', { className: 'account-button secondary', href: '/membership/#topup', text: '추가 충전 보기' })]);
+    $('credits-actions').hidden = false;
+    setStatus('credits-status', '', false);
+  }
+
+  // `quiet` is the 30-second refresh beside 사용량: the card is redrawn only from a good answer, so it never blinks and
+  // its numbers stay the ones 사용량 shows.
+  async function loadCredits(seq, quiet) {
+    if (quiet && state.creditsBusy) return;
+    if (!quiet) {
+      $('credits-rows').hidden = true;
+      $('credits-note').hidden = true;
+      $('credits-actions').hidden = true;
+      setStatus('credits-status', '크레딧을 불러오고 있어요.', false);
+    }
+    state.creditsBusy = true;
+    let credits = null;
+    try {
+      credits = sanitizeCredits(await api('/usage/credits', { method: 'GET' }));
+    } catch (error) {
+      state.creditsBusy = false;
+      if (seq !== state.seq) return;
+      if (refused(error)) return;
+      if (quiet) return;
+      if (error.status === 404) { setStatus('credits-status', CREDITS_UNAVAILABLE_COPY, false); return; }
+      setStatus('credits-status', error.network ? NETWORK_COPY : CREDITS_FAILED_COPY, true);
+      fill($('credits-actions'), [retryButton('다시 불러오기', () => loadCredits(state.seq))]);
+      $('credits-actions').hidden = false;
+      return;
+    }
+    state.creditsBusy = false;
+    if (seq !== state.seq) return;
+    if (!credits) { if (!quiet) setStatus('credits-status', CREDITS_FAILED_COPY, true); return; }
+    renderCredits(credits);
+  }
+
+  // GET /usage/tickets (and the PUT's answer): the counts, the auto-use setting and the invites.
+  function sanitizeTickets(answer) {
+    if (!answer || typeof answer !== 'object') return null;
+    const block = answer.tickets && typeof answer.tickets === 'object' ? answer.tickets : null;
+    if (!block || count(block.full) === null || count(block.half) === null) return null;
+    const invites = answer.invites && typeof answer.invites === 'object' ? answer.invites : null;
+    const milestone = invites && invites.next_milestone && typeof invites.next_milestone === 'object' ? invites.next_milestone : null;
+    return {
+      full: block.full,
+      half: block.half,
+      autoUse: typeof block.auto_use === 'boolean' ? block.auto_use : answer.auto_use === true,
+      invites: invites && count(invites.completed) !== null && count(invites.codes_remaining) !== null ? {
+        completed: invites.completed,
+        remaining: invites.codes_remaining,
+        next: milestone && count(milestone.completed_invites) ? {
+          at: milestone.completed_invites,
+          tickets: count(milestone.full_tickets),
+          credits: count(milestone.credits)
+        } : null
+      } : null
+    };
+  }
+
+  function milestoneCopy(next) {
+    if (next.tickets) return `${number(next.at)}명이 되면 전체 티켓 ${number(next.tickets)}장을 더 받아요.`;
+    if (next.credits) return `${number(next.at)}명이 되면 충전 크레딧 ${number(next.credits)}을 더 받아요.`;
+    return '';
+  }
+
+  function renderTickets() {
+    const tickets = state.tickets;
+    if (!tickets) return;
+    fill($('tickets-rows'), rowsOf([['전체 초기화', `${number(tickets.full)}장`], ['절반 초기화', `${number(tickets.half)}장`]]));
+    $('tickets-rows').hidden = false;
+    const toggle = $('auto-use-toggle');
+    toggle.setAttribute('aria-checked', String(tickets.autoUse));
+    $('auto-use-row').hidden = false;
+    $('tickets-note').hidden = false;
+    const invites = tickets.invites;
+    $('invites-card').hidden = !invites;
+    if (!invites) return;
+    fill($('invites-rows'), rowsOf([['초대를 마친 친구', `${number(invites.completed)}명`], ['남은 초대장', `${number(invites.remaining)}장`]]));
+    const next = invites.next ? milestoneCopy(invites.next) : '';
+    const note = `친구가 온보딩을 마칠 때마다 전체 티켓 1장을 받아요.${next ? ` ${next}` : ''}`;
+    $('invites-note').textContent = note;
+    $('invites-note').hidden = false;
+  }
+
+  async function loadTickets(seq) {
+    state.tickets = null;
+    $('tickets-rows').hidden = true;
+    $('auto-use-row').hidden = true;
+    $('tickets-note').hidden = true;
+    $('invites-card').hidden = true;
+    setStatus('tickets-status', '티켓을 불러오고 있어요.', false);
+    let tickets = null;
+    try {
+      tickets = sanitizeTickets(await api('/usage/tickets', { method: 'GET' }));
+    } catch (error) {
+      if (seq !== state.seq) return;
+      if (refused(error)) return;
+      setStatus('tickets-status', error.status === 404 ? TICKETS_UNAVAILABLE_COPY : error.network ? NETWORK_COPY : TICKETS_FAILED_COPY,
+        error.status !== 404);
+      return;
+    }
+    if (seq !== state.seq) return;
+    if (!tickets) { setStatus('tickets-status', TICKETS_FAILED_COPY, true); return; }
+    state.tickets = tickets;
+    setStatus('tickets-status', '', false);
+    renderTickets();
+  }
+
+  // The one write on this page. The switch shows what the server stored, never what was pressed.
+  async function setAutoUse() {
+    const toggle = $('auto-use-toggle');
+    if (!state.tickets || toggle.disabled) return;
+    const seq = state.seq;
+    const next = !state.tickets.autoUse;
+    toggle.disabled = true;
+    setStatus('tickets-status', '', false);
+    try {
+      const answer = sanitizeTickets(await api('/usage/tickets/auto-use', { method: 'PUT', body: JSON.stringify({ enabled: next }) }));
+      if (seq !== state.seq) return;
+      state.tickets = answer ? { ...answer, invites: answer.invites || state.tickets.invites } : { ...state.tickets, autoUse: next };
+      setStatus('tickets-status', state.tickets.autoUse ? '자동으로 쓰기를 켰어요.' : '자동으로 쓰기를 껐어요.', false);
+    } catch (error) {
+      if (seq !== state.seq) return;
+      if (refused(error)) return;
+      setStatus('tickets-status', error.network ? NETWORK_COPY : '설정을 바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
+    }
+    toggle.disabled = false;
+    renderTickets();
+  }
+
+  // ---- 사용량 -------------------------------------------------------------------
+
+  function objectOf(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+  }
+
+  function creditText(value) {
+    return `${number(value)}크레딧`;
+  }
+
+  // The day in Korea, as a whole number, so "today" and "tomorrow" are Korea's.
+  function kstDay(ms) {
+    return Math.floor((ms + 9 * 3600000) / 86400000);
+  }
+
+  // `2026-10-24` (a day in Korea, as the server writes it) as 10월 24일.
+  function dayLabel(text) {
+    const [, month, day] = text.split('-');
+    return `${Number(month)}월 ${Number(day)}일`;
+  }
+
+  function clock(ms) {
+    return new Date(ms).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  }
+
+  // GET /usage/breakdown?period=, field by field. The plan and the per-service numbers must all be whole and present, or
+  // the answer counts as not read (never shown as zeros); any other part that is missing or malformed is left out.
+  function sanitizeUsage(answer, period) {
+    const value = objectOf(answer);
+    if (!value || value.period !== period) return null;
+    const plan = objectOf(value.plan);
+    const spend = objectOf(value.spend);
+    if (!plan || [plan.allowance, plan.used, plan.remaining].some((n) => count(n) === null)) return null;
+    if (!spend || count(spend.total) === null || SPEND_LABELS.some(([key]) => count(spend[key]) === null)) return null;
+    const topup = objectOf(value.topup);
+    const tickets = objectOf(value.tickets);
+    const bought = objectOf(value.purchases);
+    const own = objectOf(value.own_account);
+    const lines = Array.isArray(value.server) ? value.server.filter((line) => line && typeof line === 'object'
+      && /^\d{4}-\d{2}-\d{2}$/.test(String(line.date)) && Object.hasOwn(SERVER_LABELS, String(line.category))
+      && count(line.credits) !== null) : null;
+    return {
+      period,
+      free: cleanText(plan.plan_id, 40) === 'free',
+      starts: whenOf(value.starts_at),
+      ends: whenOf(value.ends_at),
+      plan: { allowance: plan.allowance, used: plan.used, remaining: plan.remaining, refill: whenOf(plan.next_refill_at) },
+      topup: topup && count(topup.remaining) !== null ? topup.remaining : null,
+      tickets: tickets && ['full', 'half', 'used_full', 'used_half'].every((key) => count(tickets[key]) !== null)
+        ? { full: tickets.full, half: tickets.half, usedFull: tickets.used_full, usedHalf: tickets.used_half } : null,
+      server: lines ? lines.map((line) => ({ date: String(line.date), category: String(line.category), credits: line.credits })) : null,
+      spend: { ...Object.fromEntries(SPEND_LABELS.map(([key]) => [key, spend[key]])), total: spend.total },
+      own: own && count(own.count) !== null && count(own.estimated_credits) !== null
+        ? { count: own.count, estimated: own.estimated_credits } : null,
+      purchases: bought && ['count', 'credits', 'refunds', 'refunded_credits'].every((key) => count(bought[key]) !== null)
+        ? { count: bought.count, credits: bought.credits, refunds: bought.refunds, refunded: bought.refunded_credits } : null
+    };
+  }
+
+  function usageBlock(title, pairs, note) {
+    return el('div', { className: 'usage-block' }, [
+      el('h3', { text: title }),
+      pairs.length ? el('dl', { className: 'account-rows' }, rowsOf(pairs)) : null,
+      note ? el('p', { className: 'account-note', text: note }) : null
+    ]);
+  }
+
+  // When the plan credits come back, said in Korea's time (Free: every day at 09:00).
+  function refillNote(data) {
+    if (data.period !== 'current' || !data.plan.refill) return '';
+    const amount = creditText(data.plan.allowance);
+    if (data.free) {
+      const days = kstDay(data.plan.refill) - kstDay(Date.now());
+      if (days === 0) return `오늘 오전 9시에 ${amount}으로 채워져요.`;
+      if (days === 1) return `내일 오전 9시에 ${amount}으로 채워져요.`;
+    }
+    return `${koreanTime(data.plan.refill)}에 ${amount}으로 ${data.free ? '' : '다시 '}채워져요.`;
+  }
+
+  // The server's daily settlement, newest day first: one row per day with what the server and the storage cost.
+  function serverBlock(lines) {
+    const days = new Map();
+    lines.forEach((line) => {
+      const day = days.get(line.date) || {};
+      day[line.category] = (day[line.category] || 0) + line.credits;
+      days.set(line.date, day);
+    });
+    const pairs = [...days.entries()].reverse().map(([date, day]) => [dayLabel(date),
+      ['compute', 'storage'].filter((key) => Object.hasOwn(day, key)).map((key) => `${SERVER_LABELS[key]} ${creditText(day[key])}`).join(' · ')]);
+    return usageBlock('서버 이용', pairs, pairs.length ? '하루치를 다음 날 정산해 날짜별로 보여 줘요.' : '아직 정산된 서버 이용이 없어요.');
+  }
+
+  function renderUsage() {
+    const data = usage.data;
+    if (!data) return;
+    const [now, before] = data.free ? ['오늘', '어제'] : ['이번 달', '지난 달'];
+    $('usage-current').textContent = now;
+    $('usage-previous').textContent = before;
+    const word = data.period === 'current' ? now : before;
+    const range = data.starts && data.ends ? `${koreanTime(data.starts)} ~ ${koreanTime(data.ends)}` : '';
+    $('usage-range').textContent = range;
+    $('usage-range').hidden = !range;
+    const blocks = [
+      usageBlock('플랜 크레딧', [['받은 크레딧', creditText(data.plan.allowance)], ['쓴 크레딧', creditText(data.plan.used)],
+        ['남은 크레딧', creditText(data.plan.remaining)]], refillNote(data)),
+      data.topup !== null ? usageBlock('충전 크레딧', [['충전 크레딧 남음', creditText(data.topup)]], '플랜 크레딧을 다 쓴 뒤에 써요.') : null,
+      data.tickets ? usageBlock('초기화 티켓', [['전체 초기화 남음', `${number(data.tickets.full)}장`],
+        ['절반 초기화 남음', `${number(data.tickets.half)}장`],
+        [`${word} 쓴 티켓`, `전체 ${number(data.tickets.usedFull)}장 · 절반 ${number(data.tickets.usedHalf)}장`]]) : null,
+      data.server ? serverBlock(data.server) : null,
+      usageBlock('서비스별 사용', [...SPEND_LABELS.map(([key, label]) => [label, creditText(data.spend[key])]),
+        ['합계', creditText(data.spend.total)]]),
+      data.own ? usageBlock('내 계정으로 처리', [['처리한 작업', `${number(data.own.count)}건 · 0크레딧`],
+        ['사이드킥 크레딧이었다면', `약 ${creditText(data.own.estimated)}`]], '내 계정으로 처리한 작업은 크레딧이 들지 않아요.') : null,
+      data.purchases ? usageBlock('구매·환불 내역', [['구매', `${number(data.purchases.count)}건 · ${creditText(data.purchases.credits)}`],
+        ['환불', `${number(data.purchases.refunds)}건 · ${creditText(data.purchases.refunded)}`]]) : null
+    ];
+    fill($('usage-body'), blocks);
+    $('usage-body').hidden = false;
+    $('usage-actions').hidden = true;
+    setStatus('usage-status', '', false);
+    $('usage-updated').textContent = `${clock(usage.updatedAt)} 기준 · 이 화면을 보는 동안 30초마다 새로 불러와요.`;
+    $('usage-updated').hidden = false;
+  }
+
+  // A server without the route (or with it switched off) says so once and is not asked again until the next load.
+  // Any other failure says it plainly with a retry; numbers already on screen stay, under the time they were read.
+  function usageFailed(error) {
+    if (error && error.status === 404) {
+      usage.unavailable = true;
+      stopUsageRefresh();
+      $('usage-body').hidden = true;
+      $('usage-range').hidden = true;
+      $('usage-updated').hidden = true;
+      $('usage-actions').hidden = true;
+      setStatus('usage-status', USAGE_UNAVAILABLE_COPY, false);
+      return;
+    }
+    if (!usage.data) {
+      $('usage-body').hidden = true;
+      $('usage-range').hidden = true;
+      $('usage-updated').hidden = true;
+    }
+    setStatus('usage-status', error && error.network ? NETWORK_COPY : USAGE_FAILED_COPY, true);
+    fill($('usage-actions'), [retryButton('다시 불러오기', () => loadUsage(state.seq, false))]);
+    $('usage-actions').hidden = false;
+  }
+
+  // `quiet` is a refresh: what is on screen stays until the new answer is in.
+  async function loadUsage(seq, quiet) {
+    if (quiet && usage.busy) return;
+    const ask = ++usage.ask;
+    const period = usage.period;
+    usage.busy = true;
+    if (!quiet) {
+      usage.data = null;
+      $('usage-body').hidden = true;
+      $('usage-range').hidden = true;
+      $('usage-updated').hidden = true;
+      $('usage-actions').hidden = true;
+      setStatus('usage-status', '사용량을 불러오고 있어요.', false);
+    }
+    let answer = null;
+    let failure = null;
+    try {
+      answer = await api(`/usage/breakdown?period=${period}`, { method: 'GET' });
+    } catch (error) {
+      failure = error;
+    }
+    if (ask === usage.ask) usage.busy = false;
+    if (seq !== state.seq || ask !== usage.ask) return;
+    if (failure) {
+      if (refused(failure)) return;
+      usageFailed(failure);
+      return;
+    }
+    const data = sanitizeUsage(answer, period);
+    if (!data) { usageFailed(null); return; }
+    usage.data = data;
+    usage.updatedAt = Date.now();
+    renderUsage();
+  }
+
+  function markPeriod() {
+    USAGE_PERIODS.forEach((period) => $(`usage-${period}`).setAttribute('aria-pressed', String(period === usage.period)));
+  }
+
+  function choosePeriod(period) {
+    if (!USAGE_PERIODS.includes(period) || (period === usage.period && usage.data)) return;
+    usage.period = period;
+    markPeriod();
+    loadUsage(state.seq, false);
+  }
+
+  function pageVisible() {
+    return document.visibilityState === 'visible';
+  }
+
+  function stopUsageRefresh() {
+    if (usage.timer === null) return;
+    window.clearInterval(usage.timer);
+    usage.timer = null;
+  }
+
+  function startUsageRefresh() {
+    if (usage.timer !== null || usage.unavailable || !pageVisible() || typeof window.setInterval !== 'function') return;
+    usage.timer = window.setInterval(() => refreshUsage(), USAGE_REFRESH_MS);
+  }
+
+  // The plan numbers are read again with 사용량, so the two cards always agree.
+  function refreshUsage() {
+    if (!auth.token() || $('account-view').hidden || usage.unavailable || !pageVisible()) { stopUsageRefresh(); return; }
+    loadUsage(state.seq, true);
+    loadCredits(state.seq, true);
+  }
+
+  // Shown again or focused: read now and keep reading every 30 s. Hidden: stop.
+  function onVisibility() {
+    if (!pageVisible()) { stopUsageRefresh(); return; }
+    if ($('account-view').hidden) return;
+    refreshUsage();
+    startUsageRefresh();
   }
 
   function sanitizeWorkspaces(value) {
@@ -399,11 +839,21 @@
     $('account-gate').hidden = true;
     $('account-loading').hidden = true;
     $('account-view').hidden = false;
-    await Promise.all([loadAccount(seq), loadAi(seq)]);
+    stopUsageRefresh();
+    usage.period = 'current';
+    usage.unavailable = false;
+    markPeriod();
+    startUsageRefresh();
+    await Promise.all([loadAccount(seq), loadAi(seq), loadCredits(seq), loadTickets(seq), loadUsage(seq, false)]);
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());
   $('signout-button').addEventListener('click', () => auth.signOut());
+  $('auto-use-toggle').addEventListener('click', () => setAutoUse());
+  $('usage-current').addEventListener('click', () => choosePeriod('current'));
+  $('usage-previous').addEventListener('click', () => choosePeriod('previous'));
+  if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => onVisibility());
+  if (typeof window.addEventListener === 'function') window.addEventListener('focus', () => onVisibility());
 
   auth.init({
     onSignedIn: () => boot(),

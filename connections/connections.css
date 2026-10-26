@@ -25,6 +25,18 @@ button, input, select { font: inherit; }
 .service-card p { font-size: 14px; color: var(--muted); margin: 8px 0; overflow-wrap: anywhere; }
 .service-state { display: inline-block; padding: 3px 8px; border-radius: 10px; background: var(--sunken); font-size: 12px; color: var(--ink-soft); }
 .service-state.connected { background: var(--positive-bg); color: var(--positive); }
+.service-state.attention { background: var(--warning-bg); color: var(--warning); }
+.service-state.app-only { background: var(--work-bg); color: var(--work); }
+.service-card-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.service-group > h2 { margin-bottom: 4px; }
+.service-group-line { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.service-more { margin-top: 12px; }
+.service-more > summary { cursor: pointer; font-size: 15px; font-weight: 700; min-height: 44px; padding: 10px 0; box-sizing: border-box; }
+.service-more > .service-grid { margin-top: 8px; }
+.service-flow { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.service-flow p { margin: 0 0 10px; }
+.service-key-form { margin: 0; }
+.service-app-reason { color: var(--ink-soft); }
 .services-shell .footer { margin-top: 40px; }
 @media (max-width: 600px) {
   .services-shell { padding: 28px 16px 44px; }

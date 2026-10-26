@@ -18,6 +18,11 @@
   // out once in a request body, and nothing this page keeps in sessionStorage is
   // a token or a code. After a ChatGPT sign-in it also offers to make that same
   // ChatGPT account the person's AI (auth.js holds the one-time claim).
+  //
+  // Keys are typed here, so the page loads no analytics and no other site's script (owner 2026-10-25), and measures
+  // nothing. A key field is cleared the moment it is submitted, and a connected key can be changed in place
+  // (키 바꾸기: the same provider is connected again; the server retires the old key). /connections/ lists every
+  // connection of the account, this AI among them.
   const auth = window.SidekickAuth;
   const { api } = auth;
   // OpenRouter sends the person back here with ?code=. The backend is told this
@@ -42,6 +47,8 @@
     openai: 'ChatGPT', anthropic: 'Claude', xai: 'Grok', gemini: 'Gemini', openrouter: 'OpenRouter',
     minimax: 'MiniMax', deepseek: 'DeepSeek', qwen: 'Qwen', kimi: 'Kimi', zai: 'Z.AI',
     copilot: 'GitHub Copilot', nous: 'Nous Portal', vertex: 'Google Vertex AI', bedrock: 'AWS Bedrock',
+    fireworks: 'Fireworks', novita: 'NovitaAI', xiaomi: 'Xiaomi MiMo', 'tencent-tokenhub': 'Tencent TokenHub',
+    huggingface: 'Hugging Face', stepfun: 'StepFun', kilocode: 'Kilo Code', 'ollama-cloud': 'Ollama Cloud', 'ai-gateway': 'AI Gateway',
     'azure-foundry': 'Azure AI Foundry', '9router': '9Router', omniroute: 'OmniRoute'
   };
   // The providers whose official mark is published with this site, at /assets/ai/<id>.png: the same transparent
@@ -49,9 +56,29 @@
   // catalog's own. A provider that is not listed keeps the text-only card; nothing is ever asked of another host.
   const PROVIDER_LOGOS = [
     'anthropic', 'copilot', 'deepseek', 'gemini', 'kimi', 'meta', 'minimax', 'mistral',
-    'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai'
+    'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai',
+    'ai-gateway', 'fireworks', 'huggingface', 'kilocode', 'novita', 'ollama-cloud', 'stepfun', 'tencent-tokenhub', 'xiaomi'
   ];
   const PROVIDER_LOGO_SIZE = 40;
+  // The list's order and words (owner, 2026-10-26), the same as the app's (apps/mobile/app/data/aiEngineConnections.js
+  // AI_ENGINE_LIST_ORDER and AI_ENGINE_LIST_COPY; apps/mobile/tests/aiEngineList.test.mjs holds the two together): Sidekick
+  // AI (기본) first -- it works on Sidekick credits when no AI account of the person's is connected -- then 내 AI 계정으로
+  // 연결하기 with ChatGPT, Claude, Gemini and Grok first and every other service in the server's order. Which services exist is
+  // still the server's answer; this only orders them.
+  const AI_ENGINE_LIST_ORDER = ['openai', 'anthropic', 'gemini', 'xai'];
+  const AI_ENGINE_LIST_COPY = {
+    sidekickName: 'Sidekick AI (기본)',
+    sidekickDescription: '사이드킥 크레딧으로 처리돼요',
+    sidekickInUse: '사용 중',
+    sidekickStandby: '연결한 AI가 없을 때 처리해요',
+    sidekickSwitchHint: '누르면 연결은 그대로 두고 Sidekick AI로 처리해요',
+    connectTitle: '내 AI 계정으로 연결하기',
+    connectBody: '연결한 AI는 내 AI 계정으로 처리돼 크레딧이 들지 않아요.',
+    connected: '연결됨',
+    connectedIdle: '연결됨 · 누르면 이 AI로 처리해요',
+    needsReconnect: '다시 연결 필요',
+    notConnected: '연결 안 됨'
+  };
   // The cloud forms ask for exactly the fields the server's credential models
   // accept (schemas.py), in the order the app asks for them.
   const CLOUD_FIELDS = {
@@ -97,6 +124,8 @@
   // Every failure is told in Korean the page chose. The server's code only
   // picks which sentence; its own wording is never shown.
   const CODE_COPY = {
+    AI_ENGINE_CONNECTION_NOT_READY: '이 AI 연결을 지금 쓸 수 없어요. 다시 연결한 뒤 골라 주세요.',
+    AI_ENGINE_CHOICE_UNAVAILABLE: '지금은 AI를 바꿀 수 없어요. 잠시 후 다시 시도해 주세요.',
     AI_ENGINE_PROFILE_NOT_READY: '프로젝트의 AI 직원 공간을 아직 준비하고 있어요. 준비가 끝나면 여기서 연결할 수 있어요.',
     AI_ENGINE_CONNECTION_NOT_SUPPORTED: '아직 지원하지 않는 AI 연결이에요.',
     AI_ENGINE_ACCOUNT_CONNECTION_NOT_SUPPORTED: '이 AI는 계정 로그인 연결을 지원하지 않아요. API 키로 연결해 주세요.',
@@ -215,12 +244,18 @@
     projectId: '',
     catalog: [],
     connections: [],
+    // The engine choice (D79 POLISH): 'sidekick' runs on Sidekick AI while the connection stays saved, from
+    // /workspaces/ai-engine-targets' `ai_engine` and PUT /ai-engine-connections/active. null otherwise: the list then
+    // picks by whether an AI is connected, as before.
+    engineChoice: null,
     // The one connection being made in the panel: its provider, method and,
     // for an account login, the flow the server started.
     flow: null,
     busy: false,
     // Bumped by every reload, so a late answer cannot paint over a newer one.
     seq: 0,
+    // The one 키 바꾸기 form open in the list: { connectionId, form, input }.
+    rekey: null,
     // /account/ links here as /ai/?workspace=<id>. Read before the address bar
     // is cleaned below; it only picks whose 실행 설정 are shown.
     requestedWorkspace: readRequestedWorkspace(),
@@ -457,6 +492,7 @@
         id,
         provider,
         method: CONNECTION_METHODS[row.auth_method] || '연결',
+        credential: row.auth_method === 'credential',
         model,
         models: modelList([model, ...modelList(row.models)]).filter(Boolean),
         candidates: modelList(row.candidate_models),
@@ -464,6 +500,35 @@
       });
     });
     return connections;
+  }
+
+  function sanitizeEngineChoice(value) {
+    if (!value || typeof value !== 'object') return null;
+    if (value.engine === 'sidekick') return { engine: 'sidekick', connectionId: '' };
+    if (value.engine !== 'connected') return null;
+    const id = String(value.connection_id || '');
+    return { engine: 'connected', connectionId: SAFE_ID.test(id) ? id : '' };
+  }
+
+  // Sidekick AI while a connected AI runs, or a connected AI back while Sidekick AI runs. Nothing is disconnected.
+  async function selectEngine(engine, connection, controls) {
+    if (state.busy || !state.user) return;
+    setBusy(true, controls);
+    setStatus('providers-status', '처리할 AI를 바꾸고 있어요.', false);
+    try {
+      state.engineChoice = sanitizeEngineChoice(await api('/ai-engine-connections/active', {
+        method: 'PUT',
+        body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}) })
+      }));
+      setStatus('providers-status', engine === 'sidekick'
+        ? '이제 Sidekick AI가 처리해요. 연결한 AI는 그대로 남아 있어요.'
+        : `이제 ${connectionProviderName(connection.provider)}가 처리해요. 크레딧이 들지 않아요.`, false);
+    } catch (error) {
+      showFailure(error, 'providers-status');
+    } finally {
+      setBusy(false, controls);
+    }
+    if (state.user) await reloadConnections();
   }
 
   // ---- Signed-in state -------------------------------------------------------
@@ -526,6 +591,7 @@
     state.projectId = '';
     state.catalog = [];
     state.connections = [];
+    state.engineChoice = null;
     showSignedOut();
     setStatus('signin-status', message || '', isError);
   }
@@ -566,7 +632,10 @@
     setStatus('workspace-status', '프로젝트를 불러오고 있어요.', false);
     let workspaces = null;
     try {
-      workspaces = sanitizeWorkspaces(await api('/workspaces/ai-engine-targets', { method: 'GET' }));
+      const targets = await api('/workspaces/ai-engine-targets', { method: 'GET' });
+      workspaces = sanitizeWorkspaces(targets);
+      // D79 POLISH: the server says `ai_engine` only while the person chose Sidekick AI (their connection stays saved).
+      state.engineChoice = sanitizeEngineChoice(targets && targets.ai_engine);
     } catch (error) {
       if (seq !== state.seq) return;
       if (error.status === 401) { signOutHere(STATUS_COPY[401]); return; }
@@ -701,6 +770,8 @@
   // ---- Connections of this project ----------------------------------------------
 
   function renderConnections() {
+    // A redrawn list drops an open 키 바꾸기 with its typed key.
+    closeKeyChange();
     const list = $('connection-list');
     list.replaceChildren(...state.connections.map(connectionItem));
     $('connections-empty').hidden = state.connections.length > 0;
@@ -726,26 +797,111 @@
       hidden: true
     });
     const change = el('button', { className: 'ai-button secondary', type: 'button', text: '모델 바꾸기', disabled: true });
+    const rekey = canChangeKey(connection) ? el('button', { className: 'ai-button secondary', type: 'button', text: '키 바꾸기' }) : null;
     const disconnect = el('button', { className: 'ai-button quiet', type: 'button', text: '연결 해제' });
+    const controls = [change, rekey, disconnect, select].filter(Boolean);
     select.addEventListener('change', () => {
       change.disabled = state.busy || !select.value || select.value === connection.model;
       note.hidden = !candidates.includes(select.value);
     });
-    change.addEventListener('click', () => changeModel(connection, select.value, [change, disconnect, select]));
-    disconnect.addEventListener('click', () => disconnectConnection(connection, [change, disconnect, select]));
-    return el('li', { className: 'connection-item', 'data-connection-id': connection.id, tabindex: '-1' }, [
+    change.addEventListener('click', () => changeModel(connection, select.value, controls));
+    disconnect.addEventListener('click', () => disconnectConnection(connection, controls));
+    const item = el('li', { className: 'connection-item', 'data-connection-id': connection.id, tabindex: '-1' });
+    if (rekey) rekey.addEventListener('click', () => openKeyChange(connection, item, controls));
+    fill(item, [
       el('div', { className: 'connection-head' }, [
         el('strong', { text: name }),
-        el('span', { className: connection.connected ? 'pill is-ok' : 'pill is-warn', text: connection.connected ? '연결됨' : '다시 연결 필요' })
+        el('span', { className: connection.connected ? 'pill is-ok' : 'pill is-warn', text: connection.connected ? AI_ENGINE_LIST_COPY.connected : AI_ENGINE_LIST_COPY.needsReconnect })
       ]),
       el('p', { className: 'connection-meta', text: `${connectionMethodLabel(connection)} · 지금 모델 ${connection.model || '선택 필요'}` }),
       connection.connected ? null : el('p', {
         className: 'ai-note',
         text: '새 업무만 잠시 멈춰요. 아래에서 같은 AI를 다시 연결하면 이어서 써요.'
       }),
-      el('div', { className: 'connection-actions' }, [select, change, disconnect]),
+      el('div', { className: 'connection-actions' }, [select, change, rekey, disconnect]),
       note
     ]);
+    return item;
+  }
+
+  // ---- 키 바꾸기: a new key for a connected key, in its own row --------------------------------------------------------
+  //
+  // The same provider is connected again with the new key (POST /ai-engine-connections); the server proves it with one
+  // real answer and retires the old one. Only a key that is the whole credential: a gateway also needs its address and a
+  // keyless model has no key, so those reconnect from the cards below.
+  function canChangeKey(connection) {
+    const provider = state.catalog.find((row) => row.id === connection.provider);
+    return connection.credential && Boolean(provider) && !provider.endpointRequired
+      && provider.methods.some((method) => method.kind === 'api_key');
+  }
+
+  function closeKeyChange() {
+    const open = state.rekey;
+    state.rekey = null;
+    if (!open) return;
+    open.input.value = '';
+    open.form.remove();
+  }
+
+  // Keys go only into a page that runs this site's own scripts. The sign-in sheet's security check is another site's
+  // script; once it has run in this tab, a key waits for a fresh page.
+  function foreignScript() {
+    return Array.from(document.querySelectorAll('script[src]')).some((tag) => {
+      try { return new URL(tag.getAttribute('src'), window.location.href).origin !== window.location.origin; } catch (_) { return true; }
+    });
+  }
+
+  function reopenNotice() {
+    return el('div', { className: 'connect-form' }, [
+      el('p', { className: 'ai-note', text: '로그인 확인에 쓴 다른 사이트의 코드가 이 페이지에 남아 있어요. 키를 안전하게 넣으려면 페이지를 새로 열어 주세요.' }),
+      el('button', { className: 'ai-button', type: 'button', text: '새로 열기', onClick: () => window.location.reload() })
+    ]);
+  }
+
+  function openKeyChange(connection, item, controls) {
+    if (state.busy) return;
+    closeKeyChange();
+    if (foreignScript()) { setStatus('connections-status', '키를 안전하게 넣으려면 이 페이지를 새로 열어 주세요.', true); return; }
+    const name = connectionProviderName(connection.provider);
+    const input = el('input', { className: 'ai-input', id: 'rekey-input', type: 'password', autocomplete: 'off', spellcheck: 'false', required: true });
+    const submit = el('button', { className: 'ai-button', type: 'submit', text: '바꾸기' });
+    const cancel = el('button', { className: 'ai-button secondary', type: 'button', text: '취소', onClick: () => { if (!state.busy) closeKeyChange(); } });
+    const form = el('form', { className: 'connect-form rekey-form' }, [
+      field(`${name} 새 API 키`, input, '새 키로 실제 테스트 답변을 한 번 받아 본 뒤 바꿔요. 이전 키는 더 쓰지 않아요. 키는 이 페이지에 남지 않아요.'),
+      el('div', { className: 'connect-actions' }, [submit, cancel])
+    ]);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      // Out of the field at once, whatever happens next.
+      const credential = input.value.trim();
+      input.value = '';
+      if (credential.length < 20) { setStatus('connections-status', '키가 너무 짧아요. 발급받은 키 전체를 붙여넣어 주세요.', true); return; }
+      changeKey(connection, credential, [submit, cancel, input, ...controls]);
+    });
+    state.rekey = { connectionId: connection.id, form, input };
+    item.append(form);
+    setStatus('connections-status', '', false);
+    input.focus({ preventScroll: true });
+  }
+
+  async function changeKey(connection, credential, controls) {
+    if (state.busy) return;
+    const name = connectionProviderName(connection.provider);
+    setBusy(true, controls);
+    setStatus('connections-status', PROOF_PROGRESS, false);
+    try {
+      await longCall('/ai-engine-connections', {
+        method: 'POST',
+        body: JSON.stringify({ ...scope(), provider: connection.provider, auth_method: 'credential', credential })
+      });
+      closeKeyChange();
+      setStatus('connections-status', `${name} 키를 바꿨어요. 내 모든 프로젝트의 새 업무부터 새 키로 일해요.`, false);
+    } catch (error) {
+      showFailure(error, 'connections-status');
+    } finally {
+      setBusy(false, controls);
+    }
+    if (state.user) await reloadConnections();
   }
 
   function setBusy(busy, controls) {
@@ -795,10 +951,45 @@
 
   // ---- Provider catalog ------------------------------------------------------------
 
+  // The catalog in the owner's order: AI_ENGINE_LIST_ORDER first, in that order, then the rest as the server sent them.
+  function orderedCatalog(catalog) {
+    const rank = (id) => (AI_ENGINE_LIST_ORDER.includes(id) ? AI_ENGINE_LIST_ORDER.indexOf(id) : AI_ENGINE_LIST_ORDER.length);
+    return catalog.map((provider, index) => ({ provider, index }))
+      .sort((a, b) => rank(a.provider.id) - rank(b.provider.id) || a.index - b.index)
+      .map((entry) => entry.provider);
+  }
+
+  // Sidekick AI (기본) heads the list. It is the one in use while no AI account of the person's is connected.
+  // Sidekick AI is in use while no AI is connected, or while the person chose it (D79 POLISH: the connection stays).
+  function sidekickInUse() {
+    return !state.connections.some((connection) => connection.connected)
+      || (state.engineChoice && state.engineChoice.engine === 'sidekick');
+  }
+
+  function renderSidekickAi() {
+    const inUse = sidekickInUse();
+    $('sidekick-ai-name').textContent = AI_ENGINE_LIST_COPY.sidekickName;
+    $('sidekick-ai-description').textContent = AI_ENGINE_LIST_COPY.sidekickDescription;
+    $('sidekick-ai-state').textContent = inUse ? AI_ENGINE_LIST_COPY.sidekickInUse : AI_ENGINE_LIST_COPY.sidekickStandby;
+    $('sidekick-ai-card').classList.toggle('is-selected', inUse);
+    // While a connected AI runs, Sidekick AI can be chosen without disconnecting it.
+    const select = $('sidekick-ai-select');
+    select.hidden = inUse;
+    select.title = AI_ENGINE_LIST_COPY.sidekickSwitchHint;
+    if (!select.dataset.bound) {
+      select.dataset.bound = '1';
+      select.addEventListener('click', () => selectEngine('sidekick', null, [select]));
+    }
+    $('providers-heading').textContent = AI_ENGINE_LIST_COPY.connectTitle;
+    $('providers-credit-note').textContent = AI_ENGINE_LIST_COPY.connectBody;
+  }
+
   function renderProviders() {
-    const featured = state.catalog.filter((provider) => provider.featured);
-    const top = featured.length ? featured : state.catalog;
-    const rest = featured.length ? state.catalog.filter((provider) => !provider.featured) : [];
+    renderSidekickAi();
+    const catalog = orderedCatalog(state.catalog);
+    const featured = catalog.filter((provider) => provider.featured);
+    const top = featured.length ? featured : catalog;
+    const rest = featured.length ? catalog.filter((provider) => !provider.featured) : [];
     $('provider-featured').replaceChildren(...top.map(providerCard));
     $('provider-rest').replaceChildren(...rest.map(providerCard));
     $('provider-more').hidden = rest.length === 0;
@@ -847,20 +1038,27 @@
     const account = provider.methods.find((method) => method.kind === 'account');
     const noted = provider.methods.find((method) => method.note);
     const detail = (account && account.requirement) || (noted && noted.note) || '';
-    const linked = state.connections.some((connection) => connection.provider === provider.id && connection.connected);
+    const linkedConnection = state.connections.find((connection) => connection.provider === provider.id && connection.connected);
+    const linked = Boolean(linkedConnection);
+    // Sidekick AI was chosen and this AI is still connected: one button makes it the one in use again (D79 POLISH).
+    const idle = linked && Boolean(state.engineChoice && state.engineChoice.engine === 'sidekick');
+    const useButton = idle ? el('button', {
+      className: 'ai-button', type: 'button', text: '이 AI로 처리하기',
+      onClick: (event) => selectEngine('connected', linkedConnection, [event.currentTarget])
+    }) : null;
     return el('article', { className: 'provider-card', 'data-provider': provider.id }, [
       el('div', { className: 'provider-head' }, [
         providerLogo(provider.id),
         el('strong', { text: provider.name }),
-        linked ? el('span', { className: 'pill is-ok', text: '연결됨' }) : null
+        linked ? el('span', { className: 'pill is-ok', text: idle ? AI_ENGINE_LIST_COPY.connectedIdle : '연결됨' }) : null
       ]),
       el('div', { className: 'provider-badges' }, provider.methods.map((method) => el('span', {
         className: 'pill', text: METHOD_BADGES[method.kind]
       }))),
       provider.endpointRequired ? el('p', { className: 'provider-detail', text: '운영 중인 AI 연결 주소가 필요해요.' }) : null,
       detail ? el('p', { className: 'provider-detail', text: detail }) : null,
-      el('div', { className: 'provider-actions' }, linked ? [el('button', {
-        className: 'ai-button', type: 'button', text: '연결 관리',
+      el('div', { className: 'provider-actions' }, linked ? [useButton, el('button', {
+        className: idle ? 'ai-button secondary' : 'ai-button', type: 'button', text: '연결 관리',
         onClick: () => {
           const connection = state.connections.find((item) => item.provider === provider.id && item.connected);
           const item = Array.from($('connection-list').children).find((node) => node.getAttribute('data-connection-id') === connection?.id);
@@ -882,15 +1080,13 @@
     closeFlow();
     const flow = { provider, method, flowId: '', authorizationUrl: '', timer: null, inFlight: false, stopped: false };
     state.flow = flow;
-    try { window.SidekickWebAnalytics?.track('ai_provider_connect_started',
-      { provider: provider.id, connection_type: method.kind === 'account' ? 'oauth' : method.kind === 'free' ? 'none' : method.kind === 'cloud' ? 'cloud' : 'api_key' }); } catch (_) {}
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
     setStatus('connect-status', '', false);
     if (method.kind === 'account') startAccount(flow);
-    else if (method.kind === 'api_key') $('connect-body').replaceChildren(keyForm(flow));
+    else if (method.kind === 'api_key') $('connect-body').replaceChildren(foreignScript() ? reopenNotice() : keyForm(flow));
     else if (method.kind === 'free') $('connect-body').replaceChildren(freeForm(flow));
-    else if (method.kind === 'cloud') $('connect-body').replaceChildren(cloudForm(flow));
+    else if (method.kind === 'cloud') $('connect-body').replaceChildren(foreignScript() ? reopenNotice() : cloudForm(flow));
     smoothScroll($('connect-step'));
   }
 
@@ -900,6 +1096,7 @@
   }
 
   function closeFlow() {
+    closeKeyChange();
     if (state.flow) stopFlow(state.flow);
     state.flow = null;
     $('connect-step').hidden = true;
@@ -928,13 +1125,6 @@
   }
 
   function returnToApp(providerId) {
-    try {
-      window.SidekickWebAnalytics?.track('web_to_app_started', {
-        transition_id: window.crypto.randomUUID(), from_surface: 'web_oauth',
-        to_surface: /android/i.test(navigator.userAgent) ? 'android_app' : 'ios_app',
-        reason: 'connect_ai_engine', return_expected: false, destination_type: 'app'
-      });
-    } catch (_) { /* a measurement never stands in the way of the way back */ }
     window.location.assign(appReturnAddress(providerId));
   }
 
@@ -1037,7 +1227,9 @@
     ]);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
+      // Out of the field at once, whatever happens next.
       const credential = key.value.trim();
+      key.value = '';
       const endpointUrl = endpoint ? endpoint.value.trim() : '';
       if (credential.length < 20) { setStatus('connect-status', '키가 너무 짧아요. 발급받은 키 전체를 붙여넣어 주세요.', true); return; }
       if (endpoint && !auth.httpsUrl(endpointUrl)) { setStatus('connect-status', '연결 주소는 https://로 시작해야 해요.', true); return; }
@@ -1108,9 +1300,11 @@
       event.preventDefault();
       const credential = { kind: flow.provider.id };
       const typed = {};
-      for (const { spec, input } of inputs) {
-        const value = input.value.trim();
-        typed[spec.id] = value;
+      for (const { spec, input } of inputs) typed[spec.id] = input.value.trim();
+      // The secret fields are emptied at once, whatever happens next; the rest stay to be corrected.
+      for (const { spec, input } of inputs) if (spec.secret) input.value = '';
+      for (const { spec } of inputs) {
+        const value = typed[spec.id];
         if (spec === AZURE_DEPLOYMENT_FIELD) continue;
         if (!value) { setStatus('connect-status', azure ? AZURE_PROBLEMS[spec.id === 'api_key' ? 'api_key' : 'endpoint'] : `${spec.label}을 입력해 주세요.`, true); return; }
         credential[spec.id] = value;
@@ -1130,8 +1324,6 @@
   // ---- Account logins ---------------------------------------------------------------
 
   async function startAccount(flow) {
-    try { window.SidekickWebAnalytics?.track('ai_provider_oauth_started',
-      { provider: flow.provider.id, connection_type: flow.method.flow === 'device_code' ? 'device_code' : 'oauth' }); } catch (_) {}
     const body = $('connect-body');
     body.replaceChildren(el('p', { className: 'ai-note', text: `${flow.provider.name} 로그인을 준비하고 있어요.` }));
     let started;

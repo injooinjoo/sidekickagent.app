@@ -2,13 +2,13 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="description" content="사이드킥 계정의 지원 서비스 연결을 확인하고 연결하거나 해제하세요." />
-  <title>서비스 연결 · 사이드킥</title>
+  <meta name="description" content="사이드킥 계정에 연결한 AI와 서비스를 한곳에서 확인하고 연결하거나 해제하세요." />
+  <title>연동 관리 · 사이드킥</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png" />
@@ -18,8 +18,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
-  <meta property="og:title" content="서비스 연결 · 사이드킥" />
-  <meta property="og:description" content="사이드킥 계정의 지원 서비스 연결을 확인하고 연결하거나 해제하세요." />
+  <meta property="og:title" content="연동 관리 · 사이드킥" />
+  <meta property="og:description" content="사이드킥 계정에 연결한 AI와 서비스를 한곳에서 확인하고 연결하거나 해제하세요." />
   <meta property="og:url" content="https://sidekickagent.app/connections/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -29,12 +29,8 @@
   <meta name="twitter:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta name="twitter:image:alt" content="사이드킥 로고와 문구: 부업, 혼자 하지 마세요" />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/analytics.css" />
   <link rel="stylesheet" href="/connections/connections.css" />
   <script src="/app-mode.js"></script>
-  <script src="/analytics.js"></script>
-  <script src="/analytics-config.js"></script>
-  <script defer src="/analytics-runtime.js"></script>
   <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>
   <script src="/connections/connections.js" defer></script>
@@ -46,9 +42,12 @@
     <div class="account-slot"><button class="account-pill" id="account-pill" type="button">로그인</button></div>
   </header>
   <main class="services-shell">
+    <!-- 연동 관리 (owner 2026-10-25): every connection of this account, as the server lists it. This page and /ai/ take
+         keys, so they load no analytics and no other site's script (the policy above allows only this site, its API and
+         the sign-in sheet's security check). -->
     <section class="services-intro" aria-labelledby="page-title">
-      <h1 id="page-title">서비스 연결</h1>
-      <p>필요한 서비스를 연결하고 관리하세요. 모든 프로젝트에서 함께 써요.</p>
+      <h1 id="page-title">연동 관리</h1>
+      <p>내 계정에 연결한 AI와 서비스를 한곳에서 보고 바꿔요. 앱과 같은 목록이라 어디서 바꿔도 함께 바뀌어요.</p>
       <p>다른 AI 채팅에서 이어서 일하려면 <a href="/ai-apps/">다른 AI 앱에서 쓰기</a>의 연결 방법을 확인해 주세요.</p>
       <p id="services-who" hidden></p>
     </section>
@@ -70,16 +69,11 @@
       <div class="service-actions"><button class="service-button secondary" id="refresh-services" type="button">다시 확인</button></div>
       <p class="services-status" id="page-status" role="status"></p>
     </section>
-    <section class="services-panel" id="action-panel" aria-labelledby="action-heading" hidden>
-      <div class="service-head"><h2 id="action-heading"></h2><button class="service-button secondary" id="cancel-action" type="button">취소</button></div>
-      <div id="action-body"></div>
-      <p class="services-status" id="action-status" role="status"></p>
-    </section>
     <section id="catalog-panel" aria-labelledby="catalog-heading" hidden>
-      <h2 id="catalog-heading">서비스 연결</h2>
-      <label class="sr-only" for="service-search">서비스 찾기</label>
-      <input id="service-search" type="search" placeholder="서비스 이름으로 찾기" autocomplete="off" />
-      <p id="catalog-empty" hidden>지금 연결할 수 있는 서비스가 없어요.</p>
+      <h2 id="catalog-heading" class="sr-only">내 연동</h2>
+      <label class="sr-only" for="service-search">연동 찾기</label>
+      <input id="service-search" type="search" placeholder="이름으로 찾기" autocomplete="off" />
+      <p id="catalog-empty" hidden>찾는 연동이 없어요.</p>
       <div id="service-groups"></div>
     </section>
     <footer class="footer"><a href="/">홈</a><a href="/support/">도움말</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/delete-account/">계정 및 데이터 삭제</a><small>© 2026 Sidekick</small><address class="biz"><span>비욘드</span><span>대표 김인주</span><span>사업자등록번호 552-20-02389</span><span>서울특별시 서초구 효령로23길 54-6</span><span>전화 010-5060-6843</span><span>이메일 support@sidekickagent.app</span><span>호스팅 서비스 제공자 GitHub, Inc.(웹사이트) · Google LLC(Google Cloud, 앱 서비스)</span></address></footer>
