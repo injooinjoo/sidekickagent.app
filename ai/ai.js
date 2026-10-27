@@ -77,7 +77,9 @@
     connected: '연결됨',
     connectedIdle: '연결됨 · 누르면 이 AI로 처리해요',
     needsReconnect: '다시 연결 필요',
-    notConnected: '연결 안 됨'
+    notConnected: '연결 안 됨',
+    creditsInUse: '사이드킥 크레딧 · 사용 중',
+    creditsSuffix: '사이드킥 크레딧'
   };
   // The cloud forms ask for exactly the fields the server's credential models
   // accept (schemas.py), in the order the app asks for them.
@@ -120,6 +122,14 @@
   const METHOD_ACTIONS = { account: '계정으로 로그인', api_key: 'API 키 입력', free: '무료로 사용', cloud: '정보 입력' };
   const METHOD_BADGES = { account: '계정 로그인', api_key: 'API 키', free: '무료', cloud: '클라우드' };
   const CONNECTION_METHODS = { oauth: '계정 로그인', credential: 'API 키', cloud: '클라우드' };
+  // A service's three ways to run (owner, 2026-10-27), the same words as the app (apps/mobile/app/data/aiEngineConnections.js
+  // AI_ENGINE_CONNECT_CHOICE_COPY): its model on Sidekick's account, charged as usage; the person's own key; their account.
+  // Shown only for a service the server marks `sidekick_credits`; every other service keeps its method buttons.
+  const CONNECT_CHOICE_COPY = {
+    credits: { title: '사이드킥 크레딧으로 사용 (간편)', detail: '별도 설정 없이 바로 써요. 사용량에서 차감돼요.' },
+    api_key: { title: '내 API 키 입력', detail: '내 계정 비용으로 처리돼요. 사이드킥 사용량은 쓰지 않아요.' },
+    account: { title: '계정으로 로그인', detail: '내 계정으로 연결해요.' }
+  };
 
   // Every failure is told in Korean the page chose. The server's code only
   // picks which sentence; its own wording is never shown.
@@ -464,7 +474,8 @@
       const methods = methodsOf(row);
       if (!methods.length) return;
       seen.add(row.id);
-      providers.push({ id: row.id, name: providerName(row.id, row), featured: row.featured === true, endpointRequired, methods });
+      providers.push({ id: row.id, name: providerName(row.id, row), featured: row.featured === true, endpointRequired, methods,
+        sidekickCredits: row.sidekick_credits === true });
     });
     return providers;
   }
@@ -504,23 +515,30 @@
 
   function sanitizeEngineChoice(value) {
     if (!value || typeof value !== 'object') return null;
-    if (value.engine === 'sidekick') return { engine: 'sidekick', connectionId: '' };
+    if (value.engine === 'sidekick') {
+      // One service on Sidekick credits names it (`provider`); plain Sidekick AI names none.
+      const provider = String(value.provider || '');
+      return { engine: 'sidekick', connectionId: '', provider: PROVIDER_ID.test(provider) ? provider : '' };
+    }
     if (value.engine !== 'connected') return null;
     const id = String(value.connection_id || '');
     return { engine: 'connected', connectionId: SAFE_ID.test(id) ? id : '' };
   }
 
   // Sidekick AI while a connected AI runs, or a connected AI back while Sidekick AI runs. Nothing is disconnected.
-  async function selectEngine(engine, connection, controls) {
+  // With `provider`, that service's model runs on Sidekick credits ("사이드킥 크레딧으로 사용").
+  async function selectEngine(engine, connection, controls, provider) {
     if (state.busy || !state.user) return;
     setBusy(true, controls);
     setStatus('providers-status', '처리할 AI를 바꾸고 있어요.', false);
     try {
       state.engineChoice = sanitizeEngineChoice(await api('/ai-engine-connections/active', {
         method: 'PUT',
-        body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}) })
+        body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}), ...(provider ? { provider: provider.id } : {}) })
       }));
-      setStatus('providers-status', engine === 'sidekick'
+      setStatus('providers-status', provider
+        ? `이제 ${provider.name}를 사이드킥 크레딧으로 써요. 사용량에서 차감돼요.`
+        : engine === 'sidekick'
         ? '이제 Sidekick AI가 처리해요. 연결한 AI는 그대로 남아 있어요.'
         : `이제 ${connectionProviderName(connection.provider)}가 처리해요. 크레딧이 들지 않아요.`, false);
     } catch (error) {
@@ -962,8 +980,32 @@
   // Sidekick AI (기본) heads the list. It is the one in use while no AI account of the person's is connected.
   // Sidekick AI is in use while no AI is connected, or while the person chose it (D79 POLISH: the connection stays).
   function sidekickInUse() {
+    if (creditsProvider()) return false; // one service runs on Sidekick credits: its card says so
     return !state.connections.some((connection) => connection.connected)
       || (state.engineChoice && state.engineChoice.engine === 'sidekick');
+  }
+
+  // The service whose model runs on Sidekick credits now, or ''.
+  function creditsProvider() {
+    const choice = state.engineChoice;
+    return choice && choice.engine === 'sidekick' && choice.provider ? choice.provider : '';
+  }
+
+  // The three ways to run one service, each a button with its line. Key and login open the panel as their buttons did.
+  function connectChoices(provider) {
+    const choices = [el('button', {
+      className: 'ai-button connect-choice', type: 'button', 'data-choice': 'credits',
+      onClick: (event) => selectEngine('sidekick', null, [event.currentTarget], provider)
+    }, [el('strong', { text: CONNECT_CHOICE_COPY.credits.title }), el('span', { text: CONNECT_CHOICE_COPY.credits.detail })])];
+    ['api_key', 'account'].forEach((kind) => {
+      const method = provider.methods.find((item) => item.kind === kind);
+      if (!method) return;
+      choices.push(el('button', {
+        className: 'ai-button secondary connect-choice', type: 'button', 'data-choice': kind,
+        onClick: () => openFlow(provider, method)
+      }, [el('strong', { text: CONNECT_CHOICE_COPY[kind].title }), el('span', { text: CONNECT_CHOICE_COPY[kind].detail })]));
+    });
+    return el('div', { className: 'connect-choices' }, choices);
   }
 
   function renderSidekickAi() {
@@ -1042,22 +1084,29 @@
     const linked = Boolean(linkedConnection);
     // Sidekick AI was chosen and this AI is still connected: one button makes it the one in use again (D79 POLISH).
     const idle = linked && Boolean(state.engineChoice && state.engineChoice.engine === 'sidekick');
+    const onCredits = provider.sidekickCredits && creditsProvider() === provider.id;
     const useButton = idle ? el('button', {
       className: 'ai-button', type: 'button', text: '이 AI로 처리하기',
       onClick: (event) => selectEngine('connected', linkedConnection, [event.currentTarget])
+    }) : null;
+    // A connected service can still be run on Sidekick credits instead (an explicit choice wins); the connection stays.
+    const creditsButton = linked && provider.sidekickCredits && !onCredits ? el('button', {
+      className: 'ai-button secondary', type: 'button', text: CONNECT_CHOICE_COPY.credits.title, title: CONNECT_CHOICE_COPY.credits.detail,
+      onClick: (event) => selectEngine('sidekick', null, [event.currentTarget], provider)
     }) : null;
     return el('article', { className: 'provider-card', 'data-provider': provider.id }, [
       el('div', { className: 'provider-head' }, [
         providerLogo(provider.id),
         el('strong', { text: provider.name }),
-        linked ? el('span', { className: 'pill is-ok', text: idle ? AI_ENGINE_LIST_COPY.connectedIdle : '연결됨' }) : null
+        onCredits ? el('span', { className: 'pill is-ok', text: AI_ENGINE_LIST_COPY.creditsInUse })
+          : linked ? el('span', { className: 'pill is-ok', text: idle ? AI_ENGINE_LIST_COPY.connectedIdle : '연결됨' }) : null
       ]),
       el('div', { className: 'provider-badges' }, provider.methods.map((method) => el('span', {
         className: 'pill', text: METHOD_BADGES[method.kind]
       }))),
       provider.endpointRequired ? el('p', { className: 'provider-detail', text: '운영 중인 AI 연결 주소가 필요해요.' }) : null,
       detail ? el('p', { className: 'provider-detail', text: detail }) : null,
-      el('div', { className: 'provider-actions' }, linked ? [useButton, el('button', {
+      !linked && provider.sidekickCredits && !onCredits ? connectChoices(provider) : el('div', { className: 'provider-actions' }, linked ? [useButton, creditsButton, el('button', {
         className: idle ? 'ai-button secondary' : 'ai-button', type: 'button', text: '연결 관리',
         onClick: () => {
           const connection = state.connections.find((item) => item.provider === provider.id && item.connected);

@@ -81,7 +81,7 @@ async function loadJob(job) {
     const root = element('section'); root.className = 'card';
     root.append(element('h2', media.status === 'quote' ? '제작 조건 확인' : '제작 상태'), element('p', media.service_label || '연결한 제작 서비스'), element('p', ({quote:'제작 조건 확인',queued:'접수됨',processing:'제작 중',storing:'결과 저장 중',completed:'완료',failed:'확인 필요',cancelled:'중단됨',uncertain:'제작 서비스 확인 중'})[media.status] || '제작 상태 확인 중'));
     if (media.status === 'quote') {
-      root.append(element('p', media.estimated_credits == null ? '선택을 마친 뒤 견적을 확인해 주세요.' : '예상 사용량: ' + media.estimated_credits));
+      root.append(element('p', !media.estimate_ready ? '선택을 마친 뒤 견적을 확인해 주세요.' : Number.isFinite(media.estimated_percent) ? `예상 사용량: 이번 기간 사용량의 ${media.estimated_percent}%` : '견적을 확인했어요.'));
       for (const choice of media.choices || []) {
         root.append(button(choice.name || choice.label || choice.voice_name || choice.voice_id || choice.id, async () => {
           await post('/media/jobs/' + media.job_id + '/actions', { workspace_id: data.workspace_id, action: 'select', choice_id: choice.voice_id || choice.id, slot: choice.slot, action_id: 'ma_' + crypto.randomUUID().replaceAll('-', '') }, s);
@@ -108,7 +108,7 @@ async function loadJob(job) {
           await loadJob(job);
         }));
       }
-      if (media.estimated_credits != null) root.append(button('이 조건과 사용량으로 제작', async () => {
+      if (media.estimate_ready) root.append(button('이 조건과 사용량으로 제작', async () => {
         await post('/media/jobs/' + media.job_id + '/actions', { workspace_id: data.workspace_id, action: 'execute', quote_version: media.quote_version, action_id: 'ma_' + media.job_id.replaceAll('-', '_') + '_v' + media.quote_version }, s);
         await loadJob(job);
       }));
@@ -126,7 +126,7 @@ async function boot() {
   try {
     if (id('connect')) {
       const [request, projects] = await Promise.all([api('/assistant/oauth/requests/' + id('connect'), {}, s), api('/workspaces/ai-engine-targets', {}, s)]);
-      $('client-name').textContent = request.client_name + ' 연결';
+      $('client-name').textContent = request.client_name + ' 연결' + (request.redirect_host ? ` (${request.redirect_host})` : '');
       const labels = { 'sidekick.read': '이 프로젝트의 작업·결과 읽기', 'sidekick.work': '확인한 일과 진행·제작 견적 준비', 'sidekick.manage': '작업 수정 준비·중단 요청' };
       $('scope-copy').textContent = request.scopes.map((v) => labels[v] || v).join(' · ');
       $('project').replaceChildren();

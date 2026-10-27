@@ -26,9 +26,9 @@ export function renderCard(root, data, actions = {}) {
     list.append(item);
   }
   root.append(list);
-  const usage = data.usage || {};
-  root.append(el('p', usage.estimated_credits == null ? usage.explanation : '예상 사용량: ' + usage.estimated_credits));
-  if (usage.consumed_credits != null) root.append(el('p', '확인된 사용량: ' + usage.consumed_credits));
+  // Owner rule 2026-10-27: never a credit amount; a share of this period's usage when known, else words only.
+  const share = usageLine(data.usage);
+  root.append(el('p', share || data.usage?.explanation || ''));
   if (data.updated_at) { const time = el('time', '갱신: ' + data.updated_at); time.dateTime = data.updated_at; root.append(time); }
   if (data.workflow?.continuation && !['succeeded', 'failed', 'cancelled'].includes(data.status)) root.append(el('p', data.workflow.continuation));
   const required = data.workflow?.required_action || data.required_action;
@@ -60,6 +60,14 @@ export function renderCard(root, data, actions = {}) {
   }
   if (data.links?.web_url && actions.open) root.append(button('Sidekick에서 열기', () => actions.open(data.links.web_url)));
   root.append(notice);
+}
+
+export function usageLine(usage) {
+  if (!usage) return '';
+  for (const [key, label] of [['consumed_percent', '확인된 사용량'], ['reserved_percent', '예약된 사용량'], ['estimated_percent', '예상 사용량']]) {
+    if (Number.isFinite(usage[key])) return `${label}: 이번 기간 사용량의 ${usage[key]}%`;
+  }
+  return '';
 }
 
 export function safeHttps(value) {

@@ -1274,20 +1274,6 @@
     return data;
   }
 
-  async function refreshAiMembershipNotice() {
-    if (!session.token || !session.checked) return;
-    const token = session.token;
-    try {
-      const status = await api('/membership/status', {
-        method: 'GET', headers: { Authorization: `Bearer ${token}` }
-      });
-      if (session.token !== token || !session.checked) return;
-      if (status && status.ai_connection_required === true) {
-        showToast('AI 연동 멤버십은 AI가 연결된 동안에만 이용할 수 있어요. AI를 다시 연결하거나 구독한 곳에서 AI 포함 멤버십으로 변경해 주세요.', true, 12000);
-      }
-    } catch (_) { /* Access is enforced by the backend; a notice must not block sign-in. */ }
-  }
-
   // The backend is the authority on who this is; a provider only proved the
   // person holds an account.
   async function whoami() {
@@ -2411,7 +2397,6 @@
       return;
     }
     if (sessionExpired()) { expireSession(); return; }
-    refreshAiMembershipNotice();
   });
 
   // A ChatGPT sign-in used to prove a ChatGPT account the person might want their
@@ -2784,7 +2769,7 @@
     return initialized;
   }
 
-  document.addEventListener('DOMContentLoaded', () => { init().then(refreshAiMembershipNotice); });
+  document.addEventListener('DOMContentLoaded', () => { init(); });
 
   window.SidekickAuth = Object.freeze({
     API_ORIGIN,
