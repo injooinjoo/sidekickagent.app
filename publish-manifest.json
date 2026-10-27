@@ -30,8 +30,8 @@
       "sha256": "ca3ec4a7433363c459e27999d344253316eaa9dc18923d3977546c079b53f929"
     },
     "ai-apps/ai-apps.js": {
-      "bytes": 10163,
-      "sha256": "c0a78a92b9d3a4fe84b9c52c57b38ad0afca032357b2d4b6867bfdd4dab30fa4"
+      "bytes": 10307,
+      "sha256": "591bd7ca0171814bf8fd255999d79703c7c509f3022d419f2ef6c490c670f182"
     },
     "ai-apps/index.html": {
       "bytes": 4354,
@@ -42,16 +42,16 @@
       "sha256": "db8548b155a784e3faeed253b292530ed2e94451176ab91bad5ad4090661e014"
     },
     "ai-apps/view.js": {
-      "bytes": 4906,
-      "sha256": "986b5c9dee496766b8f5109520d0f796cb347379c0b0caf155d9ad92ed8b2482"
+      "bytes": 5195,
+      "sha256": "1b24d9ac43f26d16d24e3ff3a2187c63418831ebe6441bd0b3e5c4fb3b9b888c"
     },
     "ai/ai.css": {
-      "bytes": 17626,
-      "sha256": "13f16520da3c253fbf2288ef21c15e689512f5a6552fe3400412f5702c529d16"
+      "bytes": 18046,
+      "sha256": "152368a35d01980afcf03bb33b3148c6127b300cdbc21143b8328d115b77634b"
     },
     "ai/ai.js": {
-      "bytes": 109649,
-      "sha256": "190eaa97445b35fd58dbd61693b65ae15708f7d976f8b799bf1c5c744fcfcbb4"
+      "bytes": 113199,
+      "sha256": "9ddadf1668d3fc2bd177ca6f110edfc59826ea749a796c66b1a00c71b8dbab49"
     },
     "ai/index.html": {
       "bytes": 17719,
@@ -770,8 +770,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 140651,
-      "sha256": "ded9848e708136be691227169fcc8f43417db2c8c14576ae7f34ec94c1d27ccf"
+      "bytes": 139870,
+      "sha256": "7b8ea68d20d43fdb71c2d9be6f24c3d4b5f0da2c688aa43097cab14fbf1f8115"
     },
     "connections/connections.css": {
       "bytes": 4339,
@@ -842,8 +842,8 @@
       "sha256": "a13313e6d13ef28db4299f25046621fb8c520cf60d30a63ee65795fc677039e3"
     },
     "landing.js": {
-      "bytes": 39925,
-      "sha256": "a37283cd4c782cebf4b27135f44653954c571d3ce6c8388cec6c7305fe19d0f5"
+      "bytes": 37539,
+      "sha256": "26c0ddac5be89f24ab075364a7c1d1a4577e163fae3c340d7e800eba6ac22645"
     },
     "licenses/index.html": {
       "bytes": 410540,
@@ -956,5 +956,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "c01435b2fdb94de891937274fc53a66197450670"
+  "source_sha": "61ca73403738708e140da7a7ac9df2c7e0aa692e"
 }

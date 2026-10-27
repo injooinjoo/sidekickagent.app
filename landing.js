@@ -9,7 +9,6 @@
  * hero phone shows its next state at once. */
 (function () {
   'use strict';
-  var API_ORIGIN = 'https://api.sidekickagent.app';
   var REDUCED = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   if (!REDUCED) document.documentElement.classList.add('js');
 
@@ -142,7 +141,6 @@
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
-  function money(value) { return Number(value).toLocaleString('ko-KR') + '원'; }
   function raf(fn) { return window.requestAnimationFrame ? window.requestAnimationFrame(fn) : setTimeout(fn, 16); }
   function observe(target, onEnter, onLeave, threshold) {
     if (!('IntersectionObserver' in window)) { onEnter(); return; }
@@ -183,49 +181,8 @@
   });
 
   // ---- Pricing at a glance ----------------------------------------------------
-  // No row carries a number. Every figure comes from the KRW catalog the
-  // backend serves; an empty catalog prints none rather than a placeholder
-  // somebody could mistake for a price. The membership page owns purchase.
-  //
-  // Each row leads with the 내 AI 계정 연결 price, the cheaper basis, and puts
-  // Sidekick AI 포함 second (owner, 2026-10-07). The second line shows only
-  // beside a lead price it is dearer than, and a row without an AI-connected
-  // price shows no figure rather than the included one in the lead place,
-  // where the section copy would call it the AI-connected basis.
-  var catalog = {};
-  var salesOpen = false;
-  function priceOf(plan, funding) {
-    var amount = catalog[plan + ':' + funding];
-    return typeof amount === 'number' && amount > 0 ? amount : null;
-  }
-  var planRows = Array.prototype.slice.call(document.querySelectorAll('.plan-row[data-plan]'));
-  function renderPlans() {
-    planRows.forEach(function (row) {
-      var plan = row.getAttribute('data-plan');
-      var connected = priceOf(plan, 'connected');
-      var included = priceOf(plan, 'included');
-      row.querySelector('[data-role="price"]').textContent = connected === null ? '' : '월 ' + money(connected);
-      var second = row.querySelector('[data-role="price-included"]');
-      var known = connected !== null && included !== null && included > connected;
-      second.textContent = known ? 'Sidekick AI 포함 시 ' + money(included) : '';
-      second.hidden = !known;
-    });
-    var closed = document.getElementById('pricing-closed');
-    if (closed) closed.hidden = salesOpen;
-  }
-  // Through /maintenance.js when the page has it: during a release the read
-  // waits for the window to end and the prices then fill in by themselves.
-  if (window.fetch && planRows.length) {
-    var maintenance = window.SidekickMaintenance;
-    var configUrl = API_ORIGIN + '/membership/toss/config';
-    (maintenance ? maintenance.fetch(configUrl) : fetch(configUrl)).then(function (response) {
-      return response.ok ? response.json() : {};
-    }).then(function (config) {
-      salesOpen = Boolean(config) && config.sales_enabled === true && config.mode === 'live';
-      if (config && config.plans && typeof config.plans === 'object') catalog = config.plans;
-      renderPlans();
-    }).catch(function () { /* no catalog, no price */ });
-  }
+  // No row carries a number: /membership/ prints the server's D79 catalog, and each
+  // row hands it the plan alone.
 
   // ---- Scroll reveal ---------------------------------------------------------
   // Below-the-fold blocks rise in once as they enter the viewport and reset when
