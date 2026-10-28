@@ -848,6 +848,35 @@
     renderPolicy();
   }
 
+  // ---- 무료 모델 쓰기 (owner 2026-10-27) ------------------------------------------------
+  // GET/PUT /settings/free-llm. Before the privacy notice's date the server says available: false: "준비 중", locked.
+  function renderFreeLlm(value) {
+    const ok = Boolean(value) && typeof value.available === 'boolean';
+    $('free-llm-row').hidden = !ok;
+    if (!ok) return;
+    $('free-llm-toggle').checked = value.available && value.opted_in === true;
+    $('free-llm-toggle').disabled = !value.available;
+    $('free-llm-status').textContent = value.available ? '' : '준비 중';
+  }
+
+  async function loadFreeLlm(seq) {
+    let answer = null;
+    try { answer = await api('/settings/free-llm', { method: 'GET' }); } catch (_error) { answer = null; }
+    if (seq !== state.seq) return;
+    renderFreeLlm(answer);
+  }
+
+  async function saveFreeLlm(on) {
+    const seq = state.seq;
+    $('free-llm-toggle').disabled = true;
+    let answer = null;
+    try {
+      answer = await api('/settings/free-llm', { method: 'PUT', body: JSON.stringify({ opted_in: on }) });
+    } catch (_error) { answer = null; }
+    if (seq !== state.seq) return;
+    if (answer) renderFreeLlm(answer); else loadFreeLlm(seq);
+  }
+
   function sanitizeWorkspaces(value) {
     const rows = value && Array.isArray(value.workspaces) ? value.workspaces : null;
     if (!rows) return null;
@@ -1004,7 +1033,7 @@
     usage.unavailable = false;
     markPeriod();
     startUsageRefresh();
-    await Promise.all([loadAccount(seq), loadAi(seq), loadCredits(seq), loadTickets(seq), loadUsage(seq, false), loadPolicy(seq)]);
+    await Promise.all([loadAccount(seq), loadAi(seq), loadCredits(seq), loadTickets(seq), loadUsage(seq, false), loadPolicy(seq), loadFreeLlm(seq)]);
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());
@@ -1012,6 +1041,7 @@
   $('auto-use-toggle').addEventListener('click', () => setAutoUse());
   $('usage-current').addEventListener('click', () => choosePeriod('current'));
   POLICIES.forEach((id) => $(`policy-${id}`).addEventListener('click', () => savePolicy({ policy: id })));
+  $('free-llm-toggle').addEventListener('change', (event) => saveFreeLlm(event.target.checked));
   $('usage-previous').addEventListener('click', () => choosePeriod('previous'));
   if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => onVisibility());
   if (typeof window.addEventListener === 'function') window.addEventListener('focus', () => onVisibility());

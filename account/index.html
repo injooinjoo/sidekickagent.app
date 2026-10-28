@@ -110,6 +110,14 @@
         <p class="account-note" id="policy-line">무료로 먼저 해 보고, 유료가 필요하면 쓰기 전에 물어봐요.</p>
         <p class="account-status" id="policy-status" aria-live="polite">실행 방식을 확인하고 있어요.</p>
         <div class="account-actions" id="policy-actions" hidden></div>
+        <!-- 무료 모델 쓰기 (owner 2026-10-27): GET/PUT /settings/free-llm. "준비 중" and locked before the privacy notice's
+             effective date (2026년 11월 27일); hidden when the server does not answer. -->
+        <label class="policy-free-llm" id="free-llm-row" hidden>
+          <input type="checkbox" id="free-llm-toggle" disabled />
+          <span class="policy-free-llm-text"><strong>무료 모델 쓰기</strong>
+            <span class="account-note">대화가 모델 학습에 쓰일 수 있어요</span></span>
+          <span class="account-note" id="free-llm-status"></span>
+        </label>
       </section>
 
       <!-- GET /usage/breakdown?period=current|previous: where the credits went (owner, 2026-10-25). Refreshed on focus and
