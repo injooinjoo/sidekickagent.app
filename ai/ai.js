@@ -21,7 +21,7 @@
   //
   // Keys are typed here, so the page loads no analytics and no other site's script (owner 2026-10-25), and measures
   // nothing. A key field is cleared the moment it is submitted, and a connected key can be changed in place
-  // (키 바꾸기: the same provider is connected again; the server retires the old key). /connections/ lists every
+  // (다시 연결 on its row: the same provider is connected again; the server retires the old key). /connections/ lists every
   // connection of the account, this AI among them.
   const auth = window.SidekickAuth;
   const { api } = auth;
@@ -59,28 +59,53 @@
     'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai',
     'ai-gateway', 'fireworks', 'huggingface', 'kilocode', 'novita', 'ollama-cloud', 'stepfun', 'tencent-tokenhub', 'xiaomi'
   ];
-  const PROVIDER_LOGO_SIZE = 40;
-  // The list's order and words (owner, 2026-10-26), the same as the app's (apps/mobile/app/data/aiEngineConnections.js
-  // AI_ENGINE_LIST_ORDER and AI_ENGINE_LIST_COPY; apps/mobile/tests/aiEngineList.test.mjs holds the two together): Sidekick
-  // AI (기본) first -- it works on Sidekick credits when no AI account of the person's is connected -- then 내 AI 계정으로
-  // 연결하기 with ChatGPT, Claude, Gemini and Grok first and every other service in the server's order. Which services exist is
-  // still the server's answer; this only orders them.
+  const PROVIDER_LOGO_SIZE = 20;
+  // The order of the providers (owner, 2026-10-26): ChatGPT, Claude, Gemini and Grok first, then every other one in the
+  // server's order. Which providers exist is still the server's answer; this only orders them.
   const AI_ENGINE_LIST_ORDER = ['openai', 'anthropic', 'gemini', 'xai'];
-  const AI_ENGINE_LIST_COPY = {
-    sidekickName: 'Sidekick AI (기본)',
-    sidekickDescription: '사이드킥 크레딧으로 처리돼요',
-    sidekickInUse: '사용 중',
-    sidekickStandby: '연결한 AI가 없을 때 처리해요',
-    sidekickSwitchHint: '누르면 연결은 그대로 두고 Sidekick AI로 처리해요',
-    connectTitle: '내 AI 계정으로 연결하기',
-    connectBody: '연결한 AI는 내 AI 계정으로 처리돼 크레딧이 들지 않아요.',
-    connected: '연결됨',
-    connectedIdle: '연결됨 · 누르면 이 AI로 처리해요',
-    needsReconnect: '다시 연결 필요',
-    notConnected: '연결 안 됨',
-    creditsInUse: '사이드킥 크레딧 · 사용 중',
-    creditsSuffix: '사이드킥 크레딧'
-  };
+  // A model's name as people read it ('claude-sonnet-5' -> 'Sonnet 5', 'gpt-5.6-terra' -> 'GPT-5.6 Terra'): the same rules,
+  // word for word, as the app's names for models (apps/mobile/app/data/aiEngineIdentity.js MODEL_LABEL_RULES;
+  // apps/site/test_ai_connect_page.py holds the two together). A model no rule names is shown by its id.
+  const SNAPSHOT_SEGMENTS = /(?:^|[-_:])(?:\d{4}-\d{2}-\d{2}|\d{2}-\d{2}|\d{3,8})(?=$|[-_:])/g;
+  // OpenAI 가 소문자로 쓰는 크기 낱말('GPT-4o mini', 'o3 pro'). 그 밖의 낱말은 첫 글자를 대문자로 쓴다('Terra', 'Sol', 'Turbo').
+  const OPENAI_LOWER_WORDS = (['mini', 'nano', 'pro']);
+
+  function variantSuffix(rest, lowerWords = []) {
+    return String(rest || '')
+      .replace(SNAPSHOT_SEGMENTS, '')
+      .split(/[-_:\s]+/)
+      .filter(Boolean)
+      .map((word) => {
+        if (lowerWords.includes(word.toLowerCase())) return ` ${word.toLowerCase()}`;
+        return /^[a-z]/i.test(word) ? ` ${word[0].toUpperCase()}${word.slice(1)}` : ` ${word}`;
+      })
+      .join('');
+  }
+
+  // 정확한 이름표. 순서가 곧 우선순위라 앞의 규칙이 이긴다. 규칙은 (맞은 조각, 맞은 뒤에 남은 식별자)를 받는다. 작은 버전은 한두
+  // 자리뿐이라 'claude-opus-4-20250514' 의 날짜가 버전(4.20250514)으로 읽히지 않는다.
+  const MODEL_LABEL_RULES = ([
+    [/^claude-opus-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Opus ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
+    [/^claude-sonnet-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Sonnet ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
+    [/^claude-haiku-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Haiku ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
+    [/^claude-(\d+)(?:[.-](\d+))?-(opus|sonnet|haiku)/i, (m) => `${m[3][0].toUpperCase()}${m[3].slice(1)} ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
+    [/^claude$/i, () => 'Claude'],
+    [/^gpt-oss-(\d+)b/i, (m) => `GPT-OSS ${m[1]}B`],
+    [/^gpt-(\d+(?:\.\d+)?)(o)?(?![a-z0-9])/i, (m, rest) => `GPT-${m[1]}${m[2] ? 'o' : ''}${variantSuffix(rest, OPENAI_LOWER_WORDS)}`],
+    [/^o(\d+)(?![a-z0-9])/i, (m, rest) => `o${m[1]}${variantSuffix(rest, OPENAI_LOWER_WORDS)}`],
+    [/^gemini-(\d+(?:\.\d+)?)(?![a-z0-9])/i, (m, rest) => `Gemini ${m[1]}${variantSuffix(rest)}`],
+    [/^grok-(\d+)(?:[.-](\d{1,2})(?!\d))?(?![a-z0-9])/i, (m, rest) => `Grok ${m[1]}${m[2] ? `.${m[2]}` : ''}${variantSuffix(rest)}`],
+    [/^deepseek-(?:v)?(\d+(?:\.\d+)?)/i, (m) => `DeepSeek ${m[1]}`],
+    [/^deepseek-(chat|reasoner)/i, (m) => `DeepSeek ${m[1] === 'chat' ? 'V3' : 'R1'}`],
+    [/^deepseek-r(\d+)/i, (m) => `DeepSeek R${m[1]}`],
+    [/^qwen(\d+(?:\.\d+)?)/i, (m) => `Qwen ${m[1]}`],
+    [/^kimi-k(\d+)/i, (m) => `Kimi K${m[1]}`],
+    [/^glm-(\d+(?:\.\d+)?)/i, (m) => `GLM ${m[1]}`],
+    [/^minimax-(m\d+)/i, (m) => `MiniMax ${m[1].toUpperCase()}`],
+    [/^llama-(\d+(?:\.\d+)?)/i, (m) => `Llama ${m[1]}`],
+    [/^mistral-(\w+)/i, (m) => `Mistral ${m[1][0].toUpperCase()}${m[1].slice(1)}`],
+  ]);
+
   // The cloud forms ask for exactly the fields the server's credential models
   // accept (schemas.py), in the order the app asks for them.
   const CLOUD_FIELDS = {
@@ -119,17 +144,8 @@
   const AZURE_KEY_PREFIX = /^(bearer\s+|api-key(\s*:\s*|\s+))/i;
   // The catalog's way-to-connect entries this page can run end to end.
   const METHOD_KINDS = ['account', 'api_key', 'free', 'cloud'];
-  const METHOD_ACTIONS = { account: '계정으로 로그인', api_key: 'API 키 입력', free: '무료로 사용', cloud: '정보 입력' };
-  const METHOD_BADGES = { account: '계정 로그인', api_key: 'API 키', free: '무료', cloud: '클라우드' };
-  const CONNECTION_METHODS = { oauth: '계정 로그인', credential: 'API 키', cloud: '클라우드' };
-  // A service's three ways to run (owner, 2026-10-27), the same words as the app (apps/mobile/app/data/aiEngineConnections.js
-  // AI_ENGINE_CONNECT_CHOICE_COPY): its model on Sidekick's account, charged as usage; the person's own key; their account.
-  // Shown only for a service the server marks `sidekick_credits`; every other service keeps its method buttons.
-  const CONNECT_CHOICE_COPY = {
-    credits: { title: '사이드킥 크레딧으로 사용 (간편)', detail: '별도 설정 없이 바로 써요. 사용량에서 차감돼요.' },
-    api_key: { title: '내 API 키 입력', detail: '내 계정 비용으로 처리돼요. 사이드킥 사용량은 쓰지 않아요.' },
-    account: { title: '계정으로 로그인', detail: '내 계정으로 연결해요.' }
-  };
+  // How a connection was made, as its row says it: an account login is a subscription (구독), a key is API.
+  const CONNECTION_METHODS = { oauth: '구독', credential: 'API', cloud: '클라우드' };
 
   // Every failure is told in Korean the page chose. The server's code only
   // picks which sentence; its own wording is never shown.
@@ -264,8 +280,7 @@
     busy: false,
     // Bumped by every reload, so a late answer cannot paint over a newer one.
     seq: 0,
-    // The one 키 바꾸기 form open in the list: { connectionId, form, input }.
-    rekey: null,
+
     // /account/ links here as /ai/?workspace=<id>. Read before the address bar
     // is cleaned below; it only picks whose 실행 설정 are shown.
     requestedWorkspace: readRequestedWorkspace(),
@@ -407,7 +422,7 @@
   function connectionMethodLabel(connection) {
     const row = state.catalog.find((provider) => provider.id === connection.provider);
     const keyless = row && row.methods.length === 1 && row.methods[0].kind === 'free';
-    return keyless ? '무료 모델' : connection.method;
+    return keyless ? '무료' : connection.method;
   }
 
   function cleanText(value, max) {
@@ -474,8 +489,7 @@
       const methods = methodsOf(row);
       if (!methods.length) return;
       seen.add(row.id);
-      providers.push({ id: row.id, name: providerName(row.id, row), featured: row.featured === true, endpointRequired, methods,
-        sidekickCredits: row.sidekick_credits === true });
+      providers.push({ id: row.id, name: providerName(row.id, row), featured: row.featured === true, endpointRequired, methods });
     });
     return providers;
   }
@@ -503,7 +517,7 @@
         id,
         provider,
         method: CONNECTION_METHODS[row.auth_method] || '연결',
-        credential: row.auth_method === 'credential',
+        kind: row.auth_method === 'oauth' || row.auth_method === 'cloud' ? row.auth_method : 'credential',
         model,
         models: modelList([model, ...modelList(row.models)]).filter(Boolean),
         candidates: modelList(row.candidate_models),
@@ -515,32 +529,24 @@
 
   function sanitizeEngineChoice(value) {
     if (!value || typeof value !== 'object') return null;
-    if (value.engine === 'sidekick') {
-      // One service on Sidekick credits names it (`provider`); plain Sidekick AI names none.
-      const provider = String(value.provider || '');
-      return { engine: 'sidekick', connectionId: '', provider: PROVIDER_ID.test(provider) ? provider : '' };
-    }
+    // A provider's model that was run on Sidekick credits (named by `provider`) is Sidekick running, as plain Sidekick is.
+    if (value.engine === 'sidekick') return { engine: 'sidekick', connectionId: '' };
     if (value.engine !== 'connected') return null;
     const id = String(value.connection_id || '');
     return { engine: 'connected', connectionId: SAFE_ID.test(id) ? id : '' };
   }
 
-  // Sidekick AI while a connected AI runs, or a connected AI back while Sidekick AI runs. Nothing is disconnected.
-  // With `provider`, that service's model runs on Sidekick credits ("사이드킥 크레딧으로 사용").
-  async function selectEngine(engine, connection, controls, provider) {
+  // Sidekick while a connected AI runs, or a connected AI back while Sidekick runs. Nothing is disconnected.
+  async function selectEngine(engine, connection, controls) {
     if (state.busy || !state.user) return;
     setBusy(true, controls);
     setStatus('providers-status', '처리할 AI를 바꾸고 있어요.', false);
     try {
       state.engineChoice = sanitizeEngineChoice(await api('/ai-engine-connections/active', {
         method: 'PUT',
-        body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}), ...(provider ? { provider: provider.id } : {}) })
+        body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}) })
       }));
-      setStatus('providers-status', provider
-        ? `이제 ${provider.name}를 사이드킥 크레딧으로 써요. 사용량에서 차감돼요.`
-        : engine === 'sidekick'
-        ? '이제 Sidekick AI가 처리해요. 연결한 AI는 그대로 남아 있어요.'
-        : `이제 ${connectionProviderName(connection.provider)}가 처리해요. 크레딧이 들지 않아요.`, false);
+      setStatus('providers-status', '', false);
     } catch (error) {
       showFailure(error, 'providers-status');
     } finally {
@@ -563,8 +569,10 @@
   }
 
   function hideProjectSteps() {
-    ['workspace-step', 'handoff-step', 'connections-step', 'execution-step', 'connect-step', 'providers-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
-    $('connection-list').replaceChildren();
+    ['workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
+    $('provider-list').replaceChildren($('sidekick-ai-card'));
+    $('provider-groups').replaceChildren();
+    $('model-default-control').replaceChildren();
     // What the last person's settings drew goes with them, not only out of sight -- the project's name too.
     $('agent-settings-body').replaceChildren();
     $('agent-settings-project').replaceChildren();
@@ -713,16 +721,17 @@
     const seq = ++state.seq;
     closeFlow();
     $('handoff-step').hidden = true;
-    $('connections-step').hidden = true;
-    $('execution-step').hidden = true;
-    $('connection-list').replaceChildren();
+    $('provider-list').replaceChildren($('sidekick-ai-card'));
     state.connections = [];
     $('providers-step').hidden = true;
+    $('connect-aside').hidden = true;
+    $('models-step').hidden = true;
     $('agent-settings-step').hidden = true;
     $('agent-settings-body').replaceChildren();
     setStatus('agent-settings-status', '', false);
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
+    setStatus('model-status', '', false);
     showNext(null);
     const workspace = currentWorkspace();
     if (!workspace) {
@@ -762,7 +771,6 @@
       return;
     }
     setStatus('workspace-status', '', false);
-    renderConnections();
     renderProviders();
     renderHandoffOffer();
     loadAgentSettings();
@@ -777,7 +785,6 @@
       const connections = await api(`/ai-engine-connections?${scopeQuery()}`, { method: 'GET' });
       if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
       state.connections = sanitizeConnections(connections);
-      renderConnections();
       renderProviders();
     } catch (error) {
       if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
@@ -785,84 +792,9 @@
     }
   }
 
-  // ---- Connections of this project ----------------------------------------------
-
-  function renderConnections() {
-    // A redrawn list drops an open 키 바꾸기 with its typed key.
-    closeKeyChange();
-    const list = $('connection-list');
-    list.replaceChildren(...state.connections.map(connectionItem));
-    $('connections-empty').hidden = state.connections.length > 0;
-    $('connections-step').hidden = false;
-    // No execution query is supported yet. Engine readiness cannot open it.
-    $('execution-step').hidden = false;
-  }
-
-  function connectionItem(connection) {
-    const name = connectionProviderName(connection.provider);
-    const candidates = connection.candidates.filter((model) => !connection.models.includes(model));
-    const select = el('select', { className: 'ai-select', 'aria-label': `${name} 모델` }, [
-      el('optgroup', { label: '확인된 모델' }, connection.models.map((model) => el('option', {
-        value: model, text: model, selected: model === connection.model
-      }))),
-      candidates.length ? el('optgroup', { label: '새로 시험할 모델' }, candidates.map((model) => el('option', {
-        value: model, text: model
-      }))) : null
-    ]);
-    const note = el('p', {
-      className: 'ai-note',
-      text: '처음 쓰는 모델은 바꾸기 전에 실제 테스트 답변을 한 번 받아 봐요. 최대 3분까지 걸릴 수 있어요.',
-      hidden: true
-    });
-    const change = el('button', { className: 'ai-button secondary', type: 'button', text: '모델 바꾸기', disabled: true });
-    const rekey = canChangeKey(connection) ? el('button', { className: 'ai-button secondary', type: 'button', text: '키 바꾸기' }) : null;
-    const disconnect = el('button', { className: 'ai-button quiet', type: 'button', text: '연결 해제' });
-    const controls = [change, rekey, disconnect, select].filter(Boolean);
-    select.addEventListener('change', () => {
-      change.disabled = state.busy || !select.value || select.value === connection.model;
-      note.hidden = !candidates.includes(select.value);
-    });
-    change.addEventListener('click', () => changeModel(connection, select.value, controls));
-    disconnect.addEventListener('click', () => disconnectConnection(connection, controls));
-    const item = el('li', { className: 'connection-item', 'data-connection-id': connection.id, tabindex: '-1' });
-    if (rekey) rekey.addEventListener('click', () => openKeyChange(connection, item, controls));
-    fill(item, [
-      el('div', { className: 'connection-head' }, [
-        el('strong', { text: name }),
-        el('span', { className: connection.connected ? 'pill is-ok' : 'pill is-warn', text: connection.connected ? AI_ENGINE_LIST_COPY.connected : AI_ENGINE_LIST_COPY.needsReconnect })
-      ]),
-      el('p', { className: 'connection-meta', text: `${connectionMethodLabel(connection)} · 지금 모델 ${connection.model || '선택 필요'}` }),
-      connection.connected ? null : el('p', {
-        className: 'ai-note',
-        text: '새 업무만 잠시 멈춰요. 아래에서 같은 AI를 다시 연결하면 이어서 써요.'
-      }),
-      el('div', { className: 'connection-actions' }, [select, change, rekey, disconnect]),
-      note
-    ]);
-    return item;
-  }
-
-  // ---- 키 바꾸기: a new key for a connected key, in its own row --------------------------------------------------------
+  // ---- Keys go only into a page that runs this site's own scripts -----------------------------------------------------
   //
-  // The same provider is connected again with the new key (POST /ai-engine-connections); the server proves it with one
-  // real answer and retires the old one. Only a key that is the whole credential: a gateway also needs its address and a
-  // keyless model has no key, so those reconnect from the cards below.
-  function canChangeKey(connection) {
-    const provider = state.catalog.find((row) => row.id === connection.provider);
-    return connection.credential && Boolean(provider) && !provider.endpointRequired
-      && provider.methods.some((method) => method.kind === 'api_key');
-  }
-
-  function closeKeyChange() {
-    const open = state.rekey;
-    state.rekey = null;
-    if (!open) return;
-    open.input.value = '';
-    open.form.remove();
-  }
-
-  // Keys go only into a page that runs this site's own scripts. The sign-in sheet's security check is another site's
-  // script; once it has run in this tab, a key waits for a fresh page.
+  // The sign-in sheet's security check is another site's script; once it has run in this tab, a key waits for a fresh page.
   function foreignScript() {
     return Array.from(document.querySelectorAll('script[src]')).some((tag) => {
       try { return new URL(tag.getAttribute('src'), window.location.href).origin !== window.location.origin; } catch (_) { return true; }
@@ -876,52 +808,6 @@
     ]);
   }
 
-  function openKeyChange(connection, item, controls) {
-    if (state.busy) return;
-    closeKeyChange();
-    if (foreignScript()) { setStatus('connections-status', '키를 안전하게 넣으려면 이 페이지를 새로 열어 주세요.', true); return; }
-    const name = connectionProviderName(connection.provider);
-    const input = el('input', { className: 'ai-input', id: 'rekey-input', type: 'password', autocomplete: 'off', spellcheck: 'false', required: true });
-    const submit = el('button', { className: 'ai-button', type: 'submit', text: '바꾸기' });
-    const cancel = el('button', { className: 'ai-button secondary', type: 'button', text: '취소', onClick: () => { if (!state.busy) closeKeyChange(); } });
-    const form = el('form', { className: 'connect-form rekey-form' }, [
-      field(`${name} 새 API 키`, input, '새 키로 실제 테스트 답변을 한 번 받아 본 뒤 바꿔요. 이전 키는 더 쓰지 않아요. 키는 이 페이지에 남지 않아요.'),
-      el('div', { className: 'connect-actions' }, [submit, cancel])
-    ]);
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      // Out of the field at once, whatever happens next.
-      const credential = input.value.trim();
-      input.value = '';
-      if (credential.length < 20) { setStatus('connections-status', '키가 너무 짧아요. 발급받은 키 전체를 붙여넣어 주세요.', true); return; }
-      changeKey(connection, credential, [submit, cancel, input, ...controls]);
-    });
-    state.rekey = { connectionId: connection.id, form, input };
-    item.append(form);
-    setStatus('connections-status', '', false);
-    input.focus({ preventScroll: true });
-  }
-
-  async function changeKey(connection, credential, controls) {
-    if (state.busy) return;
-    const name = connectionProviderName(connection.provider);
-    setBusy(true, controls);
-    setStatus('connections-status', PROOF_PROGRESS, false);
-    try {
-      await longCall('/ai-engine-connections', {
-        method: 'POST',
-        body: JSON.stringify({ ...scope(), provider: connection.provider, auth_method: 'credential', credential })
-      });
-      closeKeyChange();
-      setStatus('connections-status', `${name} 키를 바꿨어요. 내 모든 프로젝트의 새 업무부터 새 키로 일해요.`, false);
-    } catch (error) {
-      showFailure(error, 'connections-status');
-    } finally {
-      setBusy(false, controls);
-    }
-    if (state.user) await reloadConnections();
-  }
-
   function setBusy(busy, controls) {
     state.busy = busy;
     (controls || []).forEach((control) => { control.disabled = busy; });
@@ -931,17 +817,17 @@
     if (state.busy || !model || model === connection.model) return;
     const tryingNew = !connection.models.includes(model);
     setBusy(true, controls);
-    setStatus('connections-status', tryingNew
-      ? `${model}로 바꾸기 전에 테스트 답변을 받아 보고 있어요. 최대 3분까지 걸릴 수 있어요.`
+    setStatus('model-status', tryingNew
+      ? `${modelDisplayName(model)}로 바꾸기 전에 테스트 답변을 받아 보고 있어요. 최대 3분까지 걸릴 수 있어요.`
       : '모델을 바꾸고 있어요.', false);
     try {
       await longCall(`/ai-engine-connections/${encodeURIComponent(connection.id)}/model`, {
         method: 'PUT',
         body: JSON.stringify({ ...scope(), connection_id: connection.id, model })
       });
-      setStatus('connections-status', `${model}로 바꿨어요. 내 모든 프로젝트의 새 업무부터 이 모델을 써요.`, false);
+      setStatus('model-status', `${modelDisplayName(model)}로 바꿨어요.`, false);
     } catch (error) {
-      showFailure(error, 'connections-status');
+      showFailure(error, 'model-status');
     } finally {
       setBusy(false, controls);
     }
@@ -967,7 +853,13 @@
     if (state.user) await reloadConnections();
   }
 
-  // ---- Provider catalog ------------------------------------------------------------
+  // ---- 제공자: Sidekick, the connected providers, and + 연결하기 ----------------------------------------------------------
+  //
+  // Owner, 2026-10-28 (v2, after a "Models" settings page): one card of rows. Sidekick (기본 제공) first -- it is what runs
+  // when nothing else does, never sold as an option -- then every provider the person connected, then "+ 연결하기". A row is
+  // a black-and-white mark, the name and how it is connected; on the right only the circle that says which one runs (and
+  // makes it run) and "···" with 다시 연결 and 연결 해제. A provider that is not connected is found only through
+  // "+ 연결하기", grouped by how it connects (구독: an account login; API: a key or another credential).
 
   // The catalog in the owner's order: AI_ENGINE_LIST_ORDER first, in that order, then the rest as the server sent them.
   function orderedCatalog(catalog) {
@@ -977,94 +869,26 @@
       .map((entry) => entry.provider);
   }
 
-  // Sidekick AI (기본) heads the list. It is the one in use while no AI account of the person's is connected.
-  // Sidekick AI is in use while no AI is connected, or while the person chose it (D79 POLISH: the connection stays).
+  // Sidekick runs while no AI of the person's is connected, or while they chose it (D79 POLISH: the connection stays).
   function sidekickInUse() {
-    if (creditsProvider()) return false; // one service runs on Sidekick credits: its card says so
     return !state.connections.some((connection) => connection.connected)
-      || (state.engineChoice && state.engineChoice.engine === 'sidekick');
+      || Boolean(state.engineChoice && state.engineChoice.engine === 'sidekick');
   }
 
-  // The service whose model runs on Sidekick credits now, or ''.
-  function creditsProvider() {
+  // The connection the person's work runs on now, or null while Sidekick does: the one they chose, else -- the owner's rule,
+  // the person's own working connection first -- their most recently made or changed working connection, which is the
+  // first connected row (the server lists them newest first, the order it picks by).
+  function activeConnection() {
+    if (sidekickInUse()) return null;
     const choice = state.engineChoice;
-    return choice && choice.engine === 'sidekick' && choice.provider ? choice.provider : '';
-  }
-
-  // The three ways to run one service, each a button with its line. Key and login open the panel as their buttons did.
-  function connectChoices(provider) {
-    const choices = [el('button', {
-      className: 'ai-button connect-choice', type: 'button', 'data-choice': 'credits',
-      onClick: (event) => selectEngine('sidekick', null, [event.currentTarget], provider)
-    }, [el('strong', { text: CONNECT_CHOICE_COPY.credits.title }), el('span', { text: CONNECT_CHOICE_COPY.credits.detail })])];
-    ['api_key', 'account'].forEach((kind) => {
-      const method = provider.methods.find((item) => item.kind === kind);
-      if (!method) return;
-      choices.push(el('button', {
-        className: 'ai-button secondary connect-choice', type: 'button', 'data-choice': kind,
-        onClick: () => openFlow(provider, method)
-      }, [el('strong', { text: CONNECT_CHOICE_COPY[kind].title }), el('span', { text: CONNECT_CHOICE_COPY[kind].detail })]));
-    });
-    return el('div', { className: 'connect-choices' }, choices);
-  }
-
-  function renderSidekickAi() {
-    const inUse = sidekickInUse();
-    $('sidekick-ai-name').textContent = AI_ENGINE_LIST_COPY.sidekickName;
-    $('sidekick-ai-description').textContent = AI_ENGINE_LIST_COPY.sidekickDescription;
-    $('sidekick-ai-state').textContent = inUse ? AI_ENGINE_LIST_COPY.sidekickInUse : AI_ENGINE_LIST_COPY.sidekickStandby;
-    $('sidekick-ai-card').classList.toggle('is-selected', inUse);
-    // While a connected AI runs, Sidekick AI can be chosen without disconnecting it.
-    const select = $('sidekick-ai-select');
-    select.hidden = inUse;
-    select.title = AI_ENGINE_LIST_COPY.sidekickSwitchHint;
-    if (!select.dataset.bound) {
-      select.dataset.bound = '1';
-      select.addEventListener('click', () => selectEngine('sidekick', null, [select]));
-    }
-    $('providers-heading').textContent = AI_ENGINE_LIST_COPY.connectTitle;
-    $('providers-credit-note').textContent = AI_ENGINE_LIST_COPY.connectBody;
-  }
-
-  function renderProviders() {
-    renderSidekickAi();
-    const catalog = orderedCatalog(state.catalog);
-    const featured = catalog.filter((provider) => provider.featured);
-    const top = featured.length ? featured : catalog;
-    const rest = featured.length ? catalog.filter((provider) => !provider.featured) : [];
-    $('provider-featured').replaceChildren(...top.map(providerCard));
-    $('provider-rest').replaceChildren(...rest.map(providerCard));
-    $('provider-more').hidden = rest.length === 0;
-    $('provider-more-summary').textContent = `다른 AI 서비스 ${rest.length}개`;
-    $('providers-step').hidden = false;
-    setStatus('providers-status', state.catalog.length ? '' : '지금 연결할 수 있는 AI가 없어요. 잠시 뒤 다시 시도해 주세요.', !state.catalog.length);
-    showRequestedProvider();
-  }
-
-  // /ai/?provider=<id>: the first time the catalog is drawn, the card of that
-  // provider is marked, its group opened if it sits under "다른 AI 서비스", and
-  // the page scrolls to it with its first button focused. Once only: a later
-  // redraw (a reload of the projects, a finished connection) leaves the page alone. A
-  // provider this catalog does not list is ignored.
-  function showRequestedProvider() {
-    const id = state.requestedProvider;
-    if (!id) return;
-    state.requestedProvider = '';
-    const provider = state.catalog.find((item) => item.id === id);
-    if (!provider) return;
-    const card = Array.from(document.querySelectorAll('.provider-card'))
-      .find((node) => node.getAttribute('data-provider') === provider.id);
-    if (!card) return;
-    if ($('provider-rest').contains(card)) $('provider-more').open = true;
-    card.classList.add('is-requested');
-    smoothScroll(card);
-    const action = card.querySelector('button');
-    if (action) action.focus({ preventScroll: true });
+    const working = state.connections.filter((connection) => connection.connected);
+    return (choice && choice.connectionId && working.find((connection) => connection.id === choice.connectionId)) || working[0] || null;
   }
 
   // The provider's mark, for a provider that has one published (PROVIDER_LOGOS); null for any other. It is decoration:
-  // the name stands right beside it, so it has no alt text. Its width and height fix its box, so the card does not move
-  // when the file arrives, and a file that does not load is taken out again instead of leaving a broken-image icon.
+  // the name stands right beside it, so it has no alt text. Its width and height fix its box, so the row does not move
+  // when the file arrives, and a file that does not load is taken out again instead of leaving a broken-image icon. The
+  // stylesheet draws every mark in black and white (owner, 2026-10-28: "로고 색상 싹빼고").
   function providerLogo(id) {
     if (!PROVIDER_LOGOS.includes(id)) return null;
     // src last: the image is asked for once every other attribute is in place.
@@ -1076,50 +900,212 @@
     return logo;
   }
 
-  function providerCard(provider) {
-    const account = provider.methods.find((method) => method.kind === 'account');
-    const noted = provider.methods.find((method) => method.note);
-    const detail = (account && account.requirement) || (noted && noted.note) || '';
-    const linkedConnection = state.connections.find((connection) => connection.provider === provider.id && connection.connected);
-    const linked = Boolean(linkedConnection);
-    // Sidekick AI was chosen and this AI is still connected: one button makes it the one in use again (D79 POLISH).
-    const idle = linked && Boolean(state.engineChoice && state.engineChoice.engine === 'sidekick');
-    const onCredits = provider.sidekickCredits && creditsProvider() === provider.id;
-    const useButton = idle ? el('button', {
-      className: 'ai-button', type: 'button', text: '이 AI로 처리하기',
-      onClick: (event) => selectEngine('connected', linkedConnection, [event.currentTarget])
-    }) : null;
-    // A connected service can still be run on Sidekick credits instead (an explicit choice wins); the connection stays.
-    const creditsButton = linked && provider.sidekickCredits && !onCredits ? el('button', {
-      className: 'ai-button secondary', type: 'button', text: CONNECT_CHOICE_COPY.credits.title, title: CONNECT_CHOICE_COPY.credits.detail,
-      onClick: (event) => selectEngine('sidekick', null, [event.currentTarget], provider)
-    }) : null;
-    return el('article', { className: 'provider-card', 'data-provider': provider.id }, [
+  // The way a connection is made again: the method it was made with.
+  function reconnectMethod(provider, connection) {
+    const kind = connection.kind === 'oauth' ? 'account' : connection.kind === 'cloud' ? 'cloud' : 'api_key';
+    return provider.methods.find((method) => method.kind === kind)
+      || provider.methods.find((method) => method.kind === 'free')
+      || provider.methods[0] || null;
+  }
+
+  // The circle on the right of a row: filled for the one that runs; pressed, it makes that one run (nothing is disconnected).
+  function useButton(name, inUse, disabled, onClick) {
+    return el('button', {
+      className: inUse ? 'provider-use is-on' : 'provider-use', type: 'button', 'aria-pressed': inUse ? 'true' : 'false',
+      'aria-label': `${name} 쓰기`, disabled: disabled || inUse, onClick
+    });
+  }
+
+  // "···": 다시 연결 and 연결 해제, nothing else; one menu open at a time, closed by Escape or a click anywhere else.
+  function rowMenu(provider, connection) {
+    const name = provider ? provider.name : connectionProviderName(connection.provider);
+    const menuId = `provider-menu-${connection.id.replace(/[^A-Za-z0-9_-]/g, '_')}`;
+    const toggle = el('button', {
+      className: 'provider-menu-button', type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': menuId,
+      'aria-label': `${name} 메뉴`
+    });
+    const method = provider ? reconnectMethod(provider, connection) : null;
+    const again = el('button', { className: 'provider-menu-item', type: 'button', role: 'menuitem', text: '다시 연결', disabled: !method });
+    const remove = el('button', { className: 'provider-menu-item is-danger', type: 'button', role: 'menuitem', text: '연결 해제' });
+    const menu = el('div', { className: 'provider-menu', id: menuId, role: 'menu', hidden: true }, [again, remove]);
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const opening = menu.hidden;
+      closeMenus();
+      if (opening) { menu.hidden = false; toggle.setAttribute('aria-expanded', 'true'); again.focus({ preventScroll: true }); }
+    });
+    again.addEventListener('click', () => { closeMenus(); if (method) openFlow(provider, method); });
+    remove.addEventListener('click', () => { closeMenus(); disconnectConnection(connection, [toggle]); });
+    return el('div', { className: 'provider-menu-wrap' }, [toggle, menu]);
+  }
+
+  function closeMenus(refocus) {
+    Array.from(document.querySelectorAll('.provider-menu')).forEach((menu) => {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      const toggle = menu.parentNode.querySelector('.provider-menu-button');
+      toggle.setAttribute('aria-expanded', 'false');
+      if (refocus) toggle.focus({ preventScroll: true });
+    });
+  }
+
+  // One connected provider's row.
+  function connectionRow(connection, running) {
+    const provider = state.catalog.find((row) => row.id === connection.provider) || null;
+    const name = provider ? provider.name : connectionProviderName(connection.provider);
+    const inUse = Boolean(running) && running.id === connection.id;
+    return el('li', { className: 'provider-card', 'data-provider': connection.provider, 'data-connection-id': connection.id, tabindex: '-1' }, [
       el('div', { className: 'provider-head' }, [
-        providerLogo(provider.id),
-        el('strong', { text: provider.name }),
-        onCredits ? el('span', { className: 'pill is-ok', text: AI_ENGINE_LIST_COPY.creditsInUse })
-          : linked ? el('span', { className: 'pill is-ok', text: idle ? AI_ENGINE_LIST_COPY.connectedIdle : '연결됨' }) : null
+        providerLogo(connection.provider),
+        el('strong', { text: name })
       ]),
-      el('div', { className: 'provider-badges' }, provider.methods.map((method) => el('span', {
-        className: 'pill', text: METHOD_BADGES[method.kind]
-      }))),
-      provider.endpointRequired ? el('p', { className: 'provider-detail', text: '운영 중인 AI 연결 주소가 필요해요.' }) : null,
-      detail ? el('p', { className: 'provider-detail', text: detail }) : null,
-      !linked && provider.sidekickCredits && !onCredits ? connectChoices(provider) : el('div', { className: 'provider-actions' }, linked ? [useButton, creditsButton, el('button', {
-        className: idle ? 'ai-button secondary' : 'ai-button', type: 'button', text: '연결 관리',
-        onClick: () => {
-          const connection = state.connections.find((item) => item.provider === provider.id && item.connected);
-          const item = Array.from($('connection-list').children).find((node) => node.getAttribute('data-connection-id') === connection?.id);
-          if (item) { smoothScroll(item); item.focus({ preventScroll: true }); }
-        }
-      })] : provider.methods.map((method, index) => el('button', {
-        className: index === 0 ? 'ai-button' : 'ai-button secondary',
-        type: 'button',
-        text: METHOD_ACTIONS[method.kind],
-        onClick: () => openFlow(provider, method)
-      })))
+      el('span', { className: connection.connected ? 'provider-method' : 'provider-method is-warn',
+        text: connection.connected ? connectionMethodLabel(connection) : '다시 연결 필요' }),
+      useButton(name, inUse, !connection.connected, (event) => selectEngine('connected', connection, [event.currentTarget])),
+      rowMenu(provider, connection)
     ]);
+  }
+
+  function renderSidekickRow() {
+    const inUse = sidekickInUse();
+    const select = $('sidekick-ai-select');
+    select.className = inUse ? 'provider-use is-on' : 'provider-use';
+    select.setAttribute('aria-pressed', inUse ? 'true' : 'false');
+    select.disabled = inUse;
+    if (!select.dataset.bound) {
+      select.dataset.bound = '1';
+      select.addEventListener('click', () => selectEngine('sidekick', null, [select]));
+    }
+  }
+
+  // The rows the person connected, and the picker of the rest.
+  function renderProviders() {
+    renderSidekickRow();
+    const running = activeConnection();
+    const rows = state.connections.map((connection) => connectionRow(connection, running));
+    keepPanelFocus(() => {
+      $('provider-list').replaceChildren($('sidekick-ai-card'), ...rows);
+      renderPicker();
+    });
+    renderModels(running);
+    $('providers-step').hidden = false;
+    $('connect-aside').hidden = false;
+    $('models-step').hidden = false;
+    setStatus('providers-status', state.catalog.length ? '' : '지금 연결할 수 있는 AI가 없어요. 잠시 뒤 다시 시도해 주세요.', !state.catalog.length);
+    showRequestedProvider();
+  }
+
+  // ---- + 연결하기: the providers not connected yet, by how they connect -------------------------------------------------
+
+  // 구독 lists a provider that signs in with its account; API one that takes a key, a cloud credential or nothing at all
+  // (a free model). A provider with both is in both, and is connected the way of the group it was picked from.
+  const PICKER_GROUPS = [
+    { title: '구독', kinds: ['account'] },
+    { title: 'API', kinds: ['api_key', 'cloud', 'free'] }
+  ];
+
+  function pickerQuery() {
+    return String($('provider-search').value || '').trim().toLowerCase();
+  }
+
+  function renderPicker() {
+    const taken = new Set(state.connections.map((connection) => connection.provider));
+    const query = pickerQuery();
+    const shown = orderedCatalog(state.catalog).filter((provider) => !taken.has(provider.id)
+      && (!query || provider.name.toLowerCase().includes(query) || provider.id.includes(query)));
+    const groups = PICKER_GROUPS.map((group) => {
+      const rows = shown.map((provider) => ({ provider, method: provider.methods.find((method) => group.kinds.includes(method.kind)) }))
+        .filter((entry) => entry.method)
+        .map(({ provider, method }) => el('li', {}, [el('button', {
+          className: 'picker-row', type: 'button', 'data-provider': provider.id, 'data-way': method.kind,
+          onClick: () => openFlow(provider, method)
+        }, [providerLogo(provider.id), el('span', { text: provider.name })])]));
+      return rows.length ? el('div', { className: 'picker-group' }, [el('p', { className: 'picker-title', text: group.title }), el('ul', {}, rows)]) : null;
+    });
+    fill($('provider-groups'), groups);
+    $('picker-empty').hidden = groups.some(Boolean);
+  }
+
+  // A phone shows the picker under the card only once "+ 연결하기" is pressed; a wide window keeps it beside the card.
+  function setPickerOpen(open) {
+    $('connect-aside').classList.toggle('is-open', open);
+    $('connect-open').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function openPicker() {
+    setPickerOpen(true);
+    closeFlow();
+    smoothScroll($('connect-aside'));
+    $('provider-search').focus({ preventScroll: true });
+  }
+
+  // /ai/?provider=<id>: the first time the catalog is drawn, that provider is shown -- its connected row, else its rows in
+  // the picker, which opens -- marked and brought into view with its first button focused. It never starts a connection by
+  // itself. Once only; a provider this catalog does not list is ignored.
+  function showRequestedProvider() {
+    const id = state.requestedProvider;
+    if (!id) return;
+    state.requestedProvider = '';
+    if (!state.catalog.some((item) => item.id === id)) return;
+    const row = Array.from(document.querySelectorAll('#provider-list .provider-card')).find((node) => node.getAttribute('data-provider') === id);
+    const picks = Array.from(document.querySelectorAll('#provider-groups .picker-row')).filter((node) => node.getAttribute('data-provider') === id);
+    const marked = row ? [row] : picks;
+    if (!marked.length) return;
+    if (!row) setPickerOpen(true);
+    marked.forEach((node) => node.classList.add('is-requested'));
+    smoothScroll(marked[0]);
+    const action = marked[0].matches('button') ? marked[0] : marked[0].querySelector('button');
+    if (action) action.focus({ preventScroll: true });
+  }
+
+  function modelDisplayName(model) {
+    const text = typeof model === 'string' ? model.trim() : '';
+    const slash = text.lastIndexOf('/');
+    const id = (slash >= 0 ? text.slice(slash + 1) : text).replace(/:free$/i, '');
+    for (const [pattern, format] of MODEL_LABEL_RULES) {
+      const match = id.match(pattern);
+      if (match) return format(match, id.slice(match[0].length));
+    }
+    return text;
+  }
+
+  // ---- 작업별 모델 ------------------------------------------------------------------------------------------------------
+  //
+  // Only what the server has today: the model of the connection that runs (PUT /ai-engine-connections/{id}/model). Tiers by
+  // task and an image model have no setting behind them, so they are not drawn.
+  function renderModels(running) {
+    const control = $('model-default-control');
+    if (!running) {
+      const mark = $('sidekick-ai-card').querySelector('img').cloneNode(false);
+      mark.className = 'model-mark';
+      fill(control, [el('span', { className: 'model-value' }, [mark, el('span', { text: 'Sidekick 기본' })])]);
+      return;
+    }
+    const name = connectionProviderName(running.provider);
+    const candidates = running.candidates.filter((model) => !running.models.includes(model));
+    const select = el('select', { className: 'model-select', 'aria-label': `${name} 모델` }, [
+      el('optgroup', { label: '확인된 모델' }, running.models.map((model) => el('option', { value: model, text: modelDisplayName(model), selected: model === running.model }))),
+      candidates.length ? el('optgroup', { label: '새로 시험할 모델' }, candidates.map((model) => el('option', { value: model, text: modelDisplayName(model) }))) : null
+    ]);
+    select.addEventListener('change', () => changeModel(running, select.value, [select]));
+    const mark = providerLogo(running.provider);
+    fill(control, [el('label', { className: 'model-value' }, [mark ? Object.assign(mark, { className: 'model-mark' }) : null, select])]);
+  }
+
+  // ---- Where the connect panel sits ------------------------------------------------------------------------------------
+  //
+  // #connect-step lives in the aside, under the picker; while it is open it stands in for the picker. A redraw keeps the
+  // person's place: a control in the panel keeps its focus.
+  function keepPanelFocus(move) {
+    const panel = $('connect-step');
+    const active = document.activeElement;
+    const held = active && active !== document.body && panel && panel.contains(active) ? active : null;
+    move();
+    if (held && held.isConnected && document.activeElement !== held) held.focus({ preventScroll: true });
+  }
+
+  function showPanelIn() {
+    setPickerOpen(true);
   }
 
   // ---- The connect panel -------------------------------------------------------------
@@ -1131,6 +1117,7 @@
     state.flow = flow;
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
+    showPanelIn(provider);
     setStatus('connect-status', '', false);
     if (method.kind === 'account') startAccount(flow);
     else if (method.kind === 'api_key') $('connect-body').replaceChildren(foreignScript() ? reopenNotice() : keyForm(flow));
@@ -1145,13 +1132,16 @@
   }
 
   function closeFlow() {
-    closeKeyChange();
     if (state.flow) stopFlow(state.flow);
     state.flow = null;
-    $('connect-step').hidden = true;
+    const panel = $('connect-step');
+    // The focus was in the panel (its 취소 or 닫기): it goes back to the picker the panel stood in for.
+    const focused = panel.contains(document.activeElement);
+    panel.hidden = true;
     $('connect-body').replaceChildren();
     $('connect-cancel').textContent = '취소';
     setStatus('connect-status', '', false);
+    if (focused) $('provider-search').focus({ preventScroll: true });
   }
 
   function live(flow) {
@@ -1185,7 +1175,7 @@
 
   function connectAnother() {
     closeFlow();
-    smoothScroll($('providers-step'));
+    smoothScroll($('connect-aside'));
   }
 
   // The panel of a connection that ended well stays, and says so. A connection saved as needs_reconnect is not finished:
@@ -1194,6 +1184,7 @@
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-cancel').textContent = '닫기';
     $('connect-step').hidden = false;
+    showPanelIn(provider);
     setStatus('connect-status', '', false);
     if (reconnect) {
       fill($('connect-body'), [el('div', { className: 'connect-done is-warn', 'aria-live': 'polite' }, [
@@ -1665,6 +1656,7 @@
     state.flow = flow;
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
+    showPanelIn(provider);
     $('connect-body').replaceChildren(el('p', { className: 'ai-note', text: `${provider.name} 로그인에서 돌아왔어요. ${PROOF_NOTE}` }));
     smoothScroll($('connect-step'));
     await completeAccount(flow, code, CALLBACK_URL, []);
@@ -2013,7 +2005,7 @@
     }));
     return el('section', { className: 'settings-group' }, [
       el('h3', { text: '도구' }),
-      rows.length ? el('p', { className: 'ai-note', text: '켜 둔 도구만 AI 직원이 써요.' }) : el('p', { className: 'settings-state', text: '지금 바꿀 수 있는 도구가 없어요.' }),
+      rows.length ? null : el('p', { className: 'settings-state', text: '지금 바꿀 수 있는 도구가 없어요.' }),
       ...rows
     ]);
   }
@@ -2121,6 +2113,13 @@
   // ---- Wiring ----------------------------------------------------------------------
 
   $('connect-cancel').addEventListener('click', closeFlow);
+  $('connect-open').addEventListener('click', () => {
+    if ($('connect-aside').classList.contains('is-open') && $('connect-step').hidden) setPickerOpen(false);
+    else openPicker();
+  });
+  $('provider-search').addEventListener('input', renderPicker);
+  document.addEventListener('click', (event) => { if (!event.target.closest || !event.target.closest('.provider-menu')) closeMenus(); });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenus(true); });
   $('return-top').addEventListener('click', () => returnToApp());
   $('open-signin').addEventListener('click', () => auth.open());
   $('handoff-connect').addEventListener('click', claimHandoff);

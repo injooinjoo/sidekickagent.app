@@ -134,12 +134,19 @@
   const APP_LOGIN_FAILED_COPY = '앱에서 로그인을 이어 오지 못했어요. 아래에서 로그인해 주세요.';
   // The most the page waits for that exchange (the first script in /ai/'s <head> gives up on its side at the same time).
   const APP_LOGIN_WAIT_MS = 5000;
-  // After the takeover the page says which account this browser now is (GET /account, read for at most this long) and lets
-  // the person say it is not theirs. It names the account so the person can tell which one it is (owner, 2026-10-06: the
-  // address or the name, not "the account you used in the app"); see appLoginSentence. Only when the server named nothing
-  // in time, in general words.
-  const APP_LOGIN_IDENTITY_MS = 3000;
-  const APP_LOGIN_KNOWN_COPY = '사이드킥에 로그인했지만 계정 정보를 불러오지 못했어요. 이메일을 다시 확인해 주세요.';
+  // After the takeover the page says which account this browser now is (GET /account) and lets the person say it is not
+  // theirs. It names the account so the person can tell which one it is (owner, 2026-10-06: the address or the name, not
+  // "the account you used in the app"); see appLoginSentence. A slow answer is never an error (owner, 2026-10-28: the server
+  // is one instance, and its answer with the preflight took 1.1-3 s while a 3-second limit called it a failure): an answer
+  // that has not come after APP_LOGIN_QUIET_MS is waited for under a quiet "계정 확인 중…", up to APP_LOGIN_IDENTITY_MS.
+  // Only a real failure -- no answer at all, a refusal, an answer that is not an account, or still nothing after the whole
+  // wait -- says so, calmly, with 다시 확인.
+  const APP_LOGIN_IDENTITY_MS = 10000;
+  const APP_LOGIN_QUIET_MS = 700;
+  const APP_LOGIN_CHECKING_COPY = '계정 확인 중…';
+  const APP_LOGIN_UNREAD_COPY = '사이드킥에 로그인했어요. 계정 정보는 아직 불러오지 못했어요.';
+  // An account the server answered for but could not name by an address, a number, a name or a sign-in door it knows.
+  const APP_LOGIN_SIGNED_IN_COPY = '사이드킥에 로그인했어요.';
   // The grammar of what the app puts in /ai/'s fragment: an attempt id and three 43-character proofs.
   const APP_LOGIN_ATTEMPT = /^ah_[A-Za-z0-9_-]{32}$/;
   const APP_LOGIN_PROOF = /^[A-Za-z0-9_-]{43}$/;
@@ -972,6 +979,8 @@
   let appLoginInput = LOGIN_RECEIVER ? null : takeAppLoginInput();
   // The notice under /ai/'s header that says which account the app's login became, once it has (see showAppLoginNotice).
   let appLoginNotice = null;
+  // Bumped by every read of the account for that notice and by its removal: only the newest read may say anything.
+  let appLoginRead = 0;
   // App handoff never subscribes or adopts this browser's shared account.
   if (LOGIN_RECEIVER && loginInput && (loginInput.mode === 'app'
       || (!loginInput.invalid && loginInput.mode === 'none'
@@ -1048,19 +1057,21 @@
   }
 
   // The sentence the app-login notice says (showAppLoginNotice), from GET /account's answer for the session just taken
-  // over (null when it could not be read). First what the person signed in with, which the server checked: the whole
-  // address, else the number as the server masked it (never a whole number). Then the account's name, which comes from
-  // the sign-in provider and so can be anything its holder chose -- it is shown only when there is neither, and never
-  // when it could pass for an address or a number. Then the door the account came through. Nothing else of the answer
-  // (no id) is used.
+  // over; '' when there is no answer to read (the notice then says APP_LOGIN_UNREAD_COPY). First what the person signed in
+  // with, which the server checked: the whole address, else the number as the server masked it (never a whole number).
+  // Then the account's name, which comes from the sign-in provider and so can be anything its holder chose -- it is shown
+  // only when there is neither, and never when it could pass for an address or a number. Then the door the account came
+  // through, by the name the site uses for it: an account the app made with Kakao, or with Apple's hidden address, has no
+  // address or name the server can give, and that is an answer, not a failure. Nothing else of the answer (no id) is used.
   function appLoginSentence(info) {
-    const known = info && typeof info === 'object' ? info : {};
-    const email = plainText(known.email, 254);
-    const address = (/^[^\s@]+@[^\s@]+$/.test(email) ? email : '') || maskedPhone(known.phone_masked);
+    if (!info || typeof info !== 'object' || Array.isArray(info)) return '';
+    const email = plainText(info.email, 254);
+    const address = (/^[^\s@]+@[^\s@]+$/.test(email) ? email : '') || maskedPhone(info.phone_masked);
     if (address) return `사이드킥 로그인 계정: ${address}`;
-    const name = plainText(known.display_name, 80);
+    const name = plainText(info.display_name, 80);
     if (name && !name.includes('@') && /\p{L}/u.test(name)) return `${name} 님의 계정으로 이어졌어요.`;
-    return APP_LOGIN_KNOWN_COPY;
+    const door = typeof info.method === 'string' && Object.hasOwn(METHOD_LABELS, info.method) ? METHOD_LABELS[info.method] : '';
+    return door ? `사이드킥 로그인 계정: ${door} 로그인` : APP_LOGIN_SIGNED_IN_COPY;
   }
 
   // A display hint only. Anything that does not look like one is dropped.
@@ -2282,6 +2293,8 @@
   function removeAppLoginNotice() {
     const notice = appLoginNotice;
     appLoginNotice = null;
+    // A read still on its way paints nothing once the notice is gone (dismissed, undone or signed out).
+    appLoginRead += 1;
     if (!notice) return;
     try { notice.remove(); } catch (_) { /* already gone */ }
     try {
@@ -2291,13 +2304,15 @@
     } catch (_) { /* nothing was set */ }
   }
 
+  // GET /account for the session just taken over: the answer when it is an account's, else null -- no answer at all, a
+  // refusal, something that is not an object, or nothing after APP_LOGIN_IDENTITY_MS (the preflight is in that time too).
   async function readAppLoginIdentity() {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), APP_LOGIN_IDENTITY_MS) : null;
     try {
       const info = await api('/account', { method: 'GET', cache: 'no-store', credentials: 'omit',
         ...(controller ? { signal: controller.signal } : {}) });
-      return info && typeof info === 'object' ? info : null;
+      return info && typeof info === 'object' && !Array.isArray(info) ? info : null;
     } catch (_) {
       return null;
     } finally {
@@ -2305,42 +2320,74 @@
     }
   }
 
-  async function showAppLoginNotice(token) {
+  function appLoginButton(text, className, onClick) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.textContent = text;
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  // The notice in one of its three states, made once and then said again in place (it is a polite live region, so what it
+  // says next is read out): `checking` while the answer is still on its way, `named` with the sentence appLoginSentence
+  // made, `unread` when there was no answer to read. "내 계정이 아니에요" is there in every state.
+  function drawAppLoginNotice(token, kind, sentence) {
     try {
-      const sentence = appLoginSentence(await readAppLoginIdentity());
       // Only while this is still the session that was taken over.
-      if (session.token !== token || appLoginNotice) return;
-      const notice = document.createElement('div');
-      notice.id = 'app-login-notice';
-      notice.className = 'app-login-notice';
-      notice.setAttribute('role', 'status');
-      notice.setAttribute('aria-live', 'polite');
+      if (session.token !== token) return;
+      let notice = appLoginNotice;
+      const fresh = !notice;
+      if (fresh) {
+        notice = document.createElement('div');
+        notice.id = 'app-login-notice';
+        notice.className = 'app-login-notice';
+        notice.setAttribute('role', 'status');
+        notice.setAttribute('aria-live', 'polite');
+      }
+      notice.setAttribute('data-state', kind);
+      notice.setAttribute('aria-busy', kind === 'checking' ? 'true' : 'false');
       const words = document.createElement('p');
       words.textContent = sentence;
       const actions = document.createElement('div');
       actions.className = 'app-login-actions';
-      const keep = document.createElement('button');
-      keep.type = 'button';
-      keep.textContent = sentence === APP_LOGIN_KNOWN_COPY ? '계정 다시 확인' : '확인';
-      keep.addEventListener('click', () => {
-        removeAppLoginNotice();
-        if (sentence === APP_LOGIN_KNOWN_COPY) showAppLoginNotice(token);
-      });
-      const undo = document.createElement('button');
-      undo.type = 'button';
-      undo.className = 'app-login-undo';
-      undo.textContent = '내 계정이 아니에요';
-      undo.addEventListener('click', () => { removeAppLoginNotice(); signOut(); });
-      actions.append(keep, undo);
-      notice.append(words, actions);
-      const header = document.querySelector('.site-header');
-      if (header && typeof header.after === 'function') header.after(notice);
-      else document.body.prepend(notice);
-      appLoginNotice = notice;
-      document.documentElement.classList.add('has-app-login-notice');
+      if (kind === 'named') actions.append(appLoginButton('확인', 'app-login-keep', () => removeAppLoginNotice()));
+      if (kind === 'unread') actions.append(appLoginButton('다시 확인', 'app-login-retry', () => checkAppLoginIdentity(token, true)));
+      actions.append(appLoginButton('내 계정이 아니에요', 'app-login-undo', () => { removeAppLoginNotice(); signOut(); }));
+      notice.replaceChildren(words, actions);
+      if (fresh) {
+        const header = document.querySelector('.site-header');
+        if (header && typeof header.after === 'function') header.after(notice);
+        else document.body.prepend(notice);
+        appLoginNotice = notice;
+        document.documentElement.classList.add('has-app-login-notice');
+        window.addEventListener('resize', measureAppLoginNotice);
+      }
       measureAppLoginNotice();
-      window.addEventListener('resize', measureAppLoginNotice);
     } catch (_) { /* no notice is better than a broken page */ }
+  }
+
+  // One read of the account, and what the notice says about it. A quick answer is said at once; a slow one is waited for
+  // under "계정 확인 중…" (shown after APP_LOGIN_QUIET_MS, or at once when the person pressed 다시 확인).
+  async function checkAppLoginIdentity(token, asked) {
+    const read = ++appLoginRead;
+    let answered = false;
+    const current = () => read === appLoginRead && session.token === token;
+    if (asked) drawAppLoginNotice(token, 'checking', APP_LOGIN_CHECKING_COPY);
+    const quiet = asked ? null : setTimeout(() => {
+      if (!answered && current()) drawAppLoginNotice(token, 'checking', APP_LOGIN_CHECKING_COPY);
+    }, APP_LOGIN_QUIET_MS);
+    const info = await readAppLoginIdentity();
+    answered = true;
+    clearTimeout(quiet);
+    if (!current()) return;
+    const sentence = appLoginSentence(info);
+    drawAppLoginNotice(token, sentence ? 'named' : 'unread', sentence || APP_LOGIN_UNREAD_COPY);
+  }
+
+  async function showAppLoginNotice(token) {
+    if (appLoginNotice) return;
+    try { await checkAppLoginIdentity(token, false); } catch (_) { /* no notice is better than a broken page */ }
   }
 
   async function receiveAppLogin() {
