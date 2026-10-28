@@ -1,108 +1,196 @@
 /* AI connection page layout only.
  *
- * Palette, reset, header and footer come from /styles.css, which this page
- * loads first. Every colour here is one of its tokens: nothing redeclares a
- * token and no colour is written by hand, so this page cannot drift into a
- * palette of its own. The header account slot and the sign-in sheet are drawn
- * once, in /styles.css, for every page. */
+ * Palette, reset, header and footer come from /styles.css, which this page loads first. Every colour here is one of its
+ * tokens, or a mix of two of them: nothing redeclares a token and no colour is written by hand. The header account slot and
+ * the sign-in sheet are drawn once, in /styles.css, for every page.
+ *
+ * The look (owner, 2026-10-28, v2 after a "Models" settings page): a white page, white cards with a thin neutral-gray
+ * border, compact rows, black-and-white marks, and no colour at all except the destructive "연결 해제". The grays are the
+ * page's ink mixed into white, so they lean neither warm nor cool. */
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 
-.ai-shell { max-width: 860px; margin: 0 auto; padding: 40px 22px 74px; }
-.ai-intro { max-width: 680px; margin-bottom: 28px; }
-.ai-intro h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); line-height: 1.18; letter-spacing: -.045em; }
-.ai-intro > p { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
+body { background: var(--card); }
+.ai-shell { --gray-line: color-mix(in srgb, var(--ink) 11%, var(--card)); --gray-fill: color-mix(in srgb, var(--ink) 4%, var(--card));
+  --gray-hover: color-mix(in srgb, var(--ink) 6%, var(--card)); --gray-text: color-mix(in srgb, var(--ink) 55%, var(--card));
+  max-width: 640px; margin: 0 auto; padding: var(--space-8) var(--space-4) 64px; }
+.ai-intro { margin-bottom: var(--space-4); }
+.ai-intro h1 { margin: 0; font-size: 26px; line-height: 1.25; letter-spacing: -.03em; }
+.ai-intro > .ai-note { margin-top: var(--space-2); font-size: var(--text-sm); }
+.ai-intro > .ai-note a { color: var(--ink-soft); font-weight: 600; }
 
-.ai-step { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 20px;
-  background: var(--card); box-shadow: var(--shadow-sm);
+.ai-step { margin-top: var(--space-6); padding: 0; border: 0; background: none;
   /* A step scrolled into view lands below the sticky header, not under it. */
   scroll-margin-top: calc(var(--header-h) + 12px); }
-.ai-step h2 { margin: 0 0 10px; font-size: 19px; letter-spacing: -.025em; }
-.ai-step > p { margin: 0 0 12px; font-size: 15px; }
-.ai-status { min-height: 0; margin: 10px 0 0 !important; color: var(--muted); font-size: 13px; }
+.ai-step h2 { margin: 0 0 var(--space-2); color: var(--ink); font-size: 15px; font-weight: 700; line-height: 1.4; letter-spacing: -.01em; }
+.ai-step > p { margin: 0 0 var(--space-3); font-size: 14px; }
+.ai-step > p:last-child { margin-bottom: 0; }
+#signin-step, .ai-step.ai-offer { padding: var(--space-5); border: 1px solid var(--gray-line); border-radius: var(--radius-md); }
+
+/* One status line under a section: gray text, and a gray box with a small mark when something did not work (never red). */
+.ai-status { min-height: 0; margin: var(--space-2) 0 0 !important; color: var(--gray-text); font-size: 13px; line-height: 1.5; }
 .ai-status:empty { display: none; }
-.ai-status.is-error { color: var(--accent); }
+.ai-status.is-error { position: relative; padding: 10px var(--space-3) 10px 38px; border: 1px solid var(--gray-line); border-radius: var(--radius-sm);
+  background: var(--gray-fill); color: var(--ink-soft); }
+.ai-status.is-error::before { content: '!'; position: absolute; left: var(--space-3); top: 10px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--ink-soft); color: var(--card); font: 700 11px/16px ui-sans-serif, system-ui, sans-serif; text-align: center; }
+
 /* The app opened this page with its own login (the first script in <head> sets this class, and /auth.js or a five-second
  * timer takes it off): until that is answered the page does not offer its sign-in button, only the sentence that says
  * what is happening. */
 html.ai-receiving #signin-line, html.ai-receiving #open-signin { display: none; }
-/* The one toast this page ever shows is /auth.js's sentence for a different account already signed in here (the page
- * below is that account's, so the sentence has to be seen): at the top under the header, where the analytics consent
- * bar at the bottom of the screen cannot cover it. */
+/* The one toast this page ever shows is /auth.js's sentence for a different account already signed in here: at the top
+ * under the header, where nothing else covers it, in the page's ink, not red. */
 .auth-toast { top: calc(var(--header-h) + 12px); bottom: auto; }
+.auth-toast.is-error { background: var(--ink); }
+
 /* After the app's login was taken over (/auth.js, receiveAppLogin): which account this browser now is, under the header, with
- * the way to say it is not. It lines up with the page's column and stays under the sticky header while the page scrolls (the
- * page scrolls to the provider the app asked for, which would otherwise leave it out of sight); what the page scrolls into
- * view lands below it, by the height /auth.js measures. */
-.app-login-notice { position: sticky; top: calc(var(--header-h) + 8px); z-index: 19; width: min(816px, calc(100% - 44px));
-  margin: 8px auto 0; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-  border: 1px solid var(--accent-border); border-radius: 14px; background: var(--accent-soft); box-shadow: var(--shadow-sm); }
-html.has-app-login-notice { scroll-padding-top: var(--app-login-notice-h, 0px); }
-.app-login-notice p { flex: 1 1 220px; margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.5; }
-.app-login-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.app-login-notice button { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card);
-  color: var(--ink); font-size: 14px; font-weight: 700; cursor: pointer; }
-.app-login-notice button.app-login-undo { border-color: var(--accent-border); color: var(--accent); }
-.ai-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.ai-hint { margin: 4px 0 0; color: var(--soft); font-size: 12px; }
-.ai-label { display: block; margin: 0 0 6px; color: var(--ink-soft); font-size: 13px; font-weight: 700; }
-.ai-intro > .ai-who { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; margin: 16px 0 0; padding: 8px 12px;
-  border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink-soft); font-size: 13px; }
-.ai-who strong { color: var(--ink); }
+ * the way to say it is not. It stays under the sticky header while the page scrolls; what the page scrolls into view lands
+ * below it, by the height /auth.js measures. Its three states (data-state): checking, named, unread. */
+.app-login-notice { --gray-line: color-mix(in srgb, var(--ink) 11%, var(--card)); --gray-fill: color-mix(in srgb, var(--ink) 4%, var(--card));
+  position: sticky; top: calc(var(--header-h) + 8px); z-index: 19; width: min(608px, calc(100% - 32px));
+  margin: var(--space-2) auto 0; padding: 10px var(--space-3); display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2) var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--card);
+  box-shadow: var(--shadow-sm); }
+.app-login-notice::before { content: 'i'; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--gray-fill);
+  color: var(--ink-soft); font: 700 12px/18px Georgia, serif; text-align: center; }
+.app-login-notice[data-state="checking"]::before { content: ''; box-sizing: border-box; border: 2px solid var(--gray-line);
+  border-top-color: var(--ink-soft); background: none; animation: ai-turn .9s linear infinite; }
+.app-login-notice[data-state="unread"] { background: var(--gray-fill); }
+.app-login-notice[data-state="unread"]::before { content: '!'; background: var(--ink-soft); color: var(--card); font-family: ui-sans-serif, system-ui, sans-serif; }
+/* While the notice is up the browser does not hold the content still when the notice comes or grows (scroll anchoring would
+ * keep what the page scrolled to where it was, under the notice): the content moves down with it instead. */
+html.has-app-login-notice { scroll-padding-top: var(--app-login-notice-h, 0px); overflow-anchor: none; }
+.app-login-notice p { flex: 1 1 200px; margin: 0; color: var(--ink); font-size: 13.5px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.app-login-notice[data-state="checking"] p { flex-basis: auto; color: var(--ink-soft); font-weight: 500; }
+.app-login-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-left: auto; }
+.app-login-notice button { min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm);
+  background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.app-login-notice button:hover { background: var(--gray-fill); }
+.app-login-notice button.app-login-undo { border-color: transparent; background: none; color: var(--ink-soft); font-weight: 500; }
+@keyframes ai-turn { to { transform: rotate(360deg); } }
+
+.ai-note { margin: var(--space-2) 0 0; color: var(--gray-text); font-size: 13px; line-height: 1.5; }
+.ai-hint { margin: var(--space-1) 0 0; color: var(--gray-text); font-size: var(--text-xs); line-height: 1.5; }
+.ai-label { display: block; margin: 0 0 6px; color: var(--ink-soft); font-size: 13px; font-weight: 600; }
+.ai-intro > .ai-who { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: var(--space-2) 0 0;
+  color: var(--gray-text); font-size: 13px; }
+.ai-who strong { color: var(--ink-soft); font-weight: 600; }
 /* Which project the 실행 설정 belong to: the AI above is the account's, the settings are one project's (owner, 2026-10-07). */
-.ai-step > .ai-project { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; max-width: 100%; margin: 0 0 4px; padding: 6px 12px;
-  border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink-soft); font-size: 13px; }
-.ai-project strong { color: var(--ink); overflow-wrap: anywhere; }
-.ai-next { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 14px; background: var(--bg); }
+.ai-step > .ai-project { display: inline-flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); max-width: 100%; margin: 0 0 var(--space-2);
+  color: var(--gray-text); font-size: 13px; }
+.ai-project strong { color: var(--ink-soft); overflow-wrap: anywhere; }
+/* What to do next when there is nothing to connect yet: a gray box with its actions. */
+.ai-next { margin-top: var(--space-2); padding: var(--space-4); border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--gray-fill); }
 .ai-next p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
-.ai-next p + p { margin-top: 6px; color: var(--muted); font-size: 13px; }
-.ai-next-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-/* The ChatGPT account the person just signed in with, offered as the project's AI. */
-.ai-offer { border-color: var(--accent-border); background: var(--accent-soft); }
+.ai-next p + p { margin-top: 6px; color: var(--gray-text); font-size: 13px; }
+.ai-next-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+/* The project-wide sentences: drawn only while there is one. */
+.ai-step.ai-scope { margin-top: var(--space-2); }
+.ai-step.ai-scope:not(:has(.ai-status:not(:empty), .ai-next:not([hidden]))) { display: none; }
 .ai-offer .ai-note { color: var(--ink-soft); }
+
+/* Buttons: a filled one for the main action, a white one with a thin border for the rest. Ink, not colour. */
 a.ai-button { text-decoration: none; }
-a.ai-button.secondary:hover { color: var(--ink); }
+.ai-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-h); padding: 0 var(--space-4);
+  border: 1px solid var(--ink); border-radius: var(--radius-sm); background: var(--ink); color: var(--card);
+  font-size: 14px; font-weight: 600; line-height: 1.3; cursor: pointer; white-space: nowrap; }
+.ai-button:hover { border-color: var(--ink-soft); background: var(--ink-soft); color: var(--card); }
+.ai-button.secondary, a.ai-button.secondary { border-color: var(--gray-line); background: var(--card); color: var(--ink); }
+.ai-button.secondary:hover { background: var(--gray-fill); color: var(--ink); }
+.ai-button.quiet { border-color: transparent; background: transparent; color: var(--ink-soft); }
+.ai-button.quiet:hover { background: var(--gray-fill); }
+.ai-button:disabled, .ai-button:disabled:hover { cursor: not-allowed; opacity: .45; }
 
-.ai-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
-  border: 1px solid var(--ink); border-radius: 12px; background: var(--ink); color: var(--card);
-  font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.ai-button:hover { background: var(--ink-soft); border-color: var(--ink-soft); }
-.ai-button.secondary { background: var(--card); color: var(--ink); border-color: var(--line); }
-.ai-button.secondary:hover { border-color: var(--soft); }
-.ai-button.quiet { background: transparent; color: var(--accent); border-color: transparent; padding: 0 10px; }
-.ai-button.quiet:hover { background: var(--accent-soft); }
-.ai-button:disabled { cursor: not-allowed; opacity: .5; }
+.ai-select, .ai-input { width: 100%; min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--gray-line);
+  border-radius: var(--radius-sm); background: var(--card); color: var(--ink); font-size: 16px; }
+.ai-input:focus, .ai-select:focus { border-color: var(--ink-soft); }
+textarea.ai-input { padding: 10px var(--space-3); min-height: 120px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 
-.ai-select, .ai-input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line);
-  border-radius: 11px; background: var(--card); color: var(--ink); }
-textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
-.ai-select:disabled { background: var(--sunken); color: var(--ink); }
+.pill { display: inline-flex; align-items: center; flex: none; padding: 2px 8px; border: 1px solid var(--gray-line); border-radius: var(--radius-pill);
+  color: var(--ink-soft); font-size: var(--text-xs); font-weight: 600; line-height: 1.4; white-space: nowrap; }
 
-.pill { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; background: var(--sunken);
-  color: var(--ink-soft); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
-.pill.is-ok { background: var(--positive-bg); color: var(--positive); }
-.pill.is-warn { background: var(--warning-bg); color: var(--warning); }
+/* ---- 제공자 ----------------------------------------------------------------------------------------------------------- */
+.provider-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--gray-line); border-bottom: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0; }
+/* One row: the mark and the name, how it is connected, then the circle and "···" on the right. */
+.provider-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: auto auto;
+  align-items: center; column-gap: var(--space-2); min-height: 56px; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--gray-line); scroll-margin-top: calc(var(--header-h) + 12px); }
+.provider-card:focus { outline: none; }
+.provider-card:focus-visible, .provider-card.is-requested { background: var(--gray-fill); }
+.provider-head { grid-column: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); }
+.provider-head strong { color: var(--ink); font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+/* Every mark in black and white (owner, 2026-10-28: "로고 색상 싹빼고"), in the 20px box of the space scale that ai.js gives the
+ * image too, so a row does not move when the file arrives and never shrinks when the name is long. */
+.provider-logo { flex: none; display: block; width: var(--space-5); height: var(--space-5); margin: 0;
+  padding: 0; border: 0; border-radius: 0; background: none; object-fit: contain; filter: grayscale(1); }
+.provider-method { grid-column: 1; margin: 0 0 0 32px; color: var(--gray-text); font-size: 12.5px; line-height: 1.35; }
+.provider-head:not(:has(> img)) + .provider-method { margin-left: 0; }
+.provider-method.is-warn { color: var(--ink-soft); font-weight: 600; }
+/* The circle that says which one runs; pressed, it makes that one run. */
+.provider-use { grid-column: 2; grid-row: 1 / span 2; position: relative; width: var(--control-h); height: var(--control-h); padding: 0; border: 0;
+  background: none; cursor: pointer; }
+.provider-use::before { content: ''; position: absolute; inset: 13px; border: 1.5px solid var(--gray-line); border-radius: 50%; }
+.provider-use.is-on::before { border: 5px solid var(--ink); }
+.provider-use:disabled { cursor: default; }
+.provider-use:not(.is-on):disabled::before { opacity: .5; }
+.provider-use:not(:disabled):hover::before { border-color: var(--ink-soft); }
+.sidekick-row::after { content: ''; grid-column: 3; grid-row: 1 / span 2; width: var(--control-h); }
+/* "···" and its menu: 다시 연결, and 연결 해제 -- the one red word on the page. */
+.provider-menu-wrap { grid-column: 3; grid-row: 1 / span 2; position: relative; }
+.provider-menu-button { display: block; width: var(--control-h); height: var(--control-h); padding: 0; border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--ink-soft); cursor: pointer; }
+.provider-menu-button::before { content: '···'; font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+.provider-menu-button:hover, .provider-menu-button[aria-expanded="true"] { background: var(--gray-fill); }
+.provider-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 10; min-width: 148px; padding: var(--space-1);
+  border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--card); box-shadow: var(--shadow); }
+.provider-menu-item { display: flex; align-items: center; width: 100%; min-height: var(--control-h); padding: 0 var(--space-3); border: 0;
+  border-radius: var(--radius-sm); background: none; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer; }
+.provider-menu-item:hover { background: var(--gray-fill); }
+.provider-menu-item.is-danger { color: var(--accent); }
+.provider-menu-item:disabled { cursor: not-allowed; opacity: .45; }
+/* "+ 연결하기": the card's last row. */
+.provider-add { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 52px; padding: 0 var(--space-4);
+  border: 1px solid var(--gray-line); border-radius: 0 0 var(--radius-md) var(--radius-md); background: var(--card); color: var(--ink-soft);
+  font-size: 14px; text-align: left; cursor: pointer; }
+.provider-add::before { content: '+'; width: var(--space-5); color: var(--gray-text); font-size: 18px; line-height: 1; text-align: center; }
+.provider-add:hover { background: var(--gray-fill); }
 
-.connection-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.connection-item { padding: 16px; border: 1px solid var(--line-soft); border-radius: 16px; background: var(--bg); }
-.connection-item + .connection-item { margin-top: 0; }
-.connection-head { display: flex; align-items: center; gap: 8px; }
-.connection-head strong { font-size: 16px; }
-.connection-meta { margin: 4px 0 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.connection-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 8px; margin-top: 12px; }
-.rekey-form { padding-top: 12px; border-top: 1px solid var(--line-soft); }
+/* ---- + 연결하기: the picker, and the connect panel of the one picked ------------------------------------------------------ */
+.ai-aside { margin-top: var(--space-2); scroll-margin-top: calc(var(--header-h) + 12px); }
+.ai-aside:not(.is-open) { display: none; }
+.ai-aside h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.picker { border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--card); overflow: hidden; }
+.ai-aside:has(.connect-panel:not([hidden])) .picker { display: none; }
+.picker-search { display: block; width: 100%; min-height: 48px; padding: 0 var(--space-4); border: 0; border-bottom: 1px solid var(--gray-line);
+  background: var(--card); color: var(--ink); font-size: 16px; }
+.picker-search:focus { outline: none; background: var(--gray-fill); }
+.picker-groups { max-height: 420px; overflow-y: auto; padding: var(--space-1) 0 var(--space-2); }
+.picker-title { margin: var(--space-3) var(--space-4) var(--space-1); color: var(--gray-text); font-size: 12px; font-weight: 600; }
+.picker-group ul { margin: 0; padding: 0; list-style: none; }
+.picker-group + .picker-group { margin-top: var(--space-1); border-top: 1px solid var(--gray-line); }
+.picker-row { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: var(--control-h); padding: 0 var(--space-4);
+  border: 0; background: none; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer; }
+.picker-row:hover, .picker-row.is-requested { background: var(--gray-fill); }
+/* A row the page scrolls to (?provider=) lands below the sticky header, with the row above it still in sight. */
+.picker-row { scroll-margin-top: calc(var(--header-h) + 12px + 48px); }
+.picker-row:not(:has(img))::before { content: ''; flex: none; width: var(--space-5); }
+.picker-empty { margin: 0; padding: var(--space-4); color: var(--gray-text); font-size: 13px; }
 
-.connect-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.connect-head h2 { margin: 0; }
-.connect-body { margin-top: 8px; }
-.connect-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.connect-panel { padding: var(--space-4); border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--card); }
+.connect-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.connect-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.connect-body { margin-top: var(--space-2); }
+.connect-form { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3); }
 .connect-form > .ai-button { align-self: flex-start; }
-.connect-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.connect-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.provider-detail { margin: var(--space-2) 0 0; color: var(--gray-text); font-size: 12.5px; line-height: 1.5; }
 /* The code the person has to get into the provider's page: large, in groups, and one tap selects all of it. The groups are
  * spans around the same text, so a selected or copied code is exactly the code (the spacing is only drawn here). */
-.device-code { display: flex; justify-content: center; margin-top: 12px; padding: 18px 16px;
-  border: 1px dashed var(--accent-border); border-radius: 14px; background: var(--accent-soft); }
-.device-code-value { display: block; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(22px, 8.2vw, 34px);
+.device-code { display: flex; justify-content: center; margin-top: var(--space-3); padding: var(--space-4);
+  border: 1px dashed var(--gray-line); border-radius: var(--radius-md); background: var(--gray-fill); }
+.device-code-value { display: block; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(22px, 8.2vw, 32px);
   font-weight: 700; line-height: 1.2; letter-spacing: .08em; text-align: center; color: var(--ink);
   -webkit-user-select: all; user-select: all; }
 .device-code-value .code-group + .code-group { margin-left: .12em; }
@@ -111,8 +199,7 @@ textarea.ai-input { padding: 10px 12px; min-height: 120px; resize: vertical; fon
 .ai-button.wrap { white-space: normal; text-align: center; line-height: 1.35; padding-top: 8px; padding-bottom: 8px; max-width: 100%; }
 /* The re-copy button once the person is back from the provider's page: the code may have been replaced on the clipboard
  * (a number sent by SMS or mail is copied the same way), so the button that puts it back is the one to see. */
-.ai-button.is-emphasis, .ai-button.secondary.is-emphasis:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-border); }
+.ai-button.is-emphasis, .ai-button.secondary.is-emphasis:hover { border-color: var(--ink); color: var(--ink); box-shadow: 0 0 0 2px var(--gray-line); }
 /* The scratch field the fallback copy selects from; it has a real box (a hidden field cannot be selected), 16px type (the
  * phone's browser does not zoom into it) and no pointer. */
 .copy-scratch { position: fixed; top: 0; left: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0;
@@ -126,101 +213,85 @@ html.in-app .return-top { display: inline-flex; align-items: center; min-height:
 html.in-app .return-top:hover { background: var(--sunken); }
 
 /* A connection that is finished: the panel stays and says so, with the way back to the app. The check mark is drawn here. */
-.connect-done { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-3);
-  padding: var(--space-4); border: 1px solid var(--line-soft); border-radius: var(--radius-md); background: var(--bg); }
-.connect-done.is-warn { background: var(--warning-bg); border-color: var(--line); }
-.connect-done h3 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+.connect-done { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-3); }
+.connect-done.is-warn { padding: var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm); background: var(--gray-fill); }
+.connect-done h3 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
 .connect-done p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
-.connect-done .ai-note { color: var(--muted); font-size: 13px; }
+.connect-done .ai-note { color: var(--gray-text); font-size: 13px; }
 .connect-done .connect-actions { margin-top: var(--space-1); }
-.connected-mark { position: relative; flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--positive-bg); }
-.connected-mark::after { content: ''; position: absolute; left: 18px; top: 10px; width: 12px; height: 22px; border: solid var(--positive);
+.connected-mark { position: relative; flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--gray-fill); }
+.connected-mark::after { content: ''; position: absolute; left: 18px; top: 10px; width: 12px; height: 22px; border: solid var(--ink);
   border-width: 0 4px 4px 0; border-radius: 1px; transform: rotate(45deg); }
 
-/* Sidekick AI (기본): the AI that works when no AI account of the person's is connected, on Sidekick credits. It needs no
- * connection, so it has no button; it is marked as the one in use while nothing else is connected. */
-.sidekick-ai-card { display: flex; align-items: center; gap: 12px; padding: 16px; margin: 4px 0 18px; border: 1px solid var(--line-soft);
-  border-radius: 16px; background: var(--bg); }
-.sidekick-ai-card.is-selected { border-color: var(--positive); box-shadow: 0 0 0 1px var(--positive); }
-.sidekick-ai-mark { flex: none; display: block; width: var(--space-10); height: var(--space-10); }
-.sidekick-ai-copy { min-width: 0; }
-.sidekick-ai-copy strong { font-size: 16px; }
-.sidekick-ai-copy p { margin: 2px 0 0; color: var(--ink-soft); font-size: 13.5px; }
-.sidekick-ai-card.is-selected .sidekick-ai-state { color: var(--positive); font-weight: 700; }
-.sidekick-ai-select { margin-top: 10px; }
-.provider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-.provider-card { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line-soft);
-  border-radius: 16px; background: var(--bg); scroll-margin-top: calc(var(--header-h) + 12px); }
-/* The provider the app's AI information page asked for (/ai/?provider=<id>). */
-.provider-card.is-requested { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
-.provider-head { display: flex; align-items: center; gap: 8px; }
-.provider-head strong { font-size: 16px; }
-/* The provider's official mark (/assets/ai/<id>.png, the artwork the app shows), drawn as the provider made it: no plate,
- * border, radius, padding or background of ours. The 40px box is fixed (ai.js gives the img the same width and height),
- * so the card does not move when the file arrives, and it never shrinks when the name is long. */
-.provider-logo { flex: none; display: block; width: var(--space-10); height: var(--space-10); margin: 0 var(--space-1) 0 0;
-  padding: 0; border: 0; border-radius: 0; background: none; object-fit: contain; }
-.provider-badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.provider-detail { margin: 0; color: var(--warning); font-size: 12.5px; }
-.provider-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
-/* A service's three ways to run (사이드킥 크레딧 · 내 API 키 · 계정 로그인): one full-width button each, title over its line. */
-.connect-choices { display: grid; gap: 8px; margin-top: auto; padding-top: 4px; }
-.connect-choice { display: grid; gap: 2px; width: 100%; min-height: 44px; text-align: left; white-space: normal; }
-.connect-choice span { font-size: 12.5px; font-weight: 400; opacity: 0.85; }
-.provider-more { margin-top: 14px; }
-.provider-more summary { min-height: 44px; display: flex; align-items: center; color: var(--ink-soft);
-  font-size: 14px; font-weight: 700; cursor: pointer; }
+/* ---- 작업별 모델 ------------------------------------------------------------------------------------------------------- */
+.model-list { border: 1px solid var(--gray-line); border-radius: var(--radius-md); }
+.model-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4);
+  min-height: 60px; padding: var(--space-2) var(--space-4); }
+.model-text { display: grid; gap: 1px; min-width: 0; }
+.model-text strong { font-size: 14.5px; font-weight: 600; }
+.model-text span { color: var(--gray-text); font-size: 12.5px; }
+.model-control { min-width: 0; }
+.model-value { display: inline-flex; align-items: center; gap: var(--space-2); max-width: 100%; color: var(--ink-soft); font-size: 14px; }
+.model-value img, .model-mark { flex: none; width: var(--space-5); height: var(--space-5); object-fit: contain; filter: grayscale(1); }
+.model-select { max-width: 100%; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm);
+  background: var(--card); color: var(--ink); font-size: 14px; }
 
-/* AI 직원 실행 설정: two groups, each control one real setting. Every control is a native radio or checkbox, so the keyboard
- * and the screen reader work without help; the look is drawn around them. */
-.settings-body { margin-top: var(--space-3); }
-.settings-group + .settings-group { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--line-soft); }
-.settings-group h3 { margin: 0 0 var(--space-2); font-size: 16px; letter-spacing: -.02em; }
-.settings-state { margin: 0 0 var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md); background: var(--bg); color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
-fieldset.setting { min-width: 0; margin: 0; padding: var(--space-2) 0 var(--space-3); border: 0; border-bottom: 1px solid var(--hairline); }
-fieldset.setting legend { padding: 0; margin: 0 0 var(--space-2); color: var(--ink); font-size: 14px; font-weight: 700; }
-.segments { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: var(--space-2); }
+/* ---- AI 직원 실행 설정: the same card and rows as the lists above -- a row is its name, one short gray line and its control
+ * (a segmented track or a switch). Every control is a native radio or checkbox, so the keyboard and the screen reader work
+ * without help; the look is drawn around them. */
+.settings-body { margin-top: var(--space-2); padding: 0 var(--space-4); border: 1px solid var(--gray-line); border-radius: var(--radius-md); }
+.settings-body > .settings-state:first-child { margin-top: var(--space-4); }
+.settings-body > .ai-button { margin-bottom: var(--space-4); }
+.settings-group + .settings-group { border-top: 1px solid var(--gray-line); }
+.settings-group h3 { margin: 0; padding: var(--space-3) 0 var(--space-1); color: var(--gray-text); font-size: 12px; font-weight: 600; }
+.settings-state { margin: var(--space-2) 0 var(--space-3); color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+fieldset.setting { min-width: 0; margin: 0; padding: var(--space-3) 0; border: 0; border-top: 1px solid var(--gray-line); }
+fieldset.setting legend { float: left; padding: 0; margin: 0 0 var(--space-2); color: var(--ink); font-size: 14.5px; font-weight: 600; }
+fieldset.setting legend + * { clear: both; }
+.segments { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 2px; padding: 3px;
+  border-radius: var(--radius-sm); background: var(--gray-fill); }
 .segment { position: relative; display: flex; min-width: 0; }
 .segment input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .segment span { display: flex; flex: 1; align-items: center; justify-content: center; min-height: var(--control-h); padding: 0 var(--space-3);
-  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); color: var(--ink-soft);
-  font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; }
-.segment input:checked + span { border-color: var(--ink); background: var(--ink); color: var(--card); }
-.segment input:focus-visible + span { outline: 3px solid var(--accent-border); outline-offset: 2px; }
+  border-radius: 6px; color: var(--gray-text); font-size: 13.5px; font-weight: 600; text-align: center; line-height: 1.3; }
+.segment input:checked + span { background: var(--card); color: var(--ink); box-shadow: 0 0 0 1px var(--gray-line); }
+.segment input:focus-visible + span { outline: 2px solid var(--ink-soft); outline-offset: 1px; }
 .segment input:disabled { cursor: not-allowed; }
 .segment input:disabled + span { opacity: .55; }
-.setting .ai-note { margin-top: var(--space-2); }
-.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: var(--control-h);
-  padding: var(--space-3) 0; border-bottom: 1px solid var(--hairline); cursor: pointer; }
-.switch-row:last-child { border-bottom: 0; }
-.switch-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.switch-text strong { font-size: 14px; }
-.switch-line { color: var(--muted); font-size: 13px; line-height: 1.5; }
-.switch-need { color: var(--warning); font-size: 12.5px; font-weight: 700; }
-.switch { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 52px; height: 32px; margin: 0;
-  border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--sunken); cursor: pointer; }
-.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--card);
+.setting .ai-note { margin-top: 6px; font-size: 12.5px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 56px;
+  padding: var(--space-2) 0; border-top: 1px solid var(--gray-line); cursor: pointer; }
+.settings-group h3 + .switch-row { border-top: 0; }
+.switch-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.switch-text strong { font-size: 14.5px; font-weight: 600; }
+.switch-line { color: var(--gray-text); font-size: 12.5px; line-height: 1.45; }
+.switch-need { color: var(--ink-soft); font-size: 12.5px; font-weight: 600; }
+.switch { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 46px; height: 28px; margin: 0;
+  border: 1px solid var(--gray-line); border-radius: var(--radius-pill); background: var(--gray-fill); cursor: pointer; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: var(--card);
   box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-out); }
 .switch:checked { border-color: var(--ink); background: var(--ink); }
-.switch:checked::after { transform: translateX(20px); }
-.switch:focus-visible { outline: 3px solid var(--accent-border); outline-offset: 2px; }
+.switch:checked::after { transform: translateX(18px); }
+.switch:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
 .switch:disabled { cursor: not-allowed; opacity: .55; }
-@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
-
-.ai-shell .footer { margin-top: 40px; }
-
-@media (max-width: 700px) {
-  .provider-grid { grid-template-columns: minmax(0, 1fr); }
+@media (prefers-reduced-motion: reduce) {
+  .switch::after { transition: none; }
+  .app-login-notice[data-state="checking"]::before { animation: none; }
 }
 
-@media (max-width: 560px) {
-  .ai-shell { padding: 28px 16px 46px; }
-  .app-login-notice { width: calc(100% - 32px); }
-  .ai-intro h1 { font-size: 28px; }
-  .ai-intro > p { font-size: 14px; }
-  .ai-step { padding: 18px 16px; border-radius: 18px; }
-  .connection-actions { grid-template-columns: minmax(0, 1fr) auto; }
-  .connection-actions .ai-select { grid-column: 1 / -1; }
+.ai-shell .footer { margin-top: 48px; }
+
+/* A wide window: the list on the left, + 연결하기 beside it ("aside에서 처리하는식"), always open there. */
+@media (min-width: 1024px) {
+  .ai-shell { max-width: 1040px; display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 1fr); column-gap: var(--space-10); align-items: start; }
+  .ai-shell > * { grid-column: 1; }
+  .ai-shell > .ai-aside { grid-column: 2; grid-row: 2 / span 6; position: sticky; top: calc(var(--header-h) + var(--space-6) + var(--app-login-notice-h, 0px)); margin-top: var(--space-6); }
+  .ai-shell > .ai-aside:not(.is-open) { display: block; }
+  .ai-shell > .ai-aside[hidden] { display: none; }
+  .ai-shell > .footer { grid-column: 1 / -1; }
+  .app-login-notice { width: min(1008px, calc(100% - 32px)); }
 }
 
+/* The keyboard's focus ring in the page's ink, not the site's red-tinted one. */
+.ai-shell :focus-visible, .app-login-notice :focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
+.picker-row:focus-visible, .provider-menu-item:focus-visible { outline-offset: -2px; }
