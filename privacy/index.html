@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.sidekickagent.app https://us.i.posthog.com https://us-assets.i.posthog.com; img-src 'self'; style-src 'self'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' https://us-assets.i.posthog.com https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script src="/app-mode.js"></script>
@@ -114,14 +114,21 @@
 
   <h2>6. 추적, 광고와 브라우저 저장소</h2>
   <form class="card" data-analytics-preference>
-    <h3>서비스 개선 참여</h3>
-    <p>선택하지 않아도 서비스를 이용할 수 있어요. 로그인한 뒤 저장하면 같은 계정의 앱에도 적용됩니다.</p>
-    <p><label><input type="checkbox" name="analytics-enabled" /> 사용 흐름 보내기</label></p>
+    <h3>서비스 개선 참여와 방문·광고 측정</h3>
+    <p>선택하지 않아도 서비스를 이용할 수 있어요. 사용 흐름은 로그인한 뒤 저장하면 같은 계정의 앱에도 적용되고, 방문·광고 측정은 이 브라우저에만 저장돼요.</p>
+    <p><label><input type="checkbox" name="analytics-enabled" /> 사용 흐름 보내기 (PostHog)</label></p>
     <p><label><input type="checkbox" name="analytics-replay" /> 화면 재생 허용</label></p>
+    <p><label><input type="checkbox" name="analytics-ads" /> 방문·광고 측정 허용 (Google Analytics·Meta)</label></p>
     <p>입력 내용과 대화는 보내지 않아요. 화면 재생은 텍스트·입력·이미지를 가립니다.</p>
     <button type="submit">선택 저장</button><p role="status" aria-live="polite"></p>
   </form>
-  <p>사이드킥은 타사 광고 SDK를 사용하지 않고, 다른 회사의 앱이나 웹사이트를 넘나드는 활동을 추적하지 않습니다. 사용자가 서비스 개선 참여를 허용하면 PostHog로 웹·앱의 행동과 오류 종류를 연결합니다. 동의 전에는 수집하지 않으며 화면 재생은 별도로 허용해야 합니다. 관측용 계정 ID, 화면 종류, 앱 버전, 전환 및 업무 실행 ID, 처리 시간과 성공·실패 상태를 사용하고 비밀번호·연결 자격·결제 정보·입력 내용·대화·AI 요청과 응답 원문은 보내지 않습니다. 화면 재생에서는 텍스트·입력·이미지를 가립니다. PostHog의 미국 저장소로 암호화하여 전송하며, 설정의 서비스 개선 선택을 끄면 새 수집을 중단하고 미전송 사건을 제거합니다. 이미 전송된 자료의 삭제는 아래 개인정보 문의 창구로 요청할 수 있습니다. 향후 교차 사이트 추적이나 광고 기능을 도입할 경우 관련 법령과 플랫폼 정책에 따라 별도 동의를 요청합니다.</p>
+  <p>앱 안에는 타사 광고 SDK가 없고, 앱 안의 활동을 다른 회사의 앱이나 웹사이트와 넘나들며 추적하지 않습니다. 사용자가 서비스 개선 참여를 허용하면 PostHog로 웹·앱의 행동과 오류 종류를 연결합니다. 동의 전에는 수집하지 않으며 화면 재생은 별도로 허용해야 합니다. 관측용 계정 ID, 화면 종류, 앱 버전, 전환 및 업무 실행 ID, 처리 시간과 성공·실패 상태를 사용하고 비밀번호·연결 자격·결제 정보·입력 내용·대화·AI 요청과 응답 원문은 보내지 않습니다. 화면 재생에서는 텍스트·입력·이미지를 가립니다. PostHog의 미국 저장소로 암호화하여 전송하며, 설정의 서비스 개선 선택을 끄면 새 수집을 중단하고 미전송 사건을 제거합니다. 이미 전송된 자료의 삭제는 아래 개인정보 문의 창구로 요청할 수 있습니다.</p>
+  <section id="website-measurement"><h3>홈페이지 방문 기록과 방문·광고 측정</h3>
+  <p><strong>보내는 항목:</strong> 홈페이지(sidekickagent.app)의 공개 페이지에서 허용한 경우에만 다음을 보냅니다. ① 본 페이지의 이름(사이트 페이지 목록의 이름, 예: 홈·도움말·초대 페이지) ② 브라우저 세션의 첫 방문 기록: 첫 페이지 이름, 직전 사이트의 도메인 이름(예: www.google.com, 경로·검색어 없이 이름만, 직접 방문이면 비움), 광고 링크의 utm_source·utm_medium·utm_campaign·utm_content·utm_term 값(영문·숫자·밑줄·점·하이픈으로 된 64자 이내 값만), 들어온 방식(광고 링크·다른 사이트·직접 방문·사이트 안 이동), 기기 종류(휴대폰·태블릿·컴퓨터) ③ 앱 내려받기·App Store·Google Play·로그인·가입·초대 수락·멤버십 안내·문의 버튼을 누른 사실과 그 종류. 첫 방문 기록은 같은 브라우저 세션의 로그인·가입·앱으로 이동 기록에 함께 붙여, 어떤 경로로 들어온 방문이 가입으로 이어지는지 봅니다.</p>
+  <p><strong>보내지 않는 항목:</strong> 계정 정보, 입력 내용, 대화, 연락처(이메일·전화번호), 결제 정보, 초대 코드, 페이지의 전체 주소와 주소 뒤 검색 값, 직전 페이지의 전체 주소.</p>
+  <p><strong>받는 곳과 목적:</strong> 서비스 개선 참여(사용 흐름)를 허용하면 위 항목이 PostHog(PostHog, Inc., 미국)로, 방문·광고 측정을 허용하면 같은 페이지 이름·첫 방문 기록·버튼 종류가 Google Analytics 4(Google LLC, 미국)와 Meta 픽셀(Meta Platforms, Inc., 미국)로 암호화된 연결(HTTPS)로 전송됩니다. Google·Meta로 보낼 때는 브라우저 세션마다 새로 만드는 무작위 식별자와 IP 주소 등 접속·브라우저 정보가 함께 전달됩니다. Google·Meta의 스크립트는 사이트 화면·쿠키·저장소에 접근할 수 없도록 분리된 영역에서만 실행되며, 자동 고급 매칭·전환 API·Google 신호·광고 개인화는 사용하지 않습니다. 목적은 방문 경로와 광고 성과 분석입니다. 홈페이지 측정으로 앱 안의 활동은 추적하지 않습니다.</p>
+  <p><strong>허용과 철회:</strong> 처음 방문하면 화면 아래 안내에서 두 항목을 따로 고를 수 있고, 둘 다 꺼진 상태로 시작합니다. 위 설정에서 언제든 바꾸거나 철회할 수 있으며, 철회하면 바로 새 전송을 멈추고 Google·Meta 영역을 닫고 브라우저에 남긴 첫 방문 기록과 무작위 식별자를 지웁니다. 브라우저의 추적 금지(Do Not Track)나 Global Privacy Control 신호가 켜져 있으면 허용 여부와 관계없이 보내지 않습니다. 거부해도 서비스 이용에는 영향이 없습니다.</p>
+  <p><strong>보관:</strong> 허용 여부는 이 브라우저의 로컬 저장소에, 첫 방문 기록과 무작위 식별자는 브라우저 세션 저장소에 두며 탭이나 브라우저를 닫으면 지워집니다. PostHog로 보낸 자료는 PostHog의 보관 기준, Google Analytics로 보낸 자료는 Google Analytics의 데이터 보관 설정(최대 14개월), Meta로 보낸 자료는 Meta의 보관 기준에 따릅니다. 이미 보낸 자료의 삭제는 아래 개인정보 문의 창구로 요청할 수 있습니다. Google 개인정보처리방침(위 YouTube API 서비스 안내의 링크) · <a href="https://www.facebook.com/privacy/policy/">Meta 개인정보처리방침</a></p></section>
   <p><strong>웹사이트 로그인 유지:</strong> 웹사이트(sidekickagent.app)에서 로그인하면, 다시 로그인하지 않아도 되도록 사이드킥이 발급한 로그인 토큰과 만료 시각, 화면 표시용 계정 정보(로그인 방법, 이메일 주소, 가린 휴대폰 번호, 표시 이름, 계정 식별자)를 그 브라우저의 로컬 저장소(local storage)에 최대 30일 동안 보관합니다. 로그아웃하면 즉시 지워지고 서버의 로그인도 끝나며, 30일이 지나면 만료되어 다시 로그인해야 합니다. 이 정보는 로그인 유지와 계정 표시에만 사용하고 추적이나 광고에 사용하지 않습니다.</p>
 
   <h2>7. 보관 기간</h2>
