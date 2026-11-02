@@ -43,10 +43,13 @@
 .sidekick-consent button:first-of-type:hover { background: #2b3036; }
 .sidekick-consent a { display: inline-flex; align-items: center; min-height: 40px; color: var(--muted, #6b737d); font-size: 12.5px; font-weight: 600; }
 .sidekick-consent a:hover { color: var(--ink, #1a1d21); }
-@media (pointer: coarse) { .sidekick-consent button, .sidekick-consent a { min-height: 44px; } }
+/* The two separate choices: unticked until the visitor ticks one. */
+.sidekick-consent label { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-weight: 600; color: var(--ink, #1a1d21); cursor: pointer; }
+.sidekick-consent input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--ink, #1a1d21); }
+@media (pointer: coarse) { .sidekick-consent button, .sidekick-consent a, .sidekick-consent label { min-height: 44px; } }
 @media (max-width: 520px) {
   .sidekick-consent { padding: 12px; }
-  .sidekick-consent p { flex-basis: 100%; }
+  .sidekick-consent p, .sidekick-consent label { flex-basis: 100%; }
   .sidekick-consent button { flex: 1 1 0; }
   .sidekick-consent a { flex-basis: 100%; justify-content: center; }
 }
