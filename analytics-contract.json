@@ -67,7 +67,15 @@
     "device_type",
     "web_release",
     "source_occurred_at",
-    "source_sequence"
+    "source_sequence",
+    "first_landing_page",
+    "first_entry_type",
+    "first_referrer_host",
+    "first_utm_source",
+    "first_utm_medium",
+    "first_utm_campaign",
+    "first_utm_content",
+    "first_utm_term"
   ],
   "properties": {
     "user_id": {
@@ -357,6 +365,154 @@
     "reasoning_tokens": {
       "type": "number",
       "minimum": 0
+    },
+    "page": {
+      "type": "enum",
+      "values": [
+        "home",
+        "membership",
+        "support",
+        "privacy",
+        "terms",
+        "delete-account",
+        "account",
+        "demo",
+        "use",
+        "use/youtube",
+        "use/blog",
+        "use/instagram",
+        "use/store-cs",
+        "use/briefing",
+        "use/price-watch",
+        "use/real-estate",
+        "use/tax",
+        "licenses",
+        "ai-apps",
+        "mcp",
+        "invite",
+        "not_found"
+      ]
+    },
+    "landing_page": {
+      "type": "enum",
+      "values": [
+        "home",
+        "membership",
+        "support",
+        "privacy",
+        "terms",
+        "delete-account",
+        "account",
+        "demo",
+        "use",
+        "use/youtube",
+        "use/blog",
+        "use/instagram",
+        "use/store-cs",
+        "use/briefing",
+        "use/price-watch",
+        "use/real-estate",
+        "use/tax",
+        "licenses",
+        "ai-apps",
+        "mcp",
+        "invite",
+        "not_found"
+      ]
+    },
+    "entry_type": {
+      "type": "enum",
+      "values": [
+        "campaign",
+        "referral",
+        "direct",
+        "internal"
+      ]
+    },
+    "referrer_host": {
+      "type": "host"
+    },
+    "utm_source": {
+      "type": "label"
+    },
+    "utm_medium": {
+      "type": "label"
+    },
+    "utm_campaign": {
+      "type": "label"
+    },
+    "utm_content": {
+      "type": "label"
+    },
+    "utm_term": {
+      "type": "label"
+    },
+    "cta_target": {
+      "type": "enum",
+      "values": [
+        "app_store",
+        "play_store",
+        "login",
+        "signup",
+        "invite_accept",
+        "membership",
+        "download",
+        "contact"
+      ]
+    },
+    "first_landing_page": {
+      "type": "enum",
+      "values": [
+        "home",
+        "membership",
+        "support",
+        "privacy",
+        "terms",
+        "delete-account",
+        "account",
+        "demo",
+        "use",
+        "use/youtube",
+        "use/blog",
+        "use/instagram",
+        "use/store-cs",
+        "use/briefing",
+        "use/price-watch",
+        "use/real-estate",
+        "use/tax",
+        "licenses",
+        "ai-apps",
+        "mcp",
+        "invite",
+        "not_found"
+      ]
+    },
+    "first_entry_type": {
+      "type": "enum",
+      "values": [
+        "campaign",
+        "referral",
+        "direct",
+        "internal"
+      ]
+    },
+    "first_referrer_host": {
+      "type": "host"
+    },
+    "first_utm_source": {
+      "type": "label"
+    },
+    "first_utm_medium": {
+      "type": "label"
+    },
+    "first_utm_campaign": {
+      "type": "label"
+    },
+    "first_utm_content": {
+      "type": "label"
+    },
+    "first_utm_term": {
+      "type": "label"
     }
   },
   "events": {
@@ -1139,6 +1295,39 @@
         "target",
         "error_type"
       ],
+      "pii": false
+    },
+    "site_entered": {
+      "owner": "client",
+      "required": [
+        "landing_page",
+        "entry_type"
+      ],
+      "optional": [
+        "referrer_host",
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "utm_term"
+      ],
+      "pii": false
+    },
+    "page_viewed": {
+      "owner": "client",
+      "required": [
+        "page"
+      ],
+      "optional": [],
+      "pii": false
+    },
+    "cta_clicked": {
+      "owner": "client",
+      "required": [
+        "cta_target",
+        "page"
+      ],
+      "optional": [],
       "pii": false
     }
   },
