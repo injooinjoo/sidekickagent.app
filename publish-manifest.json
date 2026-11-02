@@ -1,13 +1,13 @@
 {
-  "export_rules_sha256": "eef8ecb105c4256821a74d01d752291af8e188ce7d77ced5979bcbe9d6c3d379",
+  "export_rules_sha256": "7339c7d354833a2576e78eb364c2973944445655351d3e95fd7c8171b7f14e1f",
   "files": {
     ".nojekyll": {
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "404.html": {
-      "bytes": 4486,
-      "sha256": "dd88bc94328e91e83d9d4415761c59998e7621af30583f58837d2f7022841bf7"
+      "bytes": 4493,
+      "sha256": "e5def6844cee57f725a6dcaacd18590caca74d60805a50d79b352142d47cfe84"
     },
     "CNAME": {
       "bytes": 18,
@@ -22,8 +22,8 @@
       "sha256": "3bf00487476e4c1cc01c7b4893d817403583a694d1bfdd05f64c20df5dc3e2a6"
     },
     "account/index.html": {
-      "bytes": 12660,
-      "sha256": "1cbdf4f8c1f8f18454699dba48537ba30337fd964e3ba2512c9e32cb92348ccb"
+      "bytes": 12667,
+      "sha256": "d740504de81cc3a72758e3d36d4b71b84aab323e0d0749880706cfd53e283d32"
     },
     "ai-apps/ai-apps.css": {
       "bytes": 5063,
@@ -34,8 +34,8 @@
       "sha256": "591bd7ca0171814bf8fd255999d79703c7c509f3022d419f2ef6c490c670f182"
     },
     "ai-apps/index.html": {
-      "bytes": 4355,
-      "sha256": "7b7370e6d2b5062143cfbb453d7d8f1f68881dab1a849d7cb8e8b3e909bf1c20"
+      "bytes": 4362,
+      "sha256": "1902784222b1c12ea283150e3a9f67fcffab230b6488551ba485fa6d7bff5e6e"
     },
     "ai-apps/redirect.js": {
       "bytes": 164,
@@ -58,24 +58,24 @@
       "sha256": "7b4a9a6e83c70d9a435f104cff8812552dbce0a7418ba6de9ba2187a2dcf27d1"
     },
     "analytics-config.js": {
-      "bytes": 343,
-      "sha256": "cbfb9dca77f0e3c42ef920b57d927784bba10141677bb79b9457c9fd5141ba26"
+      "bytes": 466,
+      "sha256": "1b0764cf7f8361389a97c9d0d777f25d8aa922a4a2e4c14c07766c6e97186790"
     },
     "analytics-contract.json": {
-      "bytes": 22579,
-      "sha256": "3d7a3006128b3ae7620cf33af144058df9ad9b87f472774f75c1c5cd5ad39098"
+      "bytes": 26143,
+      "sha256": "82c0bf02d898a663088166f4d6c6a214a2a4d6728d3e155dc7e2b2a457560bf4"
     },
     "analytics-runtime.js": {
-      "bytes": 11938,
-      "sha256": "1a9442d9a3ead4db200bf2ecf1e8df9168d9c79b80f8f9bc3fd5b2abdfcf4342"
+      "bytes": 21107,
+      "sha256": "e977f9723c19628835aeb2c8b55561bf07623262e590e2d2fb54bfb9f96f6626"
     },
     "analytics.css": {
-      "bytes": 2890,
-      "sha256": "7917d68e84c055f1e42a70f11ba9257b898eefd947a42a1f10f0aafdf0250508"
+      "bytes": 3290,
+      "sha256": "03da493aa1ace52559bdf437cdfecf4bfd26b88606605534935fe0c40b9d04d3"
     },
     "analytics.js": {
-      "bytes": 26758,
-      "sha256": "4b93f04f5fe0495668354753a9e1b84d3283455f4cb12de7095e23d4f9bcaa95"
+      "bytes": 28915,
+      "sha256": "148e6559d91263ba9b2aef89d6c6a9ab029167e7501582166bccc5d7217bedb2"
     },
     "app-mode.js": {
       "bytes": 5568,
@@ -790,8 +790,8 @@
       "sha256": "0d74643ac989f3c4ba041566ae3234f51e1f9b293dac3fbd7eb1a15839ceced0"
     },
     "delete-account/index.html": {
-      "bytes": 8327,
-      "sha256": "5a176adb8e0b7698fe0eaf65232dc438cc893d92d0b594946a5227b98e1d63fb"
+      "bytes": 8334,
+      "sha256": "1bdf7cde2c5d3be58c8be8959285feae990a492f5255f968b6a1b8f04c45afb4"
     },
     "demo/demo.css": {
       "bytes": 9407,
@@ -802,24 +802,24 @@
       "sha256": "d13f8ac3fd69867a3ff8d6b148d89cdeb5dfb7872e147551910afc511262313d"
     },
     "demo/index.html": {
-      "bytes": 21389,
-      "sha256": "7b3af7836477f712d1c62331e86d5dcac366eb7417a53a064f6b99712add6362"
+      "bytes": 21396,
+      "sha256": "5159a46d7f41ba3815b925cfdf84aeebe5953a7c2f50336566e7be549df90e61"
     },
     "favicon.ico": {
       "bytes": 15086,
       "sha256": "4186d7d3cfab29eb758bf54b4dbcfe6255ee0dcc2ac9d5d91505b67d99656870"
     },
     "i/index.html": {
-      "bytes": 10579,
-      "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
+      "bytes": 10597,
+      "sha256": "419bddb5dee69d4643b94a7a812a7a4c0fb4f0e79ea67abadaaf0be3e4b94e26"
     },
     "index.html": {
-      "bytes": 40163,
-      "sha256": "3fde9b01e531392d7dd89983739a051854b085baf32eeaaa1c96c4df23e701b4"
+      "bytes": 40170,
+      "sha256": "30fbc8a9f1f53fbef37abe30659c68721fb293fd759ed42c59b1ca5be4841963"
     },
     "invite/index.html": {
-      "bytes": 10579,
-      "sha256": "f73b068bd5ce2d3f8997be12ec2b676a2c3c809527ac890111697010f8d0c2ea"
+      "bytes": 10597,
+      "sha256": "419bddb5dee69d4643b94a7a812a7a4c0fb4f0e79ea67abadaaf0be3e4b94e26"
     },
     "invite/send/index.html": {
       "bytes": 10758,
@@ -846,8 +846,8 @@
       "sha256": "26c0ddac5be89f24ab075364a7c1d1a4577e163fae3c340d7e800eba6ac22645"
     },
     "licenses/index.html": {
-      "bytes": 410541,
-      "sha256": "e21cadaddac30d2e3e1f10dae33612ea8e85738bc7af1b4fc4685c008df3f0a3"
+      "bytes": 410548,
+      "sha256": "68bd842a2250e056e666aed1bb63b8814be545c549e54a1d263202ec52bb0a2a"
     },
     "licenses/licenses.css": {
       "bytes": 3911,
@@ -866,12 +866,20 @@
       "sha256": "f00ceac48003dafd1ae005ce4e4218ad5b0e1a269d6315481590c1a235034535"
     },
     "mcp/index.html": {
-      "bytes": 30675,
-      "sha256": "f2ba892ff5b371303dfe1b7ebf5fac0bb06e65dbb5ecd45a19feebc7724aa84e"
+      "bytes": 30682,
+      "sha256": "9a702f6a317c88d481a0b9b921e634093e03ca84802e983399dbb08072236074"
+    },
+    "measurement/frame.html": {
+      "bytes": 768,
+      "sha256": "28c8229e7b454cb7f5c6dfee9da197e450545a6ef578e1bc4dec61995c578e74"
+    },
+    "measurement/frame.js": {
+      "bytes": 4571,
+      "sha256": "d48e88f0ac0e8308f2009e2048569e7fa0a03c8b63895ea8a6667bde4646c477"
     },
     "membership/index.html": {
-      "bytes": 26385,
-      "sha256": "10d370051a1d8a11f95b7d0d9d993c2364c7a73a77910f92cb11323ea4654532"
+      "bytes": 26392,
+      "sha256": "441f9bf9a0d95a84d04d58957c5bbd17681797e4c5a8ef8ab958fba70ad83401"
     },
     "membership/membership.css": {
       "bytes": 18506,
@@ -886,8 +894,8 @@
       "sha256": "47e0d1d4113b8e738a01688b92284ad2cd4faaf8adfb9b8ea6d07c21a3c7899f"
     },
     "privacy/index.html": {
-      "bytes": 70704,
-      "sha256": "4c086b305cbaa900ab5bcf7b175db222d72bf4ae89aa21200fb6f45193a0453d"
+      "bytes": 74437,
+      "sha256": "374aded026743aa3fce7d4bbfee0ccca8a7d537d83f985cd3c62d283beb9b289"
     },
     "robots.txt": {
       "bytes": 71,
@@ -906,55 +914,55 @@
       "sha256": "d7b2476605d6a29cb0e36a95dcce14e54646289a927032b6232268ab70bb246d"
     },
     "support/index.html": {
-      "bytes": 14672,
-      "sha256": "ca1c5011833cd3a495370867edb759baea8043141292e8657ff14359adb4b7a4"
+      "bytes": 14679,
+      "sha256": "5ebe2bd2b06d1100d49624d7b4b9177f24f018f8c8fb824a655adb3be4fb079e"
     },
     "terms/index.html": {
-      "bytes": 28581,
-      "sha256": "93ae1b5ae4fda1898742ca05880679e798ede8654b6d0b9b472497db5a1fb99d"
+      "bytes": 28588,
+      "sha256": "9542507399970bae69bec210a9e77a3c17c40d7cea4dd5ed9968c1b1ea5df717"
     },
     "use.js": {
       "bytes": 3854,
       "sha256": "5bd1da3a28b66bf17a2211f2f039221543da8d9f5748ae1b015b983a8bbee397"
     },
     "use/blog/index.html": {
-      "bytes": 15607,
-      "sha256": "815776e985c0dbf97f824575ccb48e83ef5fcc96329bc3e7d295e983f2b19137"
+      "bytes": 15614,
+      "sha256": "73e7260b49e218af7d1c0f3b9ccde8bc8bd5de353e1a7a54e0f897d75e621a20"
     },
     "use/briefing/index.html": {
-      "bytes": 14655,
-      "sha256": "6428616897ffad2f64b59d7112bc8c7af089dfecf271f49a0ca345766e4768b0"
+      "bytes": 14662,
+      "sha256": "833a8d99ceb33897f912ab7f193deaec170935f7c622c2089c7b357ce5f656a4"
     },
     "use/index.html": {
-      "bytes": 11967,
-      "sha256": "7873434428ca3589680e2fec3285baf6a2e40edcea9b6b03d324305b3a61a124"
+      "bytes": 11974,
+      "sha256": "7dde00eee0de35a00e158d72ac75efed9302dfec8bf00c7c4f5740185b920dd6"
     },
     "use/instagram/index.html": {
-      "bytes": 15395,
-      "sha256": "0c6aa57464f66c658cc6182e60b0f04dde8a0596b55593c8f2344a45fdfbb2eb"
+      "bytes": 15402,
+      "sha256": "28f1155bf40afef8bbb3fcf5fd3bdc2593f38728c16c38b954368ff2f368afd0"
     },
     "use/price-watch/index.html": {
-      "bytes": 14610,
-      "sha256": "069fdde228356f6349c555ac05bccf07c1f772443a6a4be1c0d00b1ca1790d64"
+      "bytes": 14617,
+      "sha256": "1315b487fe697c75494a011817132fb4d51b64fed04026c247a60291e869179f"
     },
     "use/real-estate/index.html": {
-      "bytes": 15318,
-      "sha256": "7d5895ad500a07a79fee3de79c5dd454050e95289187eb0ca4f9c9ec9375317a"
+      "bytes": 15325,
+      "sha256": "8d6123ec895fa3d292ca2b361c1b1ce722a0801e8f64db61eb3886831925c179"
     },
     "use/store-cs/index.html": {
-      "bytes": 15517,
-      "sha256": "390c4f8dbdd2a968f43159e953a949a60d3c9c7dfe74a874af2f19fad9f3839e"
+      "bytes": 15524,
+      "sha256": "d0dd441cc74aea23a1b6b0e2723f93b4df998fd84a8205d38652a1cf432a2f23"
     },
     "use/tax/index.html": {
-      "bytes": 15070,
-      "sha256": "c036b0bea8e5a5a7793e74384a0ce7b0575a99f7725df09a4916df49ccc4c04d"
+      "bytes": 15077,
+      "sha256": "7ec83eaaee0f5837479f936bc449208103141a8a84d3382a02de39bebcaa24c2"
     },
     "use/youtube/index.html": {
-      "bytes": 15402,
-      "sha256": "f325a21acd004376f0b240108214b4cb391c4b8871a51540a19d275ad29b3937"
+      "bytes": 15409,
+      "sha256": "d409df8ce3aa33219e15bfa89810c94462fe67638bdf06dd614c8d0d09b09b12"
     }
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "9dd30c5e7294a701232ef2ea08408a35454b5da6"
+  "source_sha": "deabe66d033acbb958280cde61f4ab3cb04995a5"
 }
