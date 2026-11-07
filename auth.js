@@ -147,6 +147,11 @@
   const APP_LOGIN_UNREAD_COPY = '사이드킥에 로그인했어요. 계정 정보는 아직 불러오지 못했어요.';
   // An account the server answered for but could not name by an address, a number, a name or a sign-in door it knows.
   const APP_LOGIN_SIGNED_IN_COPY = '사이드킥에 로그인했어요.';
+  // A browser signed in to nobody is not signed in by the fragment alone (security review 2026-11-07 #5, #3688): anyone
+  // with an app session can mint one and send the link on. The page holds the answer, names its account and adopts it
+  // only when the person presses APP_LOGIN_CONTINUE_LABEL. An account it cannot name cannot be continued into.
+  const APP_LOGIN_CONTINUE_LABEL = '이 계정으로 계속';
+  const APP_LOGIN_HELD_UNREAD_COPY = '앱에서 연 계정 정보를 불러오지 못했어요. 다시 확인하거나 아래에서 로그인해 주세요.';
   // The grammar of what the app puts in /ai/'s fragment: an attempt id and three 43-character proofs.
   const APP_LOGIN_ATTEMPT = /^ah_[A-Za-z0-9_-]{32}$/;
   const APP_LOGIN_PROOF = /^[A-Za-z0-9_-]{43}$/;
@@ -981,6 +986,9 @@
   let appLoginNotice = null;
   // Bumped by every read of the account for that notice and by its removal: only the newest read may say anything.
   let appLoginRead = 0;
+  // The app's login redeemed into a browser that was signed in to nobody, waiting for the person to continue into it:
+  // {token, adopt}. Kept in this page's memory only; dropped (and revoked) with its notice.
+  let appLoginHeld = null;
   // App handoff never subscribes or adopts this browser's shared account.
   if (LOGIN_RECEIVER && loginInput && (loginInput.mode === 'app'
       || (!loginInput.invalid && loginInput.mode === 'none'
@@ -1063,15 +1071,33 @@
   // only when there is neither, and never when it could pass for an address or a number. Then the door the account came
   // through, by the name the site uses for it: an account the app made with Kakao, or with Apple's hidden address, has no
   // address or name the server can give, and that is an answer, not a failure. Nothing else of the answer (no id) is used.
-  function appLoginSentence(info) {
-    if (!info || typeof info !== 'object' || Array.isArray(info)) return '';
+  function appLoginAccount(info) {
+    if (!info || typeof info !== 'object' || Array.isArray(info)) return null;
     const email = plainText(info.email, 254);
     const address = (/^[^\s@]+@[^\s@]+$/.test(email) ? email : '') || maskedPhone(info.phone_masked);
-    if (address) return `사이드킥 로그인 계정: ${address}`;
+    if (address) return { address };
     const name = plainText(info.display_name, 80);
-    if (name && !name.includes('@') && /\p{L}/u.test(name)) return `${name} 님의 계정으로 이어졌어요.`;
+    if (name && !name.includes('@') && /\p{L}/u.test(name)) return { name };
     const door = typeof info.method === 'string' && Object.hasOwn(METHOD_LABELS, info.method) ? METHOD_LABELS[info.method] : '';
-    return door ? `사이드킥 로그인 계정: ${door} 로그인` : APP_LOGIN_SIGNED_IN_COPY;
+    return door ? { door } : {};
+  }
+
+  function appLoginSentence(info) {
+    const account = appLoginAccount(info);
+    if (!account) return '';
+    if (account.address) return `사이드킥 로그인 계정: ${account.address}`;
+    if (account.name) return `${account.name} 님의 계정으로 이어졌어요.`;
+    return account.door ? `사이드킥 로그인 계정: ${account.door} 로그인` : APP_LOGIN_SIGNED_IN_COPY;
+  }
+
+  // The question the held login asks (see appLoginHeld), naming the account the same way; '' when there is no answer to
+  // read, so the person is never asked to continue into an account the page could not name.
+  function appLoginQuestion(info) {
+    const account = appLoginAccount(info);
+    if (!account) return '';
+    const label = account.address || (account.name && `${account.name} 님의 계정`)
+      || (account.door && `${account.door}로 로그인한 계정`) || '앱에서 연 사이드킥 계정';
+    return `이 계정으로 로그인할까요? ${label}`;
   }
 
   // A display hint only. Anything that does not look like one is dropped.
@@ -1562,7 +1588,7 @@
   // panel stays behind the sheet for whoever closes it. Never in the app's viewer
   // (in-app mode, /app-mode.js): there the app hands its account over instead.
   function requireSignIn() {
-    if (session.token || LOGIN_RECEIVER) return false;
+    if (session.token || LOGIN_RECEIVER || appLoginHeld) return false;
     if (document.documentElement.classList.contains('in-app')) return false;
     open();
     return true;
@@ -2211,10 +2237,15 @@
       return { ok: false, error: null };
     }
     if (fence.before && session.user && String(session.user.id || '') !== String(user.id)) return { ok: false, error: null };
-    setToken(token, user, expiryOf(token, answer));
-    // The server resolved the account and its deletion lock to mint this.
-    session.checked = true;
-    return { ok: true, user, receipt };
+    // Becomes this browser's session when the caller says so, and only while the session here is still the one it asked from.
+    const adopt = () => {
+      if (session.token !== fence.before || session.handoffGeneration !== fence.generation) return false;
+      setToken(token, user, expiryOf(token, answer));
+      // The server resolved the account and its deletion lock to mint this.
+      session.checked = true;
+      return true;
+    };
+    return { ok: true, user, receipt, token, adopt };
   }
 
   async function appWebHandoff() {
@@ -2234,7 +2265,8 @@
       if (!reply || session.token !== before || session.handoffGeneration !== generation) return false;
       const redeemed = await redeemWebHandoff({ attempt: reply.attempt, state, code: reply.code, verifier },
         { before, generation }, true);
-      if (!redeemed.ok) return false;
+      // This page made the verifier itself and showed the app only its challenge, so the code is this page's: no question.
+      if (!redeemed.ok || !redeemed.adopt()) return false;
       session.webHandoff = { required: true, attemptId: reply.attempt, userId: redeemed.user.id,
         workspaceId: redeemed.receipt.workspace_id, token: session.token, generation: session.handoffGeneration };
       return true;
@@ -2293,6 +2325,7 @@
   function removeAppLoginNotice() {
     const notice = appLoginNotice;
     appLoginNotice = null;
+    dropHeldAppLogin();
     // A read still on its way paints nothing once the notice is gone (dismissed, undone or signed out).
     appLoginRead += 1;
     if (!notice) return;
@@ -2306,12 +2339,12 @@
 
   // GET /account for the session just taken over: the answer when it is an account's, else null -- no answer at all, a
   // refusal, something that is not an object, or nothing after APP_LOGIN_IDENTITY_MS (the preflight is in that time too).
-  async function readAppLoginIdentity() {
+  async function readAppLoginIdentity(token) {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), APP_LOGIN_IDENTITY_MS) : null;
     try {
       const info = await api('/account', { method: 'GET', cache: 'no-store', credentials: 'omit',
-        ...(controller ? { signal: controller.signal } : {}) });
+        headers: { Authorization: `Bearer ${token}` }, ...(controller ? { signal: controller.signal } : {}) });
       return info && typeof info === 'object' && !Array.isArray(info) ? info : null;
     } catch (_) {
       return null;
@@ -2334,8 +2367,9 @@
   // made, `unread` when there was no answer to read. "내 계정이 아니에요" is there in every state.
   function drawAppLoginNotice(token, kind, sentence) {
     try {
-      // Only while this is still the session that was taken over.
-      if (session.token !== token) return;
+      // Only while this is still the session that was taken over, or the login held for the person's answer.
+      if (!appLoginCurrent(token)) return;
+      const held = Boolean(appLoginHeld && appLoginHeld.token === token);
       let notice = appLoginNotice;
       const fresh = !notice;
       if (fresh) {
@@ -2351,9 +2385,11 @@
       words.textContent = sentence;
       const actions = document.createElement('div');
       actions.className = 'app-login-actions';
-      if (kind === 'named') actions.append(appLoginButton('확인', 'app-login-keep', () => removeAppLoginNotice()));
+      if (kind === 'named' && held) actions.append(appLoginButton(APP_LOGIN_CONTINUE_LABEL, 'app-login-keep', () => continueAppLogin(token)));
+      else if (kind === 'named') actions.append(appLoginButton('확인', 'app-login-keep', () => removeAppLoginNotice()));
       if (kind === 'unread') actions.append(appLoginButton('다시 확인', 'app-login-retry', () => checkAppLoginIdentity(token, true)));
-      actions.append(appLoginButton('내 계정이 아니에요', 'app-login-undo', () => { removeAppLoginNotice(); signOut(); }));
+      // Refusing a held login revokes it with the notice (removeAppLoginNotice); this browser was signed in to nobody.
+      actions.append(appLoginButton('내 계정이 아니에요', 'app-login-undo', () => { removeAppLoginNotice(); if (!held) signOut(); }));
       notice.replaceChildren(words, actions);
       if (fresh) {
         const header = document.querySelector('.site-header');
@@ -2372,17 +2408,47 @@
   async function checkAppLoginIdentity(token, asked) {
     const read = ++appLoginRead;
     let answered = false;
-    const current = () => read === appLoginRead && session.token === token;
+    const current = () => read === appLoginRead && appLoginCurrent(token);
     if (asked) drawAppLoginNotice(token, 'checking', APP_LOGIN_CHECKING_COPY);
     const quiet = asked ? null : setTimeout(() => {
       if (!answered && current()) drawAppLoginNotice(token, 'checking', APP_LOGIN_CHECKING_COPY);
     }, APP_LOGIN_QUIET_MS);
-    const info = await readAppLoginIdentity();
+    const info = await readAppLoginIdentity(token);
     answered = true;
     clearTimeout(quiet);
     if (!current()) return;
-    const sentence = appLoginSentence(info);
-    drawAppLoginNotice(token, sentence ? 'named' : 'unread', sentence || APP_LOGIN_UNREAD_COPY);
+    const held = Boolean(appLoginHeld && appLoginHeld.token === token);
+    const sentence = held ? appLoginQuestion(info) : appLoginSentence(info);
+    drawAppLoginNotice(token, sentence ? 'named' : 'unread', sentence || (held ? APP_LOGIN_HELD_UNREAD_COPY : APP_LOGIN_UNREAD_COPY));
+  }
+
+  function appLoginCurrent(token) {
+    return Boolean(token) && (session.token === token || Boolean(appLoginHeld && appLoginHeld.token === token));
+  }
+
+  // The held login is let go: revoked on the server (it was never this browser's session) and forgotten here.
+  function dropHeldAppLogin() {
+    const held = appLoginHeld;
+    appLoginHeld = null;
+    if (!held) return;
+    api('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${held.token}` }, keepalive: true })
+      .catch(() => { /* best effort: it is kept nowhere here */ });
+  }
+
+  // 이 계정으로 계속: the held login becomes this browser's session, unless another session took this page meanwhile.
+  async function continueAppLogin(token) {
+    const held = appLoginHeld;
+    if (!held || held.token !== token) return;
+    appLoginHeld = null;
+    if (!held.adopt()) {
+      appLoginHeld = held;
+      removeAppLoginNotice();
+      notify(APP_LOGIN_FAILED_COPY, true);
+      return;
+    }
+    removeAppLoginNotice();
+    renderHeader();
+    if (typeof hooks.onSignedIn === 'function') await hooks.onSignedIn(session.user);
   }
 
   async function showAppLoginNotice(token) {
@@ -2398,15 +2464,26 @@
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), APP_LOGIN_WAIT_MS) : null;
     let redeemed = null;
+    const before = session.token;
     try {
-      redeemed = await redeemWebHandoff(input, { before: session.token, generation: session.handoffGeneration }, false,
+      redeemed = await redeemWebHandoff(input, { before, generation: session.handoffGeneration }, false,
         controller ? controller.signal : undefined);
     } finally {
       clearTimeout(timer);
     }
+    if (redeemed.ok && !before) {
+      // Signed in to nobody here: the answer is held, its account named, and adopted only when the person continues.
+      notify('', false);
+      appLoginHeld = { token: redeemed.token, adopt: redeemed.adopt };
+      showAppLoginNotice(redeemed.token);
+      endAppLoginWait();
+      return false;
+    }
+    if (redeemed.ok && !redeemed.adopt()) redeemed = { ok: false, error: null };
     if (redeemed.ok) {
       notify('', false);
-      // Not waited for: the page goes on as the app's account at once, and the notice follows as soon as the name is known.
+      // The same account was already signed in here (the server refuses another): nothing changes hands, so no question.
+      // Not waited for: the page goes on at once, and the notice follows as soon as the name is known.
       showAppLoginNotice(session.token);
     } else if (redeemed.error && redeemed.error.status === 409 && redeemed.error.code === 'account_conflict') {
       // The person is signed in here as somebody else, so the page below is that account's: say it where it is seen.
