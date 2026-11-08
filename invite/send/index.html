@@ -2,10 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-aY++K1et3rzGh6Ck2Edk63bH9cciiFLHrZDPT7Ixuy0=' https://t1.kakaocdn.net; style-src 'sha256-Ax11wbx4AXgq1Rfomvi4SPjd0Cf7yuc4GBGJ/gYnhFo='; img-src 'self'; connect-src https://kapi.kakao.com; form-action https://sharer.kakao.com; base-uri 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-aY++K1et3rzGh6Ck2Edk63bH9cciiFLHrZDPT7Ixuy0=' https://t1.kakaocdn.net; style-src 'sha256-aAizZ+jhMwF1ikBj1viOcvxRQVPlyL+GWOdRZyutdNk='; img-src 'self'; connect-src https://kapi.kakao.com; form-action https://sharer.kakao.com; base-uri 'none'; object-src 'none'">
   <meta name="referrer" content="strict-origin">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex, nofollow">
   <title>카카오톡으로 초대장 보내기 · Sidekick</title>
   <!-- Kakao JavaScript key (owner): the PUBLIC, domain-restricted JavaScript key of the Kakao app, from the Kakao
@@ -43,6 +44,8 @@
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
     [hidden] { display: none !important; }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
+    /* Dark follows the system (issue #3777): /styles.css's dark tokens, ink fills turn light with dark text. */
+    @media (prefers-color-scheme: dark) { :root { color-scheme: dark; --ink: #e0e0e0; --ink-soft: #c8c8c8; --muted: #a0a0a0; --bg: #1a1a1a; --card: #242424; --sunken: #2c2c2c; --line: #3a3a3a; --hairline: #2f2f2f; --accent: #ff7a61; --shadow: 0 0 0 1px var(--line); --on-ink: #121212; } .option.primary { color: #121212; } }
 </style>
 </head>
 <body>
