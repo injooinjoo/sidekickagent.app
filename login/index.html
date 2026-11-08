@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-HdWj4gyvgQ0mbl9avUOnWderKbUjh6+yeM2BMWeuJS0='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-RyCh51bEa1rctLCoDQi0Tt0dyRY715df9b4pWiPsXTY='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -47,6 +47,7 @@
   window.__sidekickLoginInput = result;
 })();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex, nofollow">
   <title>시작하기 · Sidekick</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -109,6 +110,8 @@
     [hidden] { display: none !important; }
     @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .form-row { grid-template-columns: minmax(0, 1fr); } }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
+    /* Dark follows the system (issue #3777): /styles.css's dark tokens, ink fills turn light with dark text. */
+    @media (prefers-color-scheme: dark) { :root { color-scheme: dark; --ink: #e0e0e0; --ink-soft: #c8c8c8; --muted: #a0a0a0; --bg: #1a1a1a; --card: #242424; --sunken: #2c2c2c; --line: #3a3a3a; --hairline: #2f2f2f; --accent: #ff7a61; --shadow: 0 0 0 1px var(--line); --on-ink: #121212; } .option.primary, .option[data-hint="true"], .option[aria-pressed="true"], .form-row button { color: #121212; } .options .option.apple { border-color: var(--line); } .brand-mark polygon[fill="#1D1919"] { fill: var(--ink); } }
 </style>
   <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>

@@ -38,9 +38,9 @@
   font-weight: 600;
   cursor: pointer;
 }
-.sidekick-consent button:first-of-type { border-color: var(--ink, #1a1d21); background: var(--ink, #1a1d21); color: #fff; }
-.sidekick-consent button:hover { border-color: #c9cfd6; }
-.sidekick-consent button:first-of-type:hover { background: #2b3036; }
+.sidekick-consent button:first-of-type { border-color: var(--ink, #1a1d21); background: var(--ink, #1a1d21); color: var(--on-ink, #fff); }
+.sidekick-consent button:hover { border-color: var(--line-strong, #c9cfd6); }
+.sidekick-consent button:first-of-type:hover { background: var(--ink-hover, #2b3036); }
 .sidekick-consent a { display: inline-flex; align-items: center; min-height: 40px; color: var(--muted, #6b737d); font-size: 12.5px; font-weight: 600; }
 .sidekick-consent a:hover { color: var(--ink, #1a1d21); }
 /* The two separate choices: unticked until the visitor ticks one. */
@@ -58,6 +58,6 @@
    the site's own look rather than the browser's defaults. */
 [data-analytics-preference] label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink, #1a1d21); font-weight: 600; cursor: pointer; }
 [data-analytics-preference] input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--ink, #1a1d21); }
-[data-analytics-preference] button { min-height: 44px; padding: 0 18px; border: 1px solid var(--ink, #1a1d21); border-radius: 999px; background: var(--ink, #1a1d21); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-[data-analytics-preference] button:hover { background: #2b3036; }
+[data-analytics-preference] button { min-height: 44px; padding: 0 18px; border: 1px solid var(--ink, #1a1d21); border-radius: 999px; background: var(--ink, #1a1d21); color: var(--on-ink, #fff); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+[data-analytics-preference] button:hover { background: var(--ink-hover, #2b3036); }
 [data-analytics-preference] button:disabled { opacity: 0.55; cursor: default; }

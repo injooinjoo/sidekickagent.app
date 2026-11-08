@@ -11,6 +11,8 @@ button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 
 body { background: var(--card); }
+/* The page is one flat surface (card = page). In dark that surface is the shared dark page colour (GitHub issue 3777). */
+@media (prefers-color-scheme: dark) { body { --card: var(--bg); } }
 .ai-shell { --gray-line: color-mix(in srgb, var(--ink) 11%, var(--card)); --gray-fill: color-mix(in srgb, var(--ink) 4%, var(--card));
   --gray-hover: color-mix(in srgb, var(--ink) 6%, var(--card)); --gray-text: color-mix(in srgb, var(--ink) 55%, var(--card));
   max-width: 640px; margin: 0 auto; padding: var(--space-8) var(--space-4) 64px; }
