@@ -88,6 +88,8 @@
   }
 
   const DEFAULT_RETURN_PATH = '/account/';
+  // Where a person lands after pressing 로그아웃 (signOut({ home: true })).
+  const HOME_PATH = '/';
   // Per tab (sessionStorage), left by the retired fragment sign-in: where it
   // started, and a message to say on the page it came back to. Nothing writes
   // them any more; a tab that still holds them clears them (로그아웃, init()).
@@ -170,9 +172,9 @@
   };
   const CODE_REQUEST_LABEL = '인증번호 받기';
   const CODE_RESEND_LABEL = '다시 받기';
-  // How each way in is named to the person. `supabase` is Google or Apple when
-  // the page no longer knows which door was pressed; `unknown` is the server's
-  // word for the same (GET /account, POST /auth/session/exchange).
+  // How each way in is named to the person. `supabase` (an old hint) and `unknown` (the server's word when it cannot
+  // tell Google from Apple: GET /account, POST /auth/session/exchange) name no door, so nothing names one for them:
+  // the page says only 로그인했어요 and shows no method (owner 2026-11-10, #3907).
   const METHOD_PHRASES = {
     google: 'Google로 로그인했어요',
     apple: 'Apple로 로그인했어요',
@@ -181,14 +183,12 @@
     phone: '휴대폰 번호로 로그인했어요',
     kakao: '카카오로 로그인했어요',
     naver: '네이버로 로그인했어요',
-    supabase: 'Google 또는 Apple로 로그인했어요',
+    supabase: '로그인했어요',
     unknown: '로그인했어요'
   };
   const METHOD_LABELS = {
     google: 'Google', apple: 'Apple', chatgpt: 'ChatGPT', email: '이메일', phone: '휴대폰 번호',
-    // A web Google/Apple sign-in is answered as `unknown` on purpose (the server
-    // cannot tell the two apart), so it is named the way the person chose it.
-    kakao: '카카오', naver: '네이버', supabase: 'Google 또는 Apple', unknown: 'Google 또는 Apple'
+    kakao: '카카오', naver: '네이버'
   };
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
 
@@ -1202,7 +1202,11 @@
   // connection must not leave the person signed in on a shared computer.
   // `server: false` is for a token the server already refused, or one another
   // tab already ended -- there is nothing left to revoke. `silent: true` is for
-  // a page that resets itself and needs no hook back.
+  // a page that resets itself and needs no hook back. `home: true` is for the
+  // 로그아웃 a person pressed (the header menu, the account page): once this
+  // browser has forgotten the session they land on the site's home, not on the
+  // signed-out view of the page they were on (owner 2026-11-10). An expiry or a
+  // refused token never passes it, so those still say why on the same page.
   function signOut(options = {}) {
     const bearer = session.token;
     clearLocalSession();
@@ -1215,6 +1219,10 @@
         headers: { Authorization: `Bearer ${bearer}` },
         keepalive: true
       }).catch(() => { /* best effort: the token is already gone from this browser */ });
+    }
+    if (options.home && window.location.pathname !== HOME_PATH) {
+      window.location.assign(HOME_PATH);
+      return;
     }
     if (!options.silent) {
       if (typeof hooks.onSignedOut === 'function') hooks.onSignedOut();
@@ -1502,7 +1510,7 @@
     signOutButton.className = 'account-menu-item';
     signOutButton.id = 'account-menu-signout';
     signOutButton.textContent = '로그아웃';
-    signOutButton.addEventListener('click', () => signOut());
+    signOutButton.addEventListener('click', () => signOut({ home: true }));
     menu.append(who, menuLink('/account/', '내 계정'), menuLink('/ai/', 'AI 연결'), menuLink('/connections/', '서비스 연결'), signOutButton);
     pill.parentElement.append(menu);
     return menu;
@@ -1723,6 +1731,19 @@
   let webGeneration = 0;
   let webStarting = false;
   let webTimer = null;
+  // A start that has sent the browser to the provider keeps the doors shut until the page is really gone: on iPhone the
+  // tab can stay on screen for a moment (or while KakaoTalk opens), and a second tap then began a second attempt that
+  // replaced this tab's state, so the provider's return for the first one could not finish (#3907). Released when the
+  // page is shown again from the back/forward cache, or after WEB_LEAVING_MS if the browser never left.
+  const WEB_LEAVING_MS = 15000;
+  let webLeavingTimer = null;
+  function holdWebStart() {
+    clearTimeout(webLeavingTimer);
+    webLeavingTimer = setTimeout(() => { webStarting = false; }, WEB_LEAVING_MS);
+  }
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) { clearTimeout(webLeavingTimer); webStarting = false; }
+  });
 
   function webProof() {
     const bytes = window.crypto.getRandomValues(new Uint8Array(32));
@@ -1824,7 +1845,9 @@
   }
 
   function restoredWebAttempt(id) {
-    if (!WEB_PROOF.test(id || '') || readTab(WEB_ACTIVE) !== id) throw { status: 400 };
+    if (!WEB_PROOF.test(id || '')) throw { status: 400, reason: 'attempt_malformed' };
+    // Not the attempt this tab holds: another start replaced it, or this tab never began it.
+    if (readTab(WEB_ACTIVE) !== id) throw { status: 400, reason: readTab(WEB_ACTIVE) ? 'attempt_replaced' : 'attempt_missing' };
     let p;
     try { p = JSON.parse(readTab(WEB_PREFIX + id)); } catch (_) { throw { status: 400 }; }
     const now = nowSeconds();
@@ -1843,6 +1866,15 @@
         || typeof p.source_user_id !== 'string' || !(p.source_user_id === '' || SAFE_ID.test(p.source_user_id))
         || typeof p.source_fingerprint !== 'string' || !(p.source_fingerprint === '' || WEB_PROOF.test(p.source_fingerprint))) throw { status: 400 };
     return p;
+  }
+
+  // The provider came back for an attempt this tab no longer holds (#3907): nothing is wrong with the account, so the
+  // person is asked to press their door once more -- the doors are on screen again under this sentence.
+  const WEB_RETURN_STALE_COPY = '로그인 시도가 엇갈려 이어 가지 못했어요. 아래에서 다시 눌러 주세요.';
+  const WEB_RETURN_REASONS = ['attempt_malformed', 'attempt_replaced', 'attempt_missing', 'provider_error', 'state_mismatch'];
+  function webReturnReason(error) {
+    if (error && WEB_RETURN_REASONS.includes(error.reason)) return error.reason;
+    return error && Number.isInteger(error.status) ? 'status_' + error.status : 'unexpected';
   }
 
   async function receiveWebLogin(input) {
@@ -1864,7 +1896,8 @@
       webAttempt = restoredWebAttempt(returned.attempt);
       webGeneration = webAttempt.generation;
       receiverGeneration = webGeneration;
-      if (returned.state !== webAttempt.state || returned.error) throw { status: 400 };
+      if (returned.error) throw { status: 400, reason: 'provider_error' };
+      if (returned.state !== webAttempt.state) throw { status: 400, reason: 'state_mismatch' };
       if (cancel) cancel.hidden = false;
       webTimer = setTimeout(() => invalidateWebLogin('로그인 시간이 지났어요. 다시 시작해 주세요.'),
         Math.max(0, Math.min(webAttempt.oauth_expires_at, session.expiresAt || Infinity) * 1000 - Date.now()));
@@ -1922,7 +1955,10 @@
       const copy = error && error.status === 423 ? DELETION_PENDING_COPY
         : error && error.status === 409 && error.detail === 'Sign-in account does not match'
           ? '지금 로그인한 계정과 다른 계정이에요. 로그아웃한 뒤 다시 로그인해 주세요.'
+        : error && (error.reason === 'attempt_replaced' || error.reason === 'attempt_missing') ? WEB_RETURN_STALE_COPY
         : '로그인을 완료하지 못했어요. 다시 시도해 주세요.';
+      // Why, for whoever reads the console: a fixed word or a status, never a code, state or token.
+      try { console.warn('sidekick login: return not completed', webReturnReason(error)); } catch (_) {}
       if (receiverGeneration === null || receiverGeneration === webGeneration) invalidateWebLogin(copy);
       return false;
     } finally {
@@ -1935,6 +1971,7 @@
   async function startSupabaseLogin(provider) {
     if (!Object.hasOwn(SUPABASE_PROVIDERS, provider) || webStarting) return;
     webStarting = true;
+    let leaving = false;
     invalidateWebLogin();
     const generation = webGeneration;
     try {
@@ -1978,9 +2015,10 @@
       }
       showSocialStatus(SUPABASE_PROVIDERS[provider] + '로 이동하고 있어요.', false);
       window.location.assign(url.toString());
+      leaving = true;
     } catch (_) {
       if (generation === webGeneration) { invalidateWebLogin(); showSocialStatus(SOCIAL_FAILED_COPY, true); }
-    } finally { webStarting = false; }
+    } finally { if (leaving) holdWebStart(); else webStarting = false; }
   }
 
   // ---- Kakao and Naver on the website ------------------------------------------------
@@ -1995,6 +2033,7 @@
   async function startKoreanLogin(provider, button) {
     if (!Object.hasOwn(KOREAN_PROVIDERS, provider) || webStarting) return;
     webStarting = true;
+    let leaving = false;
     invalidateWebLogin();
     const generation = webGeneration;
     try {
@@ -2032,13 +2071,14 @@
       webAttempt.state = going.state;
       persistWebAttempt();
       window.location.assign(going.destination);
+      leaving = true;
     } catch (error) {
       if (generation === webGeneration) {
         invalidateWebLogin();
         if (error && error.status === 503) { markUnavailable(button); showSocialStatus(KOREAN_UNAVAILABLE_COPY, true); }
         else showSocialStatus(SOCIAL_FAILED_COPY, true);
       }
-    } finally { webStarting = false; }
+    } finally { if (leaving) holdWebStart(); else webStarting = false; }
   }
 
   // ---- /login/ on the web: a login that begins here ends here -----------------------

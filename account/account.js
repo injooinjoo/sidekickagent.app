@@ -202,7 +202,9 @@
   }
 
   function renderProfile(account) {
-    const rows = [['로그인 방법', auth.methodLabel(account.method) || '확인하지 못했어요']];
+    // Each door by its own name (Google, Apple, 카카오, ...). One the server cannot name is left out, never guessed (#3907).
+    const method = auth.methodLabel(account.method);
+    const rows = method ? [['로그인 방법', method]] : [];
     if (account.email) rows.push(['이메일', account.email]);
     if (account.phoneMasked) rows.push(['휴대폰 번호', account.phoneMasked]);
     if (account.displayName) rows.push(['표시 이름', account.displayName]);
@@ -1037,7 +1039,7 @@
   }
 
   $('gate-signin').addEventListener('click', () => auth.open());
-  $('signout-button').addEventListener('click', () => auth.signOut());
+  $('signout-button').addEventListener('click', () => auth.signOut({ home: true }));
   $('auto-use-toggle').addEventListener('click', () => setAutoUse());
   $('usage-current').addEventListener('click', () => choosePeriod('current'));
   POLICIES.forEach((id) => $(`policy-${id}`).addEventListener('click', () => savePolicy({ policy: id })));
