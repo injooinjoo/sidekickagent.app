@@ -212,10 +212,11 @@
        person's hand. Loaded and played by landing.js as the first band. -->
 
 
-  <!-- 4. Pricing at a glance (D79, 2026-10-25): Free and the three paid plans.
-       No won figure is written here: the paid rows' price box stays empty (the
-       stylesheet says "멤버십에서 확인") and /membership/ prints the server's
-       catalog. The rows carry no data-plan, so landing.js fills nothing in them.
+  <!-- 4. Pricing at a glance (D79, 2026-10-25): Free and the paid plans.
+       No won figure is written here: landing-prices.js fills each paid row's
+       empty price box from the same public answer /membership/ shows a
+       signed-out visitor, and without it the stylesheet says "멤버십에서 확인".
+       The rows carry no data-plan, so landing.js fills nothing in them.
        Each row hands /membership/ its plan and nothing else. -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-h">
     <div class="wrap">
@@ -340,6 +341,7 @@
 <script src="/landing-start.js" defer></script>
 <script src="/landing-day.js" defer></script>
 <script src="/landing-titles.js" defer></script>
+<script src="/landing-prices.js" defer></script>
 <script src="/landing-notice.js" defer></script>
 </body>
 </html>

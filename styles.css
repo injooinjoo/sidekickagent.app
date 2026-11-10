@@ -1022,7 +1022,10 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story .pricing .wrap { max-width: 960px; }
 .product-story .pricing-head { text-align: center; }
 .product-story .pricing-head .section-p { max-width: 620px; margin: 20px auto 36px; }
-.product-story .plan-rows { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+/* A flat list (owner 2026-11-10): no row background, so no band ends right at the
+   plan name or the arrow; rows are told apart by the dividers alone. */
+.product-story .plan-rows { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; }
+.product-story .plan-row:hover { background: transparent; }
 .product-story .plan-rows li { border: 0; }
 .product-story .plan-row { padding: 28px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
 .product-story .plan-row-name { display: flex; flex: 1; flex-direction: row; align-items: center; gap: 40px; }

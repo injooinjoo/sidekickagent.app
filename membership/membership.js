@@ -26,6 +26,16 @@
     eagle: { label: 'Eagle', storage: '25GB', sold: true, base: 'birdie' },
     albatross: { label: 'Albatross', storage: '100GB', sold: true, base: 'birdie' }
   };
+  // Each plan's work computer (#3900), display only: CPU cores at most, memory in GB and
+  // minutes it stays on after last use. The app holds the same values in
+  // membershipContract.js (`computer` on each plan); the site test compares the two.
+  const COMPUTERS = {
+    free: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 5 },
+    sparrow: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 60 },
+    birdie: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 180 },
+    eagle: { cpu_cores_max: 1, memory_gb: 4, keep_alive_minutes: 180 },
+    albatross: { cpu_cores_max: 2, memory_gb: 8, keep_alive_minutes: 180 }
+  };
   // The preselected paid plan, and the landing place for any plan value this page does
   // not sell — including `free`, which the landing's Free row links with.
   const DEFAULT_PLAN = 'birdie';
@@ -71,6 +81,8 @@
     // when it could not be read; `catalogChecked` tells those two apart.
     catalog: null,
     catalogChecked: false,
+    // The Toss config answered (or failed): until then nothing says a purchase is closed.
+    billingChecked: false,
     // Item groups the server refused to sell (404 or not configured). Closed for this visit.
     closedGroups: {},
     // The item whose payment window is being opened.
@@ -160,6 +172,19 @@
     document.querySelectorAll('[data-usage-share]').forEach((node) => {
       const credits = state.catalog.packCredits[node.dataset.usageShare];
       if (credits) node.textContent = String(roundedRatio((credits * 100) / base));
+    });
+  }
+
+  function computerLine(id) {
+    const computer = COMPUTERS[id];
+    if (!computer) return '';
+    const minutes = computer.keep_alive_minutes;
+    const kept = minutes % 60 === 0 ? `${minutes / 60}시간` : `${minutes}분`;
+    return `작업 컴퓨터 · CPU 최대 ${computer.cpu_cores_max}코어 · 메모리 ${computer.memory_gb}GB · 마지막 사용 뒤 ${kept} 켜 둠`;
+  }
+  function renderComputers() {
+    document.querySelectorAll('[data-computer]').forEach((node) => {
+      node.textContent = computerLine(node.dataset.computer);
     });
   }
 
@@ -283,25 +308,39 @@
     return Boolean(item) && !state.closedGroups[item.group] && itemPrice(id) !== null && publicCheckoutReady();
   }
 
+  // The catalog is read with the visitor's sign-in, so a signed-out visitor has no item
+  // prices yet. While sales are open and the server has not closed the group, the card
+  // still offers sign-in; the price and the purchase follow once the catalog answers.
+  function itemNeedsSignIn(id) {
+    const item = ITEMS[id];
+    return Boolean(item) && !state.token && !state.catalog && publicCheckoutReady() && !state.closedGroups[item.group];
+  }
+
+  // 살 수 없는 상품에는 단추를 두지 않는다(소유자 2026-11-10). 카드마다 "준비 중"을 쓰지 않고,
+  // 묶음 전체가 닫혔을 때 섹션 제목 아래 한 줄([data-items-closed])만 보인다. 판매 상태를
+  // 아직 모르는 동안에는 그 한 줄도 내지 않는다.
   function renderItems() {
+    const open = {};
     itemCards.forEach((card) => {
       const id = card.dataset.item;
       const item = ITEMS[id];
       if (!item) return;
       const price = itemPrice(id);
-      const closed = Boolean(state.closedGroups[item.group]) || (state.catalogChecked && price === null);
+      const closed = Boolean(state.closedGroups[item.group]) || (state.catalogChecked && Boolean(state.catalog) && price === null);
       card.querySelector(`[data-item-price="${id}"]`).textContent = price === null || closed ? '—' : won(price);
       const button = card.querySelector('[data-buy-item]');
+      const connecting = state.busy && state.item === id;
       const ready = itemReady(id);
-      button.disabled = !ready || state.busy;
-      // 판매가 닫힌 묶음은 결제 창을 열지 않고 "준비 중"으로 남는다.
-      button.textContent = state.busy && state.item === id ? '연결 중…'
-        : closed ? '준비 중이에요'
-        : !state.catalogChecked ? '금액을 불러오는 중이에요'
-        : testModeHere() ? '테스트 모드예요'
-        : !publicCheckoutReady() ? '준비 중이에요'
-        : item.action;
+      const signIn = itemNeedsSignIn(id);
+      button.hidden = !(connecting || ready || signIn);
+      button.disabled = !(ready || signIn) || state.busy;
+      button.textContent = connecting ? '연결 중…' : ready ? item.action : '로그인하고 구매하기';
+      if (!button.hidden) open[item.group] = true;
       card.classList.toggle('is-closed', closed);
+    });
+    const settled = state.billingChecked && state.catalogChecked;
+    document.querySelectorAll('[data-items-closed]').forEach((line) => {
+      line.hidden = !settled || Boolean(open[line.dataset.itemsClosed]);
     });
   }
 
@@ -324,46 +363,46 @@
         void priceNode.offsetWidth;
         priceNode.classList.add('just-changed');
       }
-      card.querySelector(`[data-sub="${id}"]`).textContent = !plan.sold
-        ? '지금은 웹에서 구매할 수 없어요.'
-        : amount === null ? '금액을 불러오고 있어요.'
-        : '매월 자동 갱신';
+      card.querySelector(`[data-sub="${id}"]`).textContent = plan.sold ? '매월 자동 갱신' : '';
 
       const button = card.querySelector('[data-buy]');
+      const open = publicCheckoutReady() && plan.sold;
       const ready = publicCheckoutReady() && plan.sold && amount !== null && !subscribed && !state.busy;
       const current = subscribed && state.subscription.plan_id === id;
       // 구독 중이면 다른 플랜 카드의 버튼은 "바꾸기" 다. 견적을 받은 카드만
       // 결제 문구가 되고, 해지를 예약한 구독은 바꿀 수 없다 — 다음 달에 끝나는
       // 구독 위에 새 금액을 올리는 것은 사람이 원한 적 없는 일이다.
-      const changeable = subscribed && !current && publicCheckoutReady() && plan.sold && amount !== null
+      const changeable = subscribed && !current && open && amount !== null
         && !state.busy && !state.subscription.cancel_at_period_end;
       const quoted = state.quote && state.quote.to_plan_id === id ? state.quote : null;
-      // 로그인은 여기서 요구하지 않는다. 누르면 로그인 화면이 열리고,
-      // 끝나면 이 구매가 이어진다.
-      // 서버가 웹 결제를 허락하지 않은 계정에는 결제·바꾸기 버튼을 모두 닫는다.
-      button.disabled = Boolean(purchaseBlock) || !(ready || (changeable && (!quoted || quoted.applies_now)));
+      const payable = quoted && quoted.applies_now;
+      // 가격은 카드 위에 한 번만 있다. 버튼에는 가격·불러오는 중 문구를 넣지 않고, 결제를 못 여는
+      // 까닭(판매 닫힘·테스트 모드·다른 곳의 구독)은 위쪽 안내 한 줄(#checkout-status)만 말한다 —
+      // 그래서 버튼은 그때 비활성일 뿐 글자는 그대로다(소유자 2026-11-10).
+      // 로그아웃 상태에서는 누르면 로그인 화면이 열리고, 끝나면 이 구매가 이어진다.
       button.hidden = current;
-      button.textContent = state.busy && state.plan === id && !state.item ? '연결 중…'
-        : !plan.sold ? '지금은 구매할 수 없어요'
-        : purchaseBlock === 'pending' && (ready || changeable) ? '구독 상태를 확인하는 중이에요'
-        : purchaseBlock && (ready || changeable) ? '웹에서는 결제할 수 없어요'
-        : ready ? `${plan.label} 구독하기`
-        : changeable && quoted && quoted.applies_now ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
-        : changeable && quoted ? '지금은 바꿀 수 없어요'
-        : changeable ? `${plan.label}로 바꾸기`
-        : subscribed ? '지금은 바꿀 수 없어요'
-        : testModeHere() ? '테스트 모드예요'
-        : '금액을 불러오는 중이에요';
+      if (!authenticated) {
+        button.disabled = !open || state.busy;
+        button.textContent = '로그인하고 시작하기';
+      } else {
+        // 서버가 웹 결제를 허락하지 않은 계정에는 결제·바꾸기 버튼을 모두 닫는다.
+        button.disabled = Boolean(purchaseBlock) || !(ready || (changeable && (!quoted || payable)));
+        button.textContent = state.busy && state.plan === id && !state.item ? '연결 중…'
+          : changeable && payable ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
+          : subscribed ? `${plan.label}로 바꾸기`
+          : `${plan.label} 구독하기`;
+      }
       card.classList.toggle('is-current', current);
       card.classList.toggle('is-selected', !current && state.requestedPlan === id);
     });
     renderItems();
     renderUsageRatios();
+    renderComputers();
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
     $('open-signin').hidden = authenticated;
-    if (authenticated) $('auth-status').textContent = '';
+    if (authenticated) setLine($('auth-status'), '');
     renderSubscription();
     $('page-title').textContent = subscribed ? '구독 관리' : '요금제';
     document.querySelector('.promo-line').hidden = subscribed;
@@ -375,8 +414,14 @@
         ? '지금은 구독을 시작할 수 없어요.'
         : purchaseBlock ? WEB_PURCHASE_BLOCK_COPY[purchaseBlock]
         : '';
-      $('checkout-status').textContent = status;
+      setLine($('checkout-status'), status);
     }
+  }
+
+  // 빈 안내 칸은 그리지 않는다: 글자가 없으면 칸째 숨긴다(소유자 2026-11-10).
+  function setLine(node, message) {
+    node.textContent = message;
+    node.hidden = !message;
   }
 
   // 결제 상태 한 줄. 여기서 적은 글자는 render() 가 덮어쓰지 않는다(pinned) —
@@ -386,14 +431,14 @@
     const node = $('checkout-status');
     node.dataset.pinned = '1';
     node.classList.toggle('is-error', Boolean(isError));
-    node.textContent = message;
+    setLine(node, message);
   }
 
   // 추가 충전·티켓 카드 아래의 한 줄. 누른 곳 가까이에 답한다.
   function sayPurchase(message, isError) {
     const node = $('purchase-status');
     node.classList.toggle('is-error', Boolean(isError));
-    node.textContent = message;
+    setLine(node, message);
   }
 
   // The server stopped accepting this bearer mid-visit (expired, revoked, signed
@@ -440,6 +485,7 @@
       }
       state.billing = { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false };
     }
+    state.billingChecked = true;
     render();
   }
 
@@ -536,8 +582,9 @@
     if (!button) return;
     button.addEventListener('click', () => {
       const id = card.dataset.item;
-      if (!itemReady(id) || state.busy) return;
-      if (!state.token) { openSigninForItem(id); return; }
+      if (state.busy) return;
+      if (!state.token) { if (itemReady(id) || itemNeedsSignIn(id)) openSigninForItem(id); return; }
+      if (!itemReady(id)) return;
       startItemPurchase(id);
     });
   });
@@ -556,6 +603,8 @@
     render();
     await loadBillingConfig();
     await loadSubscription();
+    // The catalog answers signed-in callers only: a visitor who just signed in reads it now.
+    if (!state.catalog) await loadCatalog();
     await completePendingAuthorization();
     await completePendingPurchase();
     const subscribed = Boolean(state.subscription && state.subscription.active);
