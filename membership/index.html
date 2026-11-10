@@ -50,13 +50,12 @@
 
   <main class="page-shell">
     <section class="intro" aria-labelledby="page-title">
-      <h1 id="page-title">요금제</h1>
-      <p>업무량에 맞는 플랜을 고르세요.</p>
-      <!-- D79 (2026-10-25): 가입하면 결제수단 없이 Free 플랜으로 시작한다. Free는 기간 제한 없이
-           계속 쓰는 플랜이라 카드로 함께 보이고, 여기서는 한 줄로 먼저 알린다. -->
+      <h1 id="page-title">내 업무에 맞는 플랜을 선택하세요</h1>
+      <p>사용량과 동시 업무 수를 비교해 보세요.</p>
+      <p class="price-basis">웹 월간 요금 · 부가세 포함</p>
+      <!-- D79 (2026-10-25): 가입하면 결제수단 없이 Free 플랜으로 시작한다. Free 는 플랜 카드 네 장(#3910)에
+           넣지 않고 여기서 한 줄로 알린다. -->
       <p class="promo-line"><strong>Free</strong> · 가입하면 매일 기본 제공</p>
-      <!-- AI 연결은 구독과 따로다. 고르는 스위치도, 연결을 먼저 요구하는 단계도 없다. -->
-      <p class="credit-note">내 AI 계정을 연결하면 그 계정으로 처리한 일은 사용량에서 빠지지 않아요. AI 연결은 구독과 따로예요. <a href="/ai/">AI 연결</a></p>
     </section>
 
     <p class="checkout-status" id="checkout-status" aria-live="polite">안전한 결제 연결을 확인하고 있어요.</p>
@@ -69,120 +68,84 @@
       <button class="ghost-button" id="resume-button" type="button" hidden>다시 시작하기</button>
     </section>
 
+    <!-- 소유자 목업(2026-11-10, #3910): 유료 네 장, 카드마다 이름 · 한 줄 제목 · 선택 · 가격 · 항목 여섯 줄.
+         글과 숫자는 앱의 apps/mobile/app/data/membershipPlanCards.js 와 같고, 사이트 검사가 둘을 견준다.
+         사용량 배수만 서버 카탈로그에서 다시 계산한다. 크레딧 숫자는 없다. -->
     <div class="plan-grid" id="plan-grid">
-        <!-- Free has nothing to buy here: no price from the server, no button. -->
-        <article class="plan-card plan-card--free" id="free-card">
-          <div class="plan-head"><span class="plan-name">Free</span></div>
-          <figure class="plan-visual" aria-label="Free 플랜 상품 이미지: 하루 업무 하나를 진행하는 화면">
-            <div class="plan-visual-bar"><i></i><i></i><i></i><span>Sidekick</span></div>
-            <div class="plan-visual-work plan-visual-work--one" aria-hidden="true">
-              <span class="plan-visual-avatar">F</span>
-              <span class="plan-visual-task"><b>오늘의 업무</b><small>하루 3회 · 동시 업무 1개</small></span>
-            </div>
-          </figure>
-          <p class="plan-price"><strong>무료</strong><span>결제수단 없이</span></p>
-          <p class="plan-sub">매일 오전 9시에 다시 채워져요.</p>
-          <ul class="plan-includes">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>매일 기본 제공</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-computer="free"></span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>동시 작업 1개</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>저장 500MB</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>하루 업무·루틴 실행 3회</li>
-          </ul>
-          <div class="card-action">
-            <p class="plan-start">가입하면 바로 시작해요</p>
-          </div>
-        </article>
         <article class="plan-card" data-plan="sparrow">
-          <div class="plan-head"><span class="plan-name">Sparrow</span></div>
-          <figure class="plan-visual" aria-label="Sparrow 플랜 상품 이미지: 가벼운 업무 하나를 진행하는 화면">
-            <div class="plan-visual-bar"><i></i><i></i><i></i><span>Sidekick</span></div>
-            <div class="plan-visual-work plan-visual-work--one" aria-hidden="true">
-              <span class="plan-visual-avatar">S</span>
-              <span class="plan-visual-task"><b>가볍게 시작</b><small>동시 업무 1개</small></span>
-            </div>
-          </figure>
-          <p class="plan-price"><strong data-price="sparrow">—</strong><span>/ 월 · 부가세 포함</span></p>
-          <p class="plan-sub" data-sub="sparrow">매월 자동 갱신</p>
-          <ul class="plan-includes">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>가볍게 시작하기 · 각종 AI·제작 비용 포함</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-computer="sparrow"></span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>동시 작업 1개</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>저장 2GB</li>
-          </ul>
+          <div class="plan-head"><span class="plan-name">스페로우</span><span class="plan-en">Sparrow</span></div>
+          <p class="plan-title"><strong>가볍게 시작하기</strong><span>업무 하나부터 맡겨 보세요.</span></p>
           <div class="card-action">
-            <button class="checkout-button" type="button" data-buy="sparrow" disabled>구독하기</button>
+            <button class="checkout-button" type="button" data-buy="sparrow" disabled>스페로우 선택</button>
           </div>
+          <p class="plan-price"><strong data-price="sparrow">—</strong><span>/ 월 · 부가세 포함</span></p>
+          <ul class="plan-includes">
+            <li data-feature="usage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>기본 사용량 제공</span></li>
+            <li data-feature="runs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>동시 진행 업무 1개</span></li>
+            <li data-feature="agents"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>업무당 AI 직원 1명</span></li>
+            <li data-feature="storage"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>자료함 2GB</span></li>
+            <li data-feature="memory"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><span>작업 컴퓨터 메모리 2GB</span></li>
+            <li data-feature="keep_alive"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>마지막 사용 후 1시간 유지</span></li>
+          </ul>
         </article>
         <article class="plan-card" data-plan="birdie">
-          <div class="plan-head"><span class="plan-name">Birdie</span></div>
-          <figure class="plan-visual" aria-label="Birdie 플랜 상품 이미지: 업무 하나를 진행하는 화면">
-            <div class="plan-visual-bar"><i></i><i></i><i></i><span>Sidekick</span></div>
-            <div class="plan-visual-work plan-visual-work--one" aria-hidden="true">
-              <span class="plan-visual-avatar">B</span>
-              <span class="plan-visual-task"><b>업무 진행 중</b><small>동시 업무 1개</small></span>
-            </div>
-          </figure>
-          <p class="plan-price"><strong data-price="birdie">—</strong><span>/ 월 · 부가세 포함</span></p>
-          <p class="plan-sub" data-sub="birdie">매월 자동 갱신</p>
-          <ul class="plan-includes">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Sparrow의 모든 기능 + <span data-usage-multiple="birdie">3</span>배 사용량</span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-computer="birdie"></span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>동시 작업 1개</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>저장 5GB</li>
-          </ul>
+          <div class="plan-head"><span class="plan-name">버디</span><span class="plan-en">Birdie</span></div>
+          <p class="plan-title"><strong>더 자주 맡기기</strong><span>같은 업무도 더 넉넉하게.</span></p>
           <div class="card-action">
-            <button class="checkout-button" type="button" data-buy="birdie" disabled>구독하기</button>
+            <button class="checkout-button" type="button" data-buy="birdie" disabled>버디 선택</button>
           </div>
+          <p class="plan-price"><strong data-price="birdie">—</strong><span>/ 월 · 부가세 포함</span></p>
+          <ul class="plan-includes">
+            <li data-feature="usage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>스페로우 대비 <span data-usage-multiple="birdie">3</span>배 사용량</span></li>
+            <li data-feature="runs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>동시 진행 업무 1개</span></li>
+            <li data-feature="agents"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>업무당 AI 직원 1명</span></li>
+            <li data-feature="storage"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>자료함 5GB</span></li>
+            <li data-feature="memory"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><span>작업 컴퓨터 메모리 2GB</span></li>
+            <li data-feature="keep_alive"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>마지막 사용 후 3시간 유지</span></li>
+          </ul>
         </article>
         <article class="plan-card is-featured" data-plan="eagle">
-          <div class="plan-head"><span class="plan-name">Eagle</span><em>추천</em></div>
-          <figure class="plan-visual" aria-label="Eagle 플랜 상품 이미지: 업무 두 개를 동시에 진행하는 화면">
-            <div class="plan-visual-bar"><i></i><i></i><i></i><span>Sidekick</span></div>
-            <div class="plan-visual-work" aria-hidden="true">
-              <span class="plan-visual-avatar">E</span>
-              <span class="plan-visual-task"><b>콘텐츠 조사</b><small>자료를 정리하고 있어요</small></span>
-              <span class="plan-visual-task"><b>보고서 작성</b><small>동시 업무 2개</small></span>
-            </div>
-          </figure>
-          <p class="plan-price"><strong data-price="eagle">—</strong><span>/ 월 · 부가세 포함</span></p>
-          <p class="plan-sub" data-sub="eagle">매월 자동 갱신</p>
-          <ul class="plan-includes">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Birdie의 모든 기능 + <span data-usage-multiple="eagle">3</span>배 사용량</span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-computer="eagle"></span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>동시 작업 2개</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>저장 25GB</li>
-          </ul>
+          <div class="plan-head"><span class="plan-name">이글</span><span class="plan-en">Eagle</span><em>추천</em></div>
+          <p class="plan-title"><strong>두 업무를 동시에</strong><span>여러 일을 나란히 진행하세요.</span></p>
           <div class="card-action">
-            <button class="checkout-button" type="button" data-buy="eagle" disabled>구독하기</button>
+            <button class="checkout-button" type="button" data-buy="eagle" disabled>이글 선택</button>
           </div>
+          <p class="plan-price"><strong data-price="eagle">—</strong><span>/ 월 · 부가세 포함</span></p>
+          <ul class="plan-includes">
+            <li data-feature="usage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>버디 대비 <span data-usage-multiple="eagle">3</span>배 사용량</span></li>
+            <li data-feature="runs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>동시 진행 업무 2개</span></li>
+            <li data-feature="agents"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>업무당 AI 직원 2명</span></li>
+            <li data-feature="storage"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>자료함 25GB</span></li>
+            <li data-feature="memory"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><span>작업 컴퓨터 메모리 4GB</span></li>
+            <li data-feature="keep_alive"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>마지막 사용 후 3시간 유지</span></li>
+          </ul>
         </article>
         <article class="plan-card" data-plan="albatross">
-          <div class="plan-head"><span class="plan-name">Albatross</span></div>
-          <figure class="plan-visual" aria-label="Albatross 플랜 상품 이미지: 업무 네 개를 동시에 진행하는 화면">
-            <div class="plan-visual-bar"><i></i><i></i><i></i><span>Sidekick</span></div>
-            <div class="plan-visual-work plan-visual-work--grid" aria-hidden="true">
-              <span class="plan-visual-task"><b>조사</b><small>진행 중</small></span>
-              <span class="plan-visual-task"><b>분석</b><small>진행 중</small></span>
-              <span class="plan-visual-task"><b>작성</b><small>진행 중</small></span>
-              <span class="plan-visual-task"><b>검토</b><small>진행 중</small></span>
-            </div>
-          </figure>
-          <p class="plan-price"><strong data-price="albatross">—</strong><span>/ 월 · 부가세 포함</span></p>
-          <p class="plan-sub" data-sub="albatross">매월 자동 갱신</p>
-          <ul class="plan-includes">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Birdie의 모든 기능 + <span data-usage-multiple="albatross">6</span>배 사용량</span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-computer="albatross"></span></li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>동시 작업 4개</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>저장 100GB</li>
-          </ul>
+          <div class="plan-head"><span class="plan-name">알바트로스</span><span class="plan-en">Albatross</span></div>
+          <p class="plan-title"><strong>더 많은 일을 함께</strong><span>네 업무를 동시에 진행하세요.</span></p>
           <div class="card-action">
-            <button class="checkout-button" type="button" data-buy="albatross" disabled>구독하기</button>
+            <button class="checkout-button" type="button" data-buy="albatross" disabled>알바트로스 선택</button>
           </div>
+          <p class="plan-price"><strong data-price="albatross">—</strong><span>/ 월 · 부가세 포함</span></p>
+          <ul class="plan-includes">
+            <li data-feature="usage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>버디 대비 <span data-usage-multiple="albatross">6</span>배 사용량</span></li>
+            <li data-feature="runs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>동시 진행 업무 4개</span></li>
+            <li data-feature="agents"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>업무당 AI 직원 3명</span></li>
+            <li data-feature="storage"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>자료함 100GB</span></li>
+            <li data-feature="memory"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><span>작업 컴퓨터 메모리 8GB</span></li>
+            <li data-feature="keep_alive"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>마지막 사용 후 3시간 유지</span></li>
+          </ul>
         </article>
     </div>
 
-    <p class="renew-note">켜 두는 시간이 길수록 "작업 환경을 켜는 중" 기다림이 줄어요.</p>
+    <!-- 카드 아래 띠 세 칸: 각 칸은 그 섹션·화면으로 간다. -->
+    <nav class="plan-links" aria-label="멤버십 더 보기">
+      <a href="/ai/" data-link="ai_account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg><span>내 AI 계정 연결 가능</span></a>
+      <a href="#topup" data-link="top_up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg><span>추가 사용량 충전</span></a>
+      <a href="#tickets" data-link="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span>사용량 다시 채우기</span></a>
+    </nav>
+    <p class="plan-links-note">내 AI 계정으로 처리한 AI 사용량은 차감되지 않으며, 작업 공간·저장 사용량은 별도 적용됩니다.</p>
+
     <p class="renew-note">부가세 포함 · 매월 자동 갱신 · 해지 후에도 결제한 기간까지 이용</p>
 
     <!-- One-time purchases (D79 6·7). Prices are the server catalog's; a group whose

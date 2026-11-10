@@ -126,83 +126,71 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
    로그인 화면이 열고 닫힐 때. 그 밖의 것이 움직이면 결제 직전 화면이
    부산해 보이고, 부산한 결제 화면은 사람을 멈추게 한다.
    prefers-reduced-motion이면 전부 즉시 상태로만 남는다. */
-/* Cards in one row stretch to the row's height; each card's action slot sits at the
-   bottom (margin-top: auto), so every 구독하기 button lines up whatever the copy above it. */
-.plan-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin: 26px 0 0; }
-.plan-card { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 21px;
-  background: var(--card); box-shadow: var(--shadow-sm); opacity: 0; transform: translateY(10px);
-  animation: card-in .42s cubic-bezier(.22,.61,.36,1) forwards; }
+/* Owner mockup (2026-11-10, #3910): four paid cards in one row. Every card shares the row's five
+   tracks (name · title · select button · price · six lines) through subgrid, so each button, each
+   price and each list starts at one height across the row whatever the copy above it. */
+.plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: auto; column-gap: 14px;
+  row-gap: 0; align-items: stretch; margin: 26px 0 0; }
+.plan-card { display: grid; grid-row: span 5; grid-template-rows: subgrid; row-gap: 0; padding: 22px 20px 24px;
+  border: 1px solid var(--line); border-radius: 21px; background: var(--card); box-shadow: var(--shadow-sm);
+  opacity: 0; transform: translateY(10px); animation: card-in .42s cubic-bezier(.22,.61,.36,1) forwards; }
 .plan-card:nth-child(2) { animation-delay: .06s; }
 .plan-card:nth-child(3) { animation-delay: .12s; }
 .plan-card:nth-child(4) { animation-delay: .18s; }
-.plan-card:nth-child(5) { animation-delay: .24s; }
-.plan-card--free { background: var(--bg); }
-.plan-card.is-featured { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), 0 8px 24px rgba(26,29,33,.09); }
+/* The recommended card: a light blue face and a blue edge, from the shared tokens (dark mode follows). */
+.plan-card.is-featured { border-color: var(--work); background: var(--work-bg); box-shadow: 0 0 0 1px var(--work); }
 .plan-card.is-current { border-color: #a9c3b3; box-shadow: 0 0 0 1px #a9c3b3; }
 /* The plan a landing link named: marked, not chosen — nothing starts until its button is pressed. */
 .plan-card.is-selected { outline: 2px solid var(--ink); outline-offset: 3px; }
 @keyframes card-in { to { opacity: 1; transform: none; } }
 
-.plan-head { display: flex; align-items: center; gap: 8px; }
-.plan-name { color: var(--muted); font-size: 14px; }
-.plan-head em { padding: 2px 8px; border: 1px solid var(--accent-border); border-radius: 999px; color: var(--accent);
-  background: var(--accent-soft); font-size: 11px; font-style: normal; font-weight: 800; }
-.plan-visual { margin: 16px 0 2px; overflow: hidden; min-height: 78px; border: 1px solid var(--line);
-  border-radius: 15px; background: var(--sunken); }
-.plan-visual-bar { height: 28px; padding: 0 9px; display: flex; align-items: center; gap: 5px;
-  border-bottom: 1px solid var(--line); background: var(--card); }
-.plan-visual-bar i { width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
-.plan-visual-bar i:first-child { background: var(--brand); }
-.plan-visual-bar span { margin-left: auto; color: var(--soft); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
-.plan-visual-work { min-height: 49px; padding: 12px; display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-content: center; }
-.plan-visual-work--grid { grid-template-columns: 1fr 1fr; gap: 7px; }
-.plan-visual-avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center;
-  justify-content: center; background: var(--ink); color: #fff; font-size: 10px; font-weight: 700; }
-.plan-visual-task { min-width: 0; padding: 8px 9px; display: flex; flex-direction: column; justify-content: center;
-  border: 1px solid var(--line-soft); border-radius: 9px; background: var(--card); box-shadow: 0 2px 7px rgba(26,29,33,.04); }
-.plan-visual-work:not(.plan-visual-work--grid) .plan-visual-task:last-child { grid-column: 2; }
-.plan-visual-task b { overflow: hidden; color: var(--ink-soft); font-size: 9px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-.plan-visual-task small { overflow: hidden; color: var(--soft); font-size: 7px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
-/* The price and its "/ 월" line stack, so five cards line up whatever the number's width. */
-.plan-price { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 14px 0 0; }
-.plan-price strong { font-size: clamp(24px, 2.3vw, 30px); letter-spacing: -.03em; }
-.plan-price span { color: var(--muted); font-size: 14px; }
+.plan-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.plan-name { color: var(--ink); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.plan-en { color: var(--muted); font-size: 13px; }
+.plan-head em { align-self: center; margin-left: auto; padding: 2px 9px; border-radius: 999px; color: var(--on-ink);
+  background: var(--work); font-size: 11px; font-style: normal; font-weight: 800; }
+.plan-title { display: flex; flex-direction: column; gap: 3px; margin: 14px 0 0; }
+.plan-title strong { color: var(--ink); font-size: 16px; letter-spacing: -.02em; }
+.plan-title span { color: var(--muted); font-size: 13px; }
+/* The select button sits above the price. No fixed height. */
+.card-action { margin-top: auto; padding-top: 18px; }
+.plan-card .card-action { margin-top: 0; }
+.plan-card .card-action .checkout-button { margin: 0; min-height: 46px; padding: 6px 14px; border-radius: 999px;
+  color: var(--on-ink); font-size: 15px; line-height: 1.25; }
+/* The price and its "/ 월" line stack, so four cards line up whatever the number's width. */
+.plan-price { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 18px 0 0; }
+.plan-price strong { color: var(--ink); font-size: clamp(26px, 2.6vw, 32px); letter-spacing: -.03em; white-space: nowrap; }
+.plan-price span { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .plan-price strong.just-changed { animation: price-in .34s cubic-bezier(.22,.61,.36,1); }
 @keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
-.plan-sub { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
-.plan-card > .plan-includes { margin-top: 20px; }
-/* The bottom slot every card has: the buy button, Free's "what starts it" line, or the
-   button's own 준비 중 text. No fixed height; the free space above it is the card's. */
-.card-action { margin-top: auto; padding-top: 22px; }
-/* Five cards make a narrow column, where a long label ("금액을 불러오는 중이에요") takes two lines.
-   Both lines fit inside the same min-height as Free's line, so every slot keeps one height. */
-.plan-card .card-action .checkout-button { margin: 0; min-height: 56px; padding: 6px 10px; line-height: 1.25; }
-/* Free's place for a button: what starts it, at the same height, never a control. */
-.plan-start { display: flex; align-items: center; justify-content: center; min-height: 56px; margin: 0;
-  border: 1px dashed var(--line); border-radius: 15px; color: var(--ink-soft); font-size: 14px; font-weight: 700; }
-.plan-includes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
-.plan-includes li { display: flex; gap: 9px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
-.plan-includes svg { flex: 0 0 auto; width: 15px; height: 15px; margin-top: 2px; fill: none;
-  stroke: var(--muted); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.plan-includes { margin: 18px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); list-style: none;
+  display: flex; flex-direction: column; gap: 12px; }
+.plan-card.is-featured .plan-includes { border-top-color: color-mix(in srgb, var(--work) 30%, transparent); }
+.plan-includes li { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+.plan-includes svg { flex: 0 0 auto; width: 17px; height: 17px; margin-top: 1px; fill: none;
+  stroke: var(--ink-soft); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-.credit-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
-.credit-note a { color: var(--ink); font-weight: 600; }
+/* One band of three under the cards, split by vertical rules; each cell goes to its section or page. */
+.plan-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 22px 0 0; border: 1px solid var(--line);
+  border-radius: 18px; background: var(--card); overflow: hidden; }
+.plan-links a { min-height: 64px; padding: 14px 16px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--ink); font-size: 15px; font-weight: 700; text-decoration: none; }
+.plan-links a + a { border-left: 1px solid var(--line); }
+.plan-links a:hover { background: var(--sunken); }
+.plan-links svg { flex: 0 0 auto; width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; }
+.plan-links-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+.intro > p.price-basis { margin-top: 6px; color: var(--soft); font-size: 13px; }
 
-.signed-in-row { display: flex; align-items: center; gap: 16px; margin-top: 22px; padding: 16px 22px;
-  border: 1px solid var(--line); border-radius: 18px; background: var(--card); font-size: 14px; color: var(--ink-soft); }
-.signed-in-row span span { color: var(--muted); }
-.ghost-button { margin-left: auto; min-height: 44px; padding: 0 18px; border: 1px solid var(--line);
-  border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
-
-@media (max-width: 1180px) {
-  .plan-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
 @media (max-width: 1040px) {
-  .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
 }
 @media (max-width: 640px) {
   .plan-grid { grid-template-columns: minmax(0, 1fr); }
   .plan-card { animation-delay: 0s; }
+  .plan-links { grid-template-columns: minmax(0, 1fr); }
+  .plan-links a { justify-content: flex-start; }
+  .plan-links a + a { border-left: 0; border-top: 1px solid var(--line); }
 }
 
 /* Top-up packs and reset tickets: smaller cards under the plans, one row each. */
@@ -240,14 +228,9 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .billing-details p { max-width: 72ch; margin: 12px 0; line-height: 1.65; }
 .subscription-panel { margin-bottom: 24px; padding: 20px; }
 .subscription-panel .cancel-button, .subscription-panel .ghost-button { width: auto; justify-self: start; padding: 0 18px; }
-.plan-price strong { white-space: nowrap; }
-.plan-price span { white-space: nowrap; }
 @media (max-width: 720px) {
   .plan-card { padding: 20px; }
-  .plan-visual { display: none; }
-  .plan-card > .plan-includes { margin-top: 16px; }
-  .plan-card .card-action { padding-top: 16px; }
-  .plan-includes { gap: 7px; }
+  .plan-includes { gap: 9px; }
 }
 
 .checkout-status:empty { display: none; }
