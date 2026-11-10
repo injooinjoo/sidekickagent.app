@@ -19,22 +19,16 @@
   // card, but it is not in this table: nothing about it is bought here.
   //
   // Sparrow (owner 2026-10-27) is the paid plan below Birdie. `base` is the plan a card's
-  // "<base>의 모든 기능 + N배 사용량" line compares with; N is floor(credits / base credits).
+  // "<base> 대비 N배 사용량" line compares with; N is floor(credits / base credits).
+  // `name` is the card's Korean name (owner mockup 2026-11-10, #3910) and its button reads
+  // "<name> 선택". Every other line on a card is in the HTML, with the same text the app's
+  // membershipPlanCards.js builds — the site test compares the two. `storage` is checked against
+  // the backend plan contract (test_domain_contract.py).
   const PLANS = {
-    sparrow: { label: 'Sparrow', storage: '2GB', sold: true, base: null },
-    birdie: { label: 'Birdie', storage: '5GB', sold: true, base: 'sparrow' },
-    eagle: { label: 'Eagle', storage: '25GB', sold: true, base: 'birdie' },
-    albatross: { label: 'Albatross', storage: '100GB', sold: true, base: 'birdie' }
-  };
-  // Each plan's work computer (#3900), display only: CPU cores at most, memory in GB and
-  // minutes it stays on after last use. The app holds the same values in
-  // membershipContract.js (`computer` on each plan); the site test compares the two.
-  const COMPUTERS = {
-    free: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 5 },
-    sparrow: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 60 },
-    birdie: { cpu_cores_max: 0.5, memory_gb: 2, keep_alive_minutes: 180 },
-    eagle: { cpu_cores_max: 1, memory_gb: 4, keep_alive_minutes: 180 },
-    albatross: { cpu_cores_max: 2, memory_gb: 8, keep_alive_minutes: 180 }
+    sparrow: { label: 'Sparrow', name: '스페로우', storage: '2GB', sold: true, base: null },
+    birdie: { label: 'Birdie', name: '버디', storage: '5GB', sold: true, base: 'sparrow' },
+    eagle: { label: 'Eagle', name: '이글', storage: '25GB', sold: true, base: 'birdie' },
+    albatross: { label: 'Albatross', name: '알바트로스', storage: '100GB', sold: true, base: 'birdie' }
   };
   // The preselected paid plan, and the landing place for any plan value this page does
   // not sell — including `free`, which the landing's Free row links with.
@@ -112,6 +106,8 @@
   let purchaseConfirmSent = false;
 
   function won(value) { return `${Number(value).toLocaleString('ko-KR')}원`; }
+  // A plan card's price, as the owner's mockup writes it: "₩9,900" before its "/ 월".
+  function planWon(value) { return `₩${Number(value).toLocaleString('ko-KR')}`; }
   function positiveWon(value) {
     return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
   }
@@ -172,19 +168,6 @@
     document.querySelectorAll('[data-usage-share]').forEach((node) => {
       const credits = state.catalog.packCredits[node.dataset.usageShare];
       if (credits) node.textContent = String(roundedRatio((credits * 100) / base));
-    });
-  }
-
-  function computerLine(id) {
-    const computer = COMPUTERS[id];
-    if (!computer) return '';
-    const minutes = computer.keep_alive_minutes;
-    const kept = minutes % 60 === 0 ? `${minutes / 60}시간` : `${minutes}분`;
-    return `작업 컴퓨터 · CPU 최대 ${computer.cpu_cores_max}코어 · 메모리 ${computer.memory_gb}GB · 마지막 사용 뒤 ${kept} 켜 둠`;
-  }
-  function renderComputers() {
-    document.querySelectorAll('[data-computer]').forEach((node) => {
-      node.textContent = computerLine(node.dataset.computer);
     });
   }
 
@@ -355,7 +338,7 @@
       const plan = PLANS[id];
       const amount = plan && plan.sold ? priceOf(id) : null;
       const priceNode = card.querySelector(`[data-price="${id}"]`);
-      const next = amount === null ? '—' : won(amount);
+      const next = amount === null ? '—' : planWon(amount);
       if (priceNode.textContent !== next) {
         priceNode.textContent = next;
         // 금액이 바뀐 카드만 짧게 짚어 준다.
@@ -363,7 +346,6 @@
         void priceNode.offsetWidth;
         priceNode.classList.add('just-changed');
       }
-      card.querySelector(`[data-sub="${id}"]`).textContent = plan.sold ? '매월 자동 갱신' : '';
 
       const button = card.querySelector('[data-buy]');
       const open = publicCheckoutReady() && plan.sold;
@@ -383,28 +365,27 @@
       button.hidden = current;
       if (!authenticated) {
         button.disabled = !open || state.busy;
-        button.textContent = '로그인하고 시작하기';
+        button.textContent = `${plan.name} 선택`;
       } else {
         // 서버가 웹 결제를 허락하지 않은 계정에는 결제·바꾸기 버튼을 모두 닫는다.
         button.disabled = Boolean(purchaseBlock) || !(ready || (changeable && (!quoted || payable)));
         button.textContent = state.busy && state.plan === id && !state.item ? '연결 중…'
           : changeable && payable ? (quoted.charge_krw > 0 ? `오늘 ${won(quoted.charge_krw)} 결제하고 바꾸기` : '추가 결제 없이 바꾸기')
           : subscribed ? `${plan.label}로 바꾸기`
-          : `${plan.label} 구독하기`;
+          : `${plan.name} 선택`;
       }
       card.classList.toggle('is-current', current);
       card.classList.toggle('is-selected', !current && state.requestedPlan === id);
     });
     renderItems();
     renderUsageRatios();
-    renderComputers();
 
     // The header's account slot is /auth.js's: it reads the same bearer.
     $('account-line').hidden = authenticated;
     $('open-signin').hidden = authenticated;
     if (authenticated) setLine($('auth-status'), '');
     renderSubscription();
-    $('page-title').textContent = subscribed ? '구독 관리' : '요금제';
+    $('page-title').textContent = subscribed ? '구독 관리' : '내 업무에 맞는 플랜을 선택하세요';
     document.querySelector('.promo-line').hidden = subscribed;
 
     if (!$('checkout-status').dataset.pinned) {
