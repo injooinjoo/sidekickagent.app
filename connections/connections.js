@@ -229,8 +229,9 @@
     if (PROVIDER_NAMES[id]) return PROVIDER_NAMES[id];
     return text(row && (row.label || row.company), 60) || id;
   }
+  const INTERNAL_WORDS = /\b(?:MCP|API key|server|token|provider)\b/gi;
   function serviceName(value) {
-    return text(value, 80).replace(/\b(?:MCP|API key|server|token|provider)\b/gi, '서비스') || '서비스';
+    return text(value, 80).replace(INTERNAL_WORDS, '서비스') || '서비스';
   }
 
   // A free key's quota: a whole limit above 0 and a whole amount used, or nothing (no bar is guessed).
@@ -318,6 +319,8 @@
         status: record ? (record.status === 'connected' ? 'connected' : 'expired') : ready ? 'disconnected' : 'unavailable',
         keyHint: method === 'api_key' && record ? hintOf(record.credentialHint) : '',
         accountLabel: record ? text(record.external_identity_label, 120) : '',
+        // The server's one-line description of the service, the same line the app shows (#3909).
+        detail: text(row.executionLabel, 160).replace(INTERNAL_WORDS, '서비스'),
         webManageable: web, connect: web ? { type: 'route', way, authMethod: method } : null, ready,
         keyChange: method === 'api_key', testable: way === 'mcp',
         ...(freeApi ? { freeQuota: null } : {})
