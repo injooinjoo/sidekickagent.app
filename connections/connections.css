@@ -37,6 +37,8 @@ button, input, select { font: inherit; }
 .service-flow p { margin: 0 0 10px; }
 .service-key-form { margin: 0; }
 .service-app-reason { color: var(--ink-soft); }
+.service-project-note { color: var(--ink-soft); font-size: var(--text-xs); }
+#no-project { margin-top: var(--space-5); }
 .services-shell .footer { margin-top: 40px; }
 @media (max-width: 600px) {
   .services-shell { padding: 28px 16px 44px; }
