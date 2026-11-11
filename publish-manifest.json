@@ -882,16 +882,16 @@
       "sha256": "d48e88f0ac0e8308f2009e2048569e7fa0a03c8b63895ea8a6667bde4646c477"
     },
     "membership/index.html": {
-      "bytes": 26859,
-      "sha256": "4c9a1854ee49f645c27cb006fb8fcaf497eeb8ee31c871f5ef21ec8375bfa135"
+      "bytes": 27081,
+      "sha256": "17d0d23c5d5c3ed3a92df67c1754180bda7f49cc279c8b98cfb1e09f5e50cec3"
     },
     "membership/membership.css": {
-      "bytes": 17184,
-      "sha256": "d060ac1da20e2205399b8018b728e79ca97c98ecb66a7aa15597f27bebfa3302"
+      "bytes": 17324,
+      "sha256": "e739b140ba20d3c634bf3927ac32c768a00f67ae685a9de48005241634dcc6e8"
     },
     "membership/membership.js": {
-      "bytes": 48539,
-      "sha256": "569a7df2ffb864ca416bafa85811dd31e34365e9c8a90deafb7cf16e9a03dd59"
+      "bytes": 48773,
+      "sha256": "9880c20ca9a9bfa4343acd3e0a2481f56785985997a99229b44a827eac5c88dc"
     },
     "motion.css": {
       "bytes": 8872,
@@ -968,5 +968,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "9ea49cef0b934e36752450a925a8fee4de314a99"
+  "source_sha": "9f8401b34d030a9f657ec32115813f0f6a975c24"
 }
