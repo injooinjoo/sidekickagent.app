@@ -330,6 +330,8 @@
   function render() {
     if (!PLANS[state.plan]) state.plan = DEFAULT_PLAN;
     const authenticated = Boolean(state.token);
+    // Packs and refills are for people already signed in; the markup starts them hidden so a visitor never sees them flash.
+    document.querySelectorAll('[data-signed-in-only]').forEach((node) => { node.hidden = !authenticated; });
     const subscribed = Boolean(state.subscription && state.subscription.active);
     const purchaseBlock = webPurchaseBlock();
 

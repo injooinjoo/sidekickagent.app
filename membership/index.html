@@ -138,11 +138,11 @@
         </article>
     </div>
 
-    <!-- 카드 아래 띠 세 칸: 각 칸은 그 섹션·화면으로 간다. -->
+    <!-- 카드 아래 띠: 각 칸은 그 섹션·화면으로 간다. 추가 사용량·다시 채우기는 로그인한 사람에게만 보인다(처음엔 숨김, membership.js 가 푼다). -->
     <nav class="plan-links" aria-label="멤버십 더 보기">
       <a href="/ai/" data-link="ai_account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg><span>내 AI 계정 연결 가능</span></a>
-      <a href="#topup" data-link="top_up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg><span>추가 사용량 충전</span></a>
-      <a href="#tickets" data-link="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span>사용량 다시 채우기</span></a>
+      <a href="#topup" data-link="top_up" data-signed-in-only hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg><span>추가 사용량 충전</span></a>
+      <a href="#tickets" data-link="reset" data-signed-in-only hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span>사용량 다시 채우기</span></a>
     </nav>
     <p class="plan-links-note">내 AI 계정으로 처리한 AI 사용량은 차감되지 않으며, 작업 공간·저장 사용량은 별도 적용됩니다.</p>
 
@@ -150,7 +150,7 @@
 
     <!-- One-time purchases (D79 6·7). Prices are the server catalog's; a group whose
          catalog entry or purchase route is missing stays 준비 중 and opens no payment window. -->
-    <section class="extras" id="topup" aria-labelledby="topup-heading">
+    <section class="extras" id="topup" aria-labelledby="topup-heading" data-signed-in-only hidden>
       <h2 id="topup-heading">추가 사용량</h2>
       <p class="extras-note" data-items-closed="credits" hidden>지금은 추가 사용량을 살 수 없어요.</p>
       <p class="extras-note">유효기간 없음 · 플랜 사용량을 다 쓴 뒤에 써요 · 구독을 해지해도 남아요</p>
@@ -190,7 +190,7 @@
       </div>
     </section>
 
-    <section class="extras" id="tickets" aria-labelledby="tickets-heading">
+    <section class="extras" id="tickets" aria-labelledby="tickets-heading" data-signed-in-only hidden>
       <h2 id="tickets-heading">사용량 다시 채우기</h2>
       <p class="extras-note" data-items-closed="tickets" hidden>지금은 사용량 다시 채우기를 살 수 없어요.</p>
       <p class="extras-note">이번 기간에 쓴 플랜 사용량을 되돌려요 · 유효기간 없음 · 해지해도 남아요</p>
