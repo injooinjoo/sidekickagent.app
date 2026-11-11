@@ -95,6 +95,18 @@
       <p class="ai-status" id="signin-status" aria-live="polite"></p>
     </section>
 
+    <!-- #3909/#3913: without a usable project the AI list is still drawn -- connected first, then what can be connected --
+         from GET /ai-engine-providers without a project (the server's catalog, never one written here). Connecting needs a
+         project, so each row says so in one line where its button would be. -->
+    <section class="ai-step ai-catalog" id="account-catalog-step" aria-labelledby="account-catalog-heading" hidden>
+      <h2 id="account-catalog-heading">AI 목록</h2>
+      <h3 class="ai-catalog-title" id="account-connected-title" hidden>연결됨</h3>
+      <ul class="provider-list" id="account-connected" hidden></ul>
+      <h3 class="ai-catalog-title" id="account-available-title" hidden>연결할 수 있어요</h3>
+      <ul class="provider-list" id="account-available" hidden></ul>
+      <p class="ai-status" id="account-catalog-status" aria-live="polite"></p>
+    </section>
+
     <!-- No project picker (owner, 2026-10-07): the AI is the person's, for every project they own. This step holds only the
          page's project-wide sentences (loading, no project yet, not prepared yet) and is drawn only while it has one. -->
     <section class="ai-step ai-scope" id="workspace-step" aria-label="프로젝트" hidden>

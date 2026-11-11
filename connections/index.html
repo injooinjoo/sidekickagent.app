@@ -76,6 +76,12 @@
       <input id="service-search" type="search" placeholder="이름으로 찾기" autocomplete="off" />
       <p id="catalog-empty" hidden>찾는 연동이 없어요.</p>
       <div id="service-groups"></div>
+      <!-- #3909/#3913: with no project the list above is still drawn; what to do about it comes after the list. -->
+      <div class="services-panel" id="no-project" hidden>
+        <p>아직 프로젝트가 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기서 연결할 수 있어요.</p>
+        <p>앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.</p>
+        <div class="service-actions"><button class="service-button secondary" id="recheck-projects" type="button">다시 확인</button></div>
+      </div>
     </section>
     <footer class="footer"><a href="/">홈</a><a href="/support/">도움말</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/delete-account/">계정 및 데이터 삭제</a><small>© 2026 Sidekick</small><address class="biz"><span>비욘드</span><span>대표 김인주</span><span>사업자등록번호 552-20-02389</span><span>서울특별시 서초구 효령로23길 54-6</span><span>전화 0507-1334-6843</span><span>이메일 support@sidekickagent.app</span><span>호스팅 서비스 제공자 GitHub, Inc.(웹사이트) · Google LLC(Google Cloud, 앱 서비스)</span></address></footer>
   </main>

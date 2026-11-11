@@ -186,6 +186,8 @@
   // or prepare a project; the app can, so the page says so and offers the two
   // things that do help from here.
   const NO_PROJECT_COPY = '연결할 프로젝트가 아직 없어요. 사이드킥 앱에서 첫 프로젝트를 시작하면 여기서 AI를 연결할 수 있어요.';
+  // In the place of a row's button while there is no project to connect through (#3913).
+  const NO_PROJECT_ROW = '앱에서 첫 프로젝트를 시작하면 연결할 수 있어요.';
   const NO_PROJECT_HINT = '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.';
   const NOT_READY_HINT = '앱에서 이 프로젝트를 한 번 열면 준비돼요. 그다음 아래 다시 확인을 눌러 주세요.';
   // The 실행 설정 of a project whose AI employee space is not prepared yet (the account's AI above is connected all the
@@ -569,7 +571,7 @@
   }
 
   function hideProjectSteps() {
-    ['workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
+    ['account-catalog-step', 'workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
     $('provider-list').replaceChildren($('sidekick-ai-card'));
     $('provider-groups').replaceChildren();
     $('model-default-control').replaceChildren();
@@ -734,6 +736,7 @@
     setStatus('model-status', '', false);
     showNext(null);
     const workspace = currentWorkspace();
+    if (!workspace || !workspace.ready) loadAccountCatalog(seq);
     if (!workspace) {
       setStatus('workspace-status', NO_PROJECT_COPY, false);
       showNext([
@@ -774,6 +777,51 @@
     renderProviders();
     renderHandoffOffer();
     loadAgentSettings();
+  }
+
+  // ---- The AI list without a project (#3913) -----------------------------------------------------------------------------
+  //
+  // GET /ai-engine-providers without a project: the same catalog, each row `scope: "account"` and `connected` from the
+  // person's own AI. Connected rows first, then the rest; a row's button is one line until a project can connect it.
+  function sanitizeAccountCatalog(value) {
+    const rows = Array.isArray(value) ? value : [];
+    return orderedCatalog(sanitizeCatalog(value)).map((provider) => {
+      const row = rows.find((entry) => entry && entry.id === provider.id) || {};
+      return { ...provider, connected: row.connected === true, description: cleanText(row.description, 160) };
+    });
+  }
+
+  function accountCatalogRow(provider) {
+    return el('li', { className: 'provider-card catalog-row', 'data-provider': provider.id }, [
+      el('div', { className: 'provider-head' }, [providerLogo(provider.id), el('strong', { text: provider.name })]),
+      provider.description ? el('span', { className: 'catalog-line', text: provider.description }) : null,
+      el('span', { className: 'provider-method catalog-note', text: provider.connected ? '연결됨' : NO_PROJECT_ROW })
+    ]);
+  }
+
+  function renderAccountCatalog(providers) {
+    const connected = providers.filter((provider) => provider.connected);
+    const available = providers.filter((provider) => !provider.connected);
+    [['account-connected', connected], ['account-available', available]].forEach(([id, rows]) => {
+      fill($(id), rows.map(accountCatalogRow));
+      $(id).hidden = !rows.length;
+      $(`${id}-title`).hidden = !rows.length;
+    });
+    setStatus('account-catalog-status', providers.length ? '' : '지금 연결할 수 있는 AI가 없어요. 잠시 뒤 다시 시도해 주세요.', !providers.length);
+    $('account-catalog-step').hidden = false;
+  }
+
+  async function loadAccountCatalog(seq) {
+    const user = state.user;
+    try {
+      const catalog = await api(`/ai-engine-providers?${new URLSearchParams({ user_id: String(user.id) })}`, { method: 'GET' });
+      if (seq !== state.seq || user !== state.user) return;
+      renderAccountCatalog(sanitizeAccountCatalog(catalog));
+    } catch (error) {
+      if (seq !== state.seq || user !== state.user) return;
+      $('account-catalog-step').hidden = false;
+      showFailure(error, 'account-catalog-status');
+    }
   }
 
   async function reloadConnections() {

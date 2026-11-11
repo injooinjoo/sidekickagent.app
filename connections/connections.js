@@ -49,6 +49,11 @@
     { id: 'accounts', title: '외부 계정', line: '내 계정으로 하는 일에는 사이드킥 크레딧이 들지 않아요.' },
     { id: 'app', title: '앱에서만 연결', line: '휴대폰에서 로그인해야 하는 연결이에요. 연결한 내 계정으로 하는 일에는 크레딧이 들지 않아요.' }
   ];
+  // Where a row's buttons would be while there is no project to connect through (#3913), by the server's `scope`.
+  const NO_PROJECT_ROW = {
+    account: '앱에서 첫 프로젝트를 시작하면 연결할 수 있어요. 한 번 연결하면 모든 프로젝트에서 써요.',
+    project: '프로젝트가 생기면 그 프로젝트에 연결할 수 있어요.'
+  };
   const STATUS_COPY = { connected: '연결됨', expired: '만료', error: '오류', disconnected: '연결 안 됨', unavailable: '준비 중' };
   const ACTION_COPY = { connect: '연결', reconnect: '다시 연결', change_key: '키 바꾸기', test: '테스트', disconnect: '해제' };
   const APP_REASON = {
@@ -350,6 +355,34 @@
     });
   }
 
+  // No project (#3913): the server's catalogs without a project -- AI rows `scope: "account"` with the person's own AI
+  // state, service rows `scope: "project"` and never connected. Nothing can be connected yet, so no row offers an action.
+  function projectFreeItems(providers, catalog, scope) {
+    const ai = (Array.isArray(providers) ? providers : []).flatMap((row) => {
+      const id = String(row && row.id || '');
+      if (!PROVIDER_ID.test(id) || row.connection_ready === false) return [];
+      return [finish({
+        id: `ai:${id}`, kind: 'ai_engine', serviceId: id, source: 'catalog', name: providerName(id, row),
+        method: 'none', status: row.connected === true ? 'connected' : 'disconnected', keyHint: '', accountLabel: '',
+        detail: text(row.description, 160), webManageable: true, connect: null, projectScope: 'account'
+      }, [])];
+    });
+    const services = catalogItems(catalog, [], scope).map((item) => ({ ...item, actions: [], projectScope: 'project' }));
+    return [...(inApp() ? [] : ai), ...services, ...infoItems()];
+  }
+
+  async function readWithoutProject(scope) {
+    const q = new URLSearchParams({ user_id: scope.user }).toString();
+    const [catalog, providers] = await Promise.all([
+      request(`/connections/catalog?${q}`, { method: 'GET' }, scope),
+      inApp() ? [] : request(`/ai-engine-providers?${q}`, { method: 'GET' }, scope)
+    ]);
+    if (!current(scope)) return;
+    state.items = projectFreeItems(providers, catalog, scope);
+    renderCatalog();
+    $('no-project').hidden = false;
+  }
+
   function infoItems() {
     return [finish({ id: 'app:browser_login', kind: 'browser_login', serviceId: 'browser_login', source: 'info', info: true,
       name: '웹사이트 로그인 연결', method: 'login', status: 'unavailable', keyHint: '', accountLabel: '', webManageable: false,
@@ -487,6 +520,9 @@
     if (item.group === 'app') {
       card.append(node('p', `앱에서 연결 · ${item.reason}`, 'service-app-reason'));
     }
+    if (item.projectScope && item.status === 'disconnected' && item.group !== 'app') {
+      card.append(node('p', NO_PROJECT_ROW[item.projectScope], 'service-project-note'));
+    }
     const actions = node('div', '', 'service-actions');
     // 연결 on a row that is not ready yet stays visible and disabled.
     for (const action of item.actions) {
@@ -504,7 +540,7 @@
     const groups = $('service-groups'); groups.replaceChildren();
     for (const group of GROUPS) {
       const rows = visible.filter((item) => item.group === group.id);
-      const aiDoor = group.id === 'ai' && !inApp() && !search;
+      const aiDoor = group.id === 'ai' && !inApp() && !search && Boolean(state.workspace);
       if (!rows.length && !aiDoor) continue;
       const section = node('section', '', 'service-group'); section.dataset.group = group.id;
       section.append(node('h2', group.title), node('p', group.line, 'service-group-line'));
@@ -747,7 +783,7 @@
     invalidate(); clearCatalog();
     state.user = ''; state.bearer = auth.token(); state.workspace = ''; state.projects = []; state.mode = ''; state.pollOff = false;
     state.expanded.clear();
-    $('services-who').hidden = true; $('services-who').textContent = '';
+    $('services-who').hidden = true; $('services-who').textContent = ''; $('no-project').hidden = true;
     $('project-panel').hidden = true; $('signin-gate').hidden = !state.bearer;
     $('refresh-services').disabled = false;
     if (!state.bearer) {
@@ -787,7 +823,7 @@
       $('services-who').textContent = [account?.phrase, account?.email || account?.phone || account?.name].filter(Boolean).join(' · ');
       $('services-who').hidden = !$('services-who').textContent;
       if (state.workspace) await refresh();
-      else status('page-status', '아직 프로젝트가 없어요. 앱에서 첫 프로젝트를 시작한 뒤 다시 확인해 주세요.');
+      else { $('project-panel').hidden = true; await readWithoutProject(scope); }
     } catch (error) {
       if (!unchanged()) return;
       $('signin-gate').hidden = false;
@@ -804,6 +840,7 @@
     else if (!state.busy) refresh();
   });
   $('service-search').addEventListener('input', renderCatalog);
+  $('recheck-projects').addEventListener('click', () => boot());
   $('open-signin').addEventListener('click', () => { if (!inApp()) auth.open(); });
   $('retry-handoff').addEventListener('click', async () => {
     if (!inApp()) return;
