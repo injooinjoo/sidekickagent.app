@@ -193,49 +193,56 @@
   const SAFE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
 
   // The sheet every page without its own copy gets. /membership/ and /ai/ carry
-  // the same markup in their HTML (same ids, bound the same way below), so a
-  // page with JavaScript off still shows the doors there.
+  // the same phone-first markup in their HTML (same ids and shared handlers).
   const SHEET_HTML = [
-    '<div class="signin-sheet" id="signin-sheet" hidden aria-modal="true" role="dialog" aria-label="로그인">',
-    '<div class="signin-inner">',
-    '<button class="sheet-close" type="button" id="close-signin" aria-label="닫기">',
-    '<svg viewBox="0 0 24 24" aria-hidden="true" data-icon="close"><path d="M18 6 6 18M6 6l12 12"/></svg>',
-    '</button>',
-    '<div class="signin-body">',
-    '<img class="signin-mark" src="/assets/sidekick-mark.svg" width="56" height="56" alt="" decoding="async" />',
-    '<h2>사이드킥 로그인</h2>',
-    // Kakao, Naver, Google, Apple, then the code doors (owner 2026-10-17; the owner may reorder). paintBrandDoors gives
-    // each brand door the colours of its brand guide, all four the same size.
-    '<div class="doors">',
-    '<button class="door" type="button" id="kakao-button" data-brand="kakao"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#000000" d="M9 1.5C4.58 1.5 1 4.29 1 7.73c0 2.22 1.48 4.17 3.71 5.27l-.95 3.47c-.08.3.26.54.52.37l4.14-2.74c.19.02.38.03.58.03 4.42 0 8-2.79 8-6.23S13.42 1.5 9 1.5z"/></svg><span class="door-label">카카오로 이어서 하기</span></button>',
-    '<button class="door" type="button" id="naver-button" data-brand="naver"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M11.35 9.63 6.48 2.5H2.5v13h4.15V8.37l4.87 7.13h3.98v-13h-4.15z"/></svg><span class="door-label">네이버로 이어서 하기</span></button>',
-    '<button class="door" type="button" id="google-button" data-brand="google"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg><span class="door-label">Google로 이어서 하기</span></button>',
-    '<button class="door" type="button" id="apple-button" data-brand="apple"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span class="door-label">Apple로 계속하기</span></button>',
-    '<button class="door" type="button" id="otp-toggle">전화번호 · 이메일로 이어서 하기</button>',
-    '</div>',
-    '<div class="otp-block" id="otp-block" hidden>',
-    '<div class="method-tabs" role="tablist" aria-label="로그인 방법">',
-    '<button type="button" role="tab" data-method="email" aria-selected="true" class="is-selected">이메일</button>',
-    '<button type="button" role="tab" data-method="phone" aria-selected="false">휴대폰</button>',
-    '</div>',
-    '<form id="email-form">',
-    '<label for="email" id="value-label" class="sr-only">이메일</label>',
-    '<div class="form-row"><input id="email" name="email" type="email" autocomplete="email" required /><button type="submit">인증번호 받기</button></div>',
-    '</form>',
-    '<form id="code-form" hidden>',
-    '<label for="code" class="field-label">인증번호 6자리</label>',
-    '<div class="form-row"><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required /><button type="submit">확인</button></div>',
-    '</form>',
-    '</div>',
-    '<p class="form-status" id="auth-status" aria-live="polite"></p>',
-    '<p class="social-status" id="social-status" aria-live="polite" hidden></p>',
-    '<p class="app-hint">앱에서 쓰는 로그인 방법으로 로그인해야 같은 계정이 열려요.</p>',
-    '</div>',
-    // The one line every sign-in surface shows where an account can be created (login page, this sheet, /ai/):
-    // continuing confirms 만 14세 이상 (privacy policy: the service is for 14 and older) and the two documents.
-    '<p class="legal">계속하면 만 14세 이상이며 <a href="/terms/">이용약관</a> 및 <a href="/privacy/">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>',
-    '</div>',
-    '</div>'
+    '<div class="signin-sheet phone-first" id="signin-sheet" hidden aria-modal="true" role="dialog" aria-labelledby="handoff-title"><div class="signin-inner"><button class="sheet-close" type="button" id="close-signin" aria-label="닫기"><svg viewBox="0 0 24 24" aria-hidden="true" data-icon="close"><path d="M18 6 6 18M6 6l12 12"/></svg></button>',
+    '    <div class="card">',
+    '      <span class="login-brand"><img class="brand-mark" src="/assets/sidekick-mark.svg" width="32" height="32" alt=""></span>',
+    '      <button type="button" id="login-back" class="quiet" hidden>뒤로</button>',
+    '      <h1 id="handoff-title">휴대폰 번호로',
+    '간편하게 시작해요</h1>',
+    '      <p id="handoff-status" role="status" aria-live="polite">가입과 로그인을 한 번에</p>',
+    '',
+    '      <div id="handoff-choices" class="choices">',
+    '          <button type="button" id="handoff-phone" class="option primary" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">휴대폰 번호로 시작하기</button>',
+    '        <button type="button" id="otp-toggle" class="quiet" aria-haspopup="dialog">다른 방법으로 로그인</button>',
+    '        <dialog id="login-methods" aria-labelledby="login-methods-title">',
+    '          <div class="sheet-heading"><h2 id="login-methods-title">다른 방법으로 로그인</h2><button type="button" id="login-methods-close" class="quiet">닫기</button></div>',
+    '        <div class="options" role="group" aria-label="로그인 방법">',
+    '          <button type="button" id="kakao-button" class="option provider-brand kakao" data-brand="kakao" data-login-option="kakao"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#000000" d="M9 1.5C4.58 1.5 1 4.29 1 7.73c0 2.22 1.48 4.17 3.71 5.27l-.95 3.47c-.08.3.26.54.52.37l4.14-2.74c.19.02.38.03.58.03 4.42 0 8-2.79 8-6.23S13.42 1.5 9 1.5z"/></svg><span class="door-label">카카오로 이어서 하기</span></button>',
+    '          <button type="button" id="naver-button" class="option provider-brand naver" data-brand="naver" data-login-option="naver"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M11.35 9.63 6.48 2.5H2.5v13h4.15V8.37l4.87 7.13h3.98v-13h-4.15z"/></svg><span class="door-label">네이버로 이어서 하기</span></button>',
+    '          <button type="button" id="google-button" class="option provider-brand google" data-brand="google" data-login-option="google"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg><span class="door-label">Google로 이어서 하기</span></button>',
+    '          <button type="button" id="apple-button" class="option provider-brand apple" data-brand="apple" data-login-option="apple"><svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span class="door-label">Apple로 계속하기</span></button>',
+    '          <button type="button" id="handoff-email" class="option" data-login-option="email" data-method="email" aria-pressed="false" aria-controls="otp-block">이메일로 이어서 하기</button>',
+    '        </div>',
+    '',
+    '        </dialog>',
+    '',
+    '        <div id="otp-block" class="panel" hidden>',
+    '          <form id="email-form">',
+    '            <label for="email" id="value-label">이메일 주소</label>',
+    '            <div class="form-row">',
+    '              <div class="number-line"><span id="phone-prefix" hidden><small>+82</small>010</span><input id="email" name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>',
+    '              <button type="submit">인증번호 받기</button>',
+    '            </div>',
+    '          </form>',
+    '          <form id="code-form" hidden>',
+    '            <label for="code" id="code-label" class="field-label">인증번호 6자리</label>',
+    '            <div class="form-row">',
+    '              <div class="code-entry"><div class="code-cells" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>',
+    '              <button type="submit">확인</button>',
+    '            </div>',
+    '          </form>',
+    '          <div id="login-code-actions" class="code-actions" hidden><button type="button" id="login-edit" class="quiet">번호 수정</button><button type="button" id="login-resend" class="quiet">다시 받기</button></div>',
+    '          <p id="auth-status" class="form-status" aria-live="polite"></p>',
+    '        </div>',
+    '',
+    '        <p id="social-status" class="note" aria-live="polite" hidden></p>',
+    '      </div>',
+    '',
+    '    </div>',
+    '    <p class="legal">계속하면 만 14세 이상이며 <a id="login-terms" href="/terms/" target="_blank" rel="noopener noreferrer">이용약관</a> 및 <a id="login-privacy" href="/privacy/" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>에 동의하는 것으로 간주됩니다</p>',
+    '</div></div>'
   ].join('');
 
   const $ = (id) => document.getElementById(id);
@@ -1577,16 +1584,18 @@
 
   function open() {
     const sheet = ensureSheet();
-    if (!sheet) return;
+    if (!sheet || !sheet.hidden) return;
     if (sheet.hidden) window.SidekickWebAnalytics?.track('login_started', { surface: 'web_auth' });
     closeMenu(false);
     sheetOpener = document.activeElement;
+    loginFlow.generation += 1;
     sheet.hidden = false;
     // 두 프레임을 기다렸다가 클래스를 붙인다: hidden을 벗기자마자
     // 붙이면 브라우저가 시작 상태를 그리기 전이라 전환이 통째로 생략된다.
     requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('is-open')));
     document.body.style.overflow = 'hidden';
-    const first = sheet.querySelector('.door');
+    loginStep('start');
+    const first = byId('handoff-phone') || sheet.querySelector('.door');
     if (first) first.focus({ preventScroll: true });
     prepareTurnstile();
   }
@@ -1609,7 +1618,11 @@
     if (!sheet || sheet.hidden) return;
     sheet.classList.remove('is-open');
     document.body.style.overflow = '';
-    const done = () => { sheet.hidden = true; sheet.removeEventListener('transitionend', done); };
+    if (phoneFirstPage()) releaseDoors();
+    clearTimeout(turnstile.retry);
+    turnstile.retry = null;
+    const generation = loginFlow.generation;
+    const done = () => { if (generation === loginFlow.generation) sheet.hidden = true; sheet.removeEventListener('transitionend', done); };
     // 전환이 꺼져 있거나 잘려도 화면이 반쯤 덮인 채 남지는 않게 한다.
     sheet.addEventListener('transitionend', done);
     setTimeout(done, 400);
@@ -1682,9 +1695,9 @@
   // them. Both modes of the page bind these; Kakao, Naver, Google and Apple are bound by
   // the mode, because what they begin differs.
 
-  // Only the dedicated login page owns these presentation states. The shared auth
-  // sheet and the app/web session and handoff owners keep their existing contracts.
-  function phoneFirstPage() { return LOGIN_RECEIVER && Boolean(byId('login-back')) && byId('login-methods')?.tagName === 'DIALOG'; }
+  // Presentation is shared by the page and the current product sheets.
+  // LOGIN_RECEIVER continues to own only callback/session/handoff routing.
+  function phoneFirstPage() { return Boolean(byId('login-back')) && byId('login-methods')?.tagName === 'DIALOG'; }
 
   function loginNumber() {
     const value = byId('email').value.trim();
@@ -1722,7 +1735,7 @@
     const starting = step === 'start', code = step === 'code';
     byId('login-back').hidden = starting;
     byId('handoff-phone').hidden = !starting;
-    byId('login-alternatives').hidden = !starting;
+    alternativesButton().hidden = !starting;
     byId('otp-block').hidden = starting;
     byId('email-form').hidden = starting || code;
     byId('code-form').hidden = !code;
@@ -1742,6 +1755,9 @@
 
   function abandonLoginCode(step) {
     loginFlow.generation += 1;
+    clearTimeout(loginFlow.timer);
+    loginFlow.timer = null;
+    loginFlow.resendAt = 0;
     door.challengeId = null;
     door.sending = false;
     door.verifying = false;
@@ -1753,17 +1769,26 @@
     else byId('handoff-phone').focus();
   }
 
+  function alternativesButton() { return byId('login-alternatives') || $('otp-toggle'); }
+
   function bindLoginPresentation() {
     if (!phoneFirstPage()) return;
     const sheet = byId('login-methods');
-    byId('login-alternatives').addEventListener('click', () => sheet.showModal());
+    alternativesButton().addEventListener('click', () => sheet.showModal());
     byId('login-methods-close').addEventListener('click', () => sheet.close());
     sheet.addEventListener('click', (event) => { if (event.target === sheet) {
       const rect = sheet.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) sheet.close();
     } });
-    sheet.addEventListener('close', () => { if (!byId('login-alternatives').hidden) byId('login-alternatives').focus(); });
+    sheet.addEventListener('close', () => {
+      // A nested close event can arrive after the parent has started closing.
+      // Keep the parent's restored focus on the button that opened it.
+      const parent = sheet.closest('.signin-sheet');
+      if (!alternativesButton().hidden && (!parent || (!parent.hidden && parent.classList.contains('is-open'))))
+        alternativesButton().focus();
+    });
     sheet.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { event.stopPropagation(); return; }
       if (event.key !== 'Tab') return;
       const buttons = [...sheet.querySelectorAll('button:not(:disabled)')];
       const first = buttons[0], last = buttons[buttons.length - 1];
@@ -1789,7 +1814,7 @@
     block.hidden = false;
     applyAuthMethod(method);
     if (phoneFirstPage()) {
-      loginFlow.generation += 1;
+      abandonLoginCode('value');
       byId('login-methods').close();
       loginStep('value');
       setAuthStatus('', false);
@@ -1809,9 +1834,8 @@
   // Puts the code doors back as they were before anything was asked or typed.
   function releaseDoors() {
     if (phoneFirstPage()) {
-      loginFlow.generation += 1;
+      abandonLoginCode('start');
       byId('login-methods').close();
-      byId('login-back').hidden = true;
     }
     hideCodePanel();
     const form = $('code-form');
@@ -2880,6 +2904,7 @@
     const method = door.method;
     const generation = loginFlow.generation;
     const field = $('code');
+    if (phoneFirstPage() && !/^\d{6}$/.test(field.value)) return;
     door.verifying = true;
     updateLoginControls();
     setAuthStatus('인증번호를 확인하고 있어요.', false);
@@ -2974,45 +2999,38 @@
 
   // ---- Wiring ----------------------------------------------------------------
 
-  // The sheet's brand doors in the colours of each brand's own button guide, all four the
-  // same size: set here, on the doors themselves, so every copy of the sheet (built from
-  // SHEET_HTML, or shipped by /membership/ and /ai/) looks the same.
-  const BRAND_DOORS = {
-    kakao: { background: '#FEE500', color: 'rgba(0, 0, 0, 0.85)' },
-    naver: { background: '#03C75A', color: '#ffffff' },
-    google: { background: '#ffffff', color: '#1F1F1F', boxShadow: 'inset 0 0 0 1px #DADCE0' },
-    apple: { background: '#000000', color: '#ffffff' }
-  };
-
-  function paintBrandDoors() {
-    for (const [brand, colours] of Object.entries(BRAND_DOORS)) {
-      const button = $(brand + '-button');
-      if (!button || !button.style) continue;
-      Object.assign(button.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', ...colours });
-    }
-  }
-
   function bindSheet(sheet) {
     for (const [provider, button] of [['kakao', $('kakao-button')], ['naver', $('naver-button')]]) {
-      // A copy of a page cached from before these doors existed has none; the others still work.
       if (button) button.addEventListener('click', () => startKoreanLogin(provider, button));
     }
     $('google-button').addEventListener('click', () => startSupabaseLogin('google'));
     $('apple-button').addEventListener('click', () => startSupabaseLogin('apple'));
-    paintBrandDoors();
-    sheet.querySelectorAll('[data-method]').forEach((tab) => {
-      tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method));
+    if (phoneFirstPage()) bindLoginDoors();
+    else {
+      // Older cached page HTML still uses the code toggle and method tabs.
+      // It shares the same request/verification handlers, not another auth flow.
+      sheet.querySelectorAll('[data-method]').forEach((tab) => {
+        tab.addEventListener('click', () => applyAuthMethod(tab.dataset.method));
+      });
+      $('otp-toggle').addEventListener('click', () => {
+        const block = $('otp-block');
+        block.hidden = !block.hidden;
+        if (!block.hidden) $('email').focus();
+        prepareTurnstile();
+      });
+      $('email-form').addEventListener('submit', sendCode);
+      $('code-form').addEventListener('submit', verifyCode);
+      bindCodeField();
+      bindValueField();
+    }
+    sheet.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab' || byId('login-methods')?.open) return;
+      const controls = [...sheet.querySelectorAll('button:not(:disabled), input:not(:disabled), a[href]')]
+        .filter((node) => node.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
-    $('otp-toggle').addEventListener('click', () => {
-      const block = $('otp-block');
-      block.hidden = !block.hidden;
-      if (!block.hidden) $('email').focus();
-      prepareTurnstile();
-    });
-    $('email-form').addEventListener('submit', sendCode);
-    $('code-form').addEventListener('submit', verifyCode);
-    bindCodeField();
-    bindValueField();
     $('close-signin').addEventListener('click', close);
     sheet.addEventListener('click', (event) => { if (event.target === sheet) close(); });
   }

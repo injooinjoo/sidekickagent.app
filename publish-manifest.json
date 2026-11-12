@@ -54,8 +54,8 @@
       "sha256": "83adb5dca5b3113fd3f82a51c1ae5340423fa353feef9a23b0531ba852530442"
     },
     "ai/index.html": {
-      "bytes": 18125,
-      "sha256": "ae560f588e56460372194ace92b4fa6012f1b1c98473abbb2e155cd00e9f938e"
+      "bytes": 19711,
+      "sha256": "886c46d903c2f21b40ec51784d8048bf017e31119c24c4f697c0817f8e433860"
     },
     "analytics-config.js": {
       "bytes": 466,
@@ -770,8 +770,8 @@
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
     "auth.js": {
-      "bytes": 157349,
-      "sha256": "b05b30e12b3aec23f917394d8d03e23c96be422b67e812cb34462772f4890462"
+      "bytes": 159338,
+      "sha256": "e4230af5f7c04f053837491a113ca268a6c6efd61b450c5d705ef26de682b7b8"
     },
     "connections/connections.css": {
       "bytes": 4460,
@@ -882,8 +882,8 @@
       "sha256": "d48e88f0ac0e8308f2009e2048569e7fa0a03c8b63895ea8a6667bde4646c477"
     },
     "membership/index.html": {
-      "bytes": 27081,
-      "sha256": "17d0d23c5d5c3ed3a92df67c1754180bda7f49cc279c8b98cfb1e09f5e50cec3"
+      "bytes": 28693,
+      "sha256": "2747c7f785169a3806114e42d22b1049852dd197444923ce120b24b8bfb27bfd"
     },
     "membership/membership.css": {
       "bytes": 17324,
@@ -914,8 +914,8 @@
       "sha256": "394b07444a7f9ca69541761a3229932c4eedc505b3ce28e30f7424783e9477e7"
     },
     "styles.css": {
-      "bytes": 100759,
-      "sha256": "85f3bada557ffcb0c624d83ca5404fecee237e95e19a9fe692ccdbc11a750e30"
+      "bytes": 110067,
+      "sha256": "9440292de30563ae4494e583dbf5d1e5bd92c06eda073c1c11f6c16ab49c761a"
     },
     "support/index.html": {
       "bytes": 14679,
@@ -968,5 +968,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "50445e63ba9c266024153bf11ddc1bf08f337a89"
+  "source_sha": "7a04d58f9e79e5268d872e5a489aa336e7e88e38"
 }
