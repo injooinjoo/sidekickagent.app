@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-RyCh51bEa1rctLCoDQi0Tt0dyRY715df9b4pWiPsXTY='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-wexuMy2UgWYbk23FDKcdjgfmSSSHejWFnYtTcOPQtyY='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -60,22 +60,23 @@
     :root { color-scheme: light; --ink: #1b1a18; --ink-soft: #3d3b37; --muted: #6e6b64; --bg: #faf9f6; --card: #ffffff; --sunken: #f2f0ea; --line: #e7e4dc; --hairline: #efece6; --accent: #b3230a; --shadow: 0 18px 50px rgba(27, 26, 24, 0.07); --radius-md: 12px; --radius-xl: 20px; --control-h-lg: 52px; }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
-    body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
-    main { width: min(100%, 400px); }
-    .card { padding: 32px 24px 22px; border: 1px solid var(--hairline); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow); text-align: center; }
-    .brand { display: inline-flex; }
-    .brand-mark { width: 44px; height: 44px; flex: none; }
-    h1 { margin: 18px 0 6px; font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; }
-    #handoff-status { margin: 0 0 26px; min-height: 1.6em; color: var(--muted); font-size: 15px; }
+    body { margin: 0; min-height: 100vh; min-height: 100svh; padding: 24px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+    main { width: min(100%, 400px); min-height: calc(100svh - 48px); margin: auto; display: flex; flex-direction: column; }
+    .card { flex: 1; display: flex; flex-direction: column; text-align: left; }
+    .card > .brand { display: inline-flex; align-self: flex-start; margin: 18px 0 52px; }
+    .brand-mark { width: 32px; height: 32px; flex: none; }
+    h1 { margin: 0 0 12px; font-size: 26px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; white-space: pre-line; }
+    #handoff-status { margin: 0 0 32px; min-height: 1.6em; color: var(--muted); font-size: 15px; }
     #handoff-status[role="alert"] { color: var(--accent); }
-    .choices { display: grid; gap: 10px; text-align: left; }
+    .choices { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    #handoff-phone { margin-top: auto; }
     .options { display: grid; gap: 10px; }
-    .account { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+    .account { margin: 0; color: var(--muted); font-size: 14px; }
     .account strong { display: block; color: var(--ink); font-size: 16px; font-weight: 700; }
-    .option { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--control-h-lg); padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+    .option { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
     .option:hover { border-color: var(--ink-soft); background: var(--bg); }
     .option.primary, .option[data-hint="true"], .option[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #ffffff; }
-    .option.primary:hover, .option[data-hint="true"]:hover, .option[aria-pressed="true"]:hover { background: var(--ink-soft); }
+    .option.primary:hover, .option[data-hint="true"]:hover { background: var(--ink-soft); }
     /* The four brand doors, each in its own guide's colours and all the same size (Kakao #FEE500 with a black
        symbol, Naver #03C75A with a white N, Google white with its G, Apple black with its logo). */
     .option.brand { gap: 10px; }
@@ -92,23 +93,46 @@
     .options .option:disabled { opacity: 0.6; cursor: default; }
     .divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; color: var(--muted); font-size: 13px; }
     .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-    .panel { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--sunken); }
-    form { display: grid; gap: 6px; margin: 0; }
+    .panel { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    form { display: grid; gap: 12px; margin: 0; }
+    #email-form { flex: 1; display: flex; flex-direction: column; }
     label { color: var(--ink-soft); font-size: 13px; font-weight: 600; }
-    input { min-width: 0; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 16px; }
-    .form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-    .form-row button { min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--ink); color: #ffffff; font: inherit; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; }
-    .form-row button:disabled { opacity: 0.5; cursor: default; }
+    input { min-width: 0; min-height: 56px; padding: 8px 0; border: 0; border-bottom: 2px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); font: inherit; font-size: 24px; width: 100%; }
+    input::placeholder { color: var(--muted); opacity: 0.55; }
+    .form-row { display: contents; }
+    .number-line { display: flex; align-items: center; gap: 12px; }
+    #phone-prefix { display: flex; align-items: center; gap: 12px; white-space: nowrap; font-size: 28px; }
+    #phone-prefix small { font-size: 14px; color: var(--muted); }
+    .number-line input { font-size: 28px; letter-spacing: 0.03em; }
+    .number-line input:focus-visible { outline: none; border-bottom-color: var(--ink); }
+    .form-row button { min-height: 56px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--ink); color: #ffffff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+    #email-form button { margin-top: auto; }
+    .form-row button:disabled { opacity: 0.3; cursor: default; }
+    .code-entry { position: relative; }
+    .code-entry input { position: absolute; inset: 0; height: 100%; opacity: 0; cursor: text; }
+    .code-cells { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .code-cells span { display: grid; place-items: center; height: 60px; border-bottom: 2px solid var(--line); font-size: 28px; font-weight: 600; }
+    .code-entry:focus-within { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 4px; }
+    .code-entry:focus-within span[data-active="true"] { border-color: var(--ink); }
+    .code-entry input:focus-visible { outline: none; }
     .form-status, .note { margin: 0; min-height: 1.4em; color: var(--muted); font-size: 13px; }
     .form-status.is-error, .note.is-error { color: var(--accent); }
     .turnstile-slot { display: flex; justify-content: center; }
     .turnstile-slot:empty { display: none; }
-    .quiet { display: block; min-height: 44px; margin: 14px auto 0; padding: 8px 16px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .quiet { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-decoration: none; }
+    #login-back { align-self: flex-start; margin: 0 0 16px; }
+    .code-actions { display: flex; justify-content: space-between; gap: 16px; }
+    dialog { inset: auto 0 0; width: min(100%, 480px); max-height: calc(100svh - 24px); overflow-y: auto; margin: auto auto 0; padding: 24px 24px max(24px, env(safe-area-inset-bottom)); border: 1px solid var(--line); border-radius: 24px 24px 0 0; background: var(--card); color: var(--ink); }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
+    .sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .sheet-heading h2 { margin: 0; font-size: 20px; line-height: 28px; }
+    #login-methods-close { padding: 8px; }
     .legal { margin: 18px 8px 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; text-align: center; }
     .legal a { color: var(--ink-soft); font-weight: 600; text-underline-offset: 3px; }
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
     [hidden] { display: none !important; }
-    @media (max-width: 359px) { body { padding: 16px 12px; } .card { padding: 24px 16px 18px; } .form-row { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-height: 620px) { .card > .brand { margin: 0 0 24px; } }
+    @media (min-width: 768px) { main { min-height: min(760px, calc(100svh - 48px)); } }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
     /* Dark follows the system (issue #3777): /styles.css's dark tokens, ink fills turn light with dark text. */
     @media (prefers-color-scheme: dark) { :root { color-scheme: dark; --ink: #e0e0e0; --ink-soft: #c8c8c8; --muted: #a0a0a0; --bg: #1a1a1a; --card: #242424; --sunken: #2c2c2c; --line: #3a3a3a; --hairline: #2f2f2f; --accent: #ff7a61; --shadow: 0 0 0 1px var(--line); --on-ink: #121212; } .option.primary, .option[data-hint="true"], .option[aria-pressed="true"], .form-row button { color: #121212; } .options .option.apple { border-color: var(--line); } .brand-mark polygon[fill="#1D1919"] { fill: var(--ink); } }
@@ -120,7 +144,9 @@
   <main aria-labelledby="handoff-title">
     <div class="card">
       <span class="brand"><svg class="brand-mark" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><polygon fill="#1D1919" points="380.5,595.6 256.4,670.2 446.6,1000.0 572.3,924.2"/><polygon fill="#F0650D" points="766.8,380.3 646.8,453.3 835.8,773.8 958.5,699.7"/><polygon fill="#1D1919" points="155.7,236.6 41.5,310.9 223.8,620.0 346.2,543.1"/><polygon fill="#1D1919" points="346.2,118.4 227.9,192.0 640.7,887.4 764.5,813.0"/><polygon fill="#1D1919" points="536.7,-0.0 415.9,75.9 612.3,398.8 734.3,321.2"/></svg></span>
-      <h1 id="handoff-title">사이드킥 시작하기</h1>
+      <button type="button" id="login-back" class="quiet" hidden>뒤로</button>
+      <h1 id="handoff-title">휴대폰 번호로
+간편하게 시작해요</h1>
       <p id="handoff-status" role="status" aria-live="polite">로그인 정보를 확인하고 있어요.</p>
 
       <div id="handoff-choices" class="choices" hidden>
@@ -128,31 +154,36 @@
         <button type="button" id="handoff-existing" class="option primary" hidden>이 계정으로 이어서 하기</button>
         <p id="handoff-other" class="divider" hidden>다른 방법으로 로그인</p>
 
+          <button type="button" id="handoff-phone" class="option primary" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">휴대폰 번호로 시작하기</button>
+        <button type="button" id="login-alternatives" class="quiet" aria-haspopup="dialog">다른 방법으로 로그인</button>
+        <dialog id="login-methods" aria-labelledby="login-methods-title">
+          <div class="sheet-heading"><h2 id="login-methods-title">다른 방법으로 로그인</h2><button type="button" id="login-methods-close" class="quiet">닫기</button></div>
         <div class="options" role="group" aria-label="로그인 방법">
           <button type="button" id="handoff-kakao" class="option brand kakao" data-login-option="kakao"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#000000" d="M9 1.5C4.58 1.5 1 4.29 1 7.73c0 2.22 1.48 4.17 3.71 5.27l-.95 3.47c-.08.3.26.54.52.37l4.14-2.74c.19.02.38.03.58.03 4.42 0 8-2.79 8-6.23S13.42 1.5 9 1.5z"/></svg><span class="door-label">카카오로 이어서 하기</span></button>
           <button type="button" id="handoff-naver" class="option brand naver" data-login-option="naver"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M11.35 9.63 6.48 2.5H2.5v13h4.15V8.37l4.87 7.13h3.98v-13h-4.15z"/></svg><span class="door-label">네이버로 이어서 하기</span></button>
           <button type="button" id="handoff-google" class="option brand google" data-login-option="google"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg><span class="door-label">Google로 이어서 하기</span></button>
           <button type="button" id="handoff-apple" class="option brand apple" data-login-option="apple"><svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span class="door-label">Apple로 계속하기</span></button>
-          <p class="divider" aria-hidden="true">또는</p>
-          <button type="button" id="handoff-phone" class="option" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">전화번호로 이어서 하기</button>
           <button type="button" id="handoff-email" class="option" data-login-option="email" data-method="email" aria-pressed="false" aria-controls="otp-block">이메일로 이어서 하기</button>
         </div>
+
+        </dialog>
 
         <div id="otp-block" class="panel" hidden>
           <form id="email-form">
             <label for="email" id="value-label">이메일 주소</label>
             <div class="form-row">
-              <input id="email" name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+              <div class="number-line"><span id="phone-prefix" hidden><small>+82</small>010</span><input id="email" name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
               <button type="submit">인증번호 받기</button>
             </div>
           </form>
           <form id="code-form" hidden>
             <label for="code" id="code-label">인증번호 6자리</label>
             <div class="form-row">
-              <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+              <div class="code-entry"><div class="code-cells" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
               <button type="submit">확인</button>
             </div>
           </form>
+          <div id="login-code-actions" class="code-actions" hidden><button type="button" id="login-edit" class="quiet">번호 수정</button><button type="button" id="login-resend" class="quiet">다시 받기</button></div>
           <p id="auth-status" class="form-status" aria-live="polite"></p>
         </div>
 
