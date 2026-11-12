@@ -456,7 +456,7 @@ li + li { margin-top: 8px; }
 
 
 /* The /login/ phone-first presentation, confined to the shared modal. */
-.signin-sheet.phone-first { overflow-y: auto; z-index: 100; }
+.signin-sheet.phone-first { inset: var(--login-visible-top, 0px) 0 auto; height: var(--login-visible-height, 100dvh); overflow-y: auto; z-index: 100; }
 .signin-sheet.phone-first .signin-inner { align-items: stretch; justify-content: flex-start; width: min(100%, 452px); min-height: min(760px, calc(100svh - 48px)); padding: 24px; }
 .signin-sheet.phone-first .card { min-height: 540px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .signin-sheet.phone-first .sheet-close { left: auto; right: 12px; top: 12px; }
@@ -544,6 +544,22 @@ li + li { margin-top: 8px; }
   .signin-sheet.phone-first .brand-mark polygon[fill="#1D1919"] { fill: var(--ink); }
 }
 @media (prefers-reduced-motion: reduce) { .signin-sheet.phone-first .option { transition: none; } }
+
+:root[data-login-compact] .signin-sheet.phone-first { padding: 8px; align-items: flex-start; }
+:root[data-login-compact] .signin-sheet.phone-first .signin-inner { min-height: 0; height: calc(var(--login-visible-height) - 16px); max-height: calc(var(--login-visible-height) - 16px); padding: 12px 16px; overflow-y: auto; }
+:root[data-login-compact] .signin-sheet.phone-first .card { min-height: 0; }
+:root[data-login-compact] .signin-sheet.phone-first .card > .login-brand { display: none; }
+:root[data-login-compact] .signin-sheet.phone-first #login-back { min-height: 32px; margin-bottom: 8px; padding: 4px 0; }
+:root[data-login-compact] .signin-sheet.phone-first h1 { margin-bottom: 8px; font-size: 24px; line-height: 30px; }
+:root[data-login-compact] .signin-sheet.phone-first #handoff-status { min-height: 0; margin-bottom: 8px; font-size: 14px; }
+:root[data-login-compact] .signin-sheet.phone-first .choices,
+:root[data-login-compact] .signin-sheet.phone-first .panel,
+:root[data-login-compact] .signin-sheet.phone-first #email-form { min-height: 0; gap: 8px; }
+:root[data-login-compact] .signin-sheet.phone-first input,
+:root[data-login-compact] .signin-sheet.phone-first .form-row button { min-height: 48px; }
+:root[data-login-compact] .signin-sheet.phone-first #email-form button { position: sticky; bottom: 0; }
+:root[data-login-compact] .signin-sheet.phone-first .code-cells span { height: 48px; font-size: 24px; }
+:root[data-login-compact] .signin-sheet.phone-first .legal { margin: 8px 0 0; font-size: 11px; line-height: 1.4; }
 
 /* The 404 page GitHub Pages serves for any unknown address. */
 .notfound { max-width: 860px; margin: 0 auto; padding: 72px 22px 80px; }

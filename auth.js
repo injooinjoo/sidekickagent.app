@@ -1771,8 +1771,24 @@
 
   function alternativesButton() { return byId('login-alternatives') || $('otp-toggle'); }
 
+  function bindLoginViewport() {
+    const viewport = window.visualViewport;
+    const update = () => {
+      const height = Math.round(viewport?.height || window.innerHeight);
+      const root = document.documentElement;
+      root.style.setProperty('--login-visible-height', height + 'px');
+      root.style.setProperty('--login-visible-top', (viewport?.offsetTop || 0) + 'px');
+      root.toggleAttribute('data-login-compact', height < 620);
+    };
+    viewport?.addEventListener('resize', update);
+    viewport?.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    update();
+  }
+
   function bindLoginPresentation() {
     if (!phoneFirstPage()) return;
+    bindLoginViewport();
     const sheet = byId('login-methods');
     alternativesButton().addEventListener('click', () => sheet.showModal());
     byId('login-methods-close').addEventListener('click', () => sheet.close());
