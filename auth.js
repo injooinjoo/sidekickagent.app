@@ -374,6 +374,7 @@
   //                             handed straight to the app (takeDoorAnswer).
   // Declared before the hand-off is routed: that path never builds the page's
   // session, so nothing the doors use may reach for it.
+  const loginFlow = { generation: 0, resendAt: 0, timer: null };
   const door = { method: 'email', challengeId: null, sending: false, verifying: false, call: null, signedIn: null };
   // Every code the server sends is six digits (login.py: :06d). The field takes no
   // more and sends itself when the sixth arrives.
@@ -1681,6 +1682,105 @@
   // them. Both modes of the page bind these; Kakao, Naver, Google and Apple are bound by
   // the mode, because what they begin differs.
 
+  // Only the dedicated login page owns these presentation states. The shared auth
+  // sheet and the app/web session and handoff owners keep their existing contracts.
+  function phoneFirstPage() { return LOGIN_RECEIVER && Boolean(byId('login-back')) && byId('login-methods')?.tagName === 'DIALOG'; }
+
+  function loginNumber() {
+    const value = byId('email').value.trim();
+    return phoneFirstPage() && door.method === 'phone'
+      ? formatPhone('010' + value.replace(/\D/g, '')) : value;
+  }
+
+  function updateLoginControls() {
+    if (!phoneFirstPage()) return;
+    const button = codeButton();
+    const valid = door.method !== 'phone' || /^\d{8}$/.test(byId('email').value.replace(/\D/g, ''));
+    button.disabled = !valid || door.sending || (Boolean(TURNSTILE_SITE_KEY) && !turnstile.token);
+    const seconds = Math.max(0, Math.ceil((loginFlow.resendAt - Date.now()) / 1000));
+    const confirm = byId('code-form').querySelector('button[type="submit"]');
+    confirm.disabled = door.verifying || byId('code').value.length !== CODE_DIGITS;
+    const resend = byId('login-resend');
+    resend.disabled = door.sending || door.verifying || seconds > 0;
+    resend.textContent = CODE_RESEND_LABEL + (seconds ? ` (${seconds}초)` : '');
+    if (seconds && !loginFlow.timer) loginFlow.timer = setTimeout(() => {
+      loginFlow.timer = null; updateLoginControls();
+    }, 1000);
+  }
+
+  function paintCodeCells() {
+    if (!phoneFirstPage()) return;
+    const digits = byId('code').value;
+    document.querySelectorAll('.code-cells span').forEach((cell, index) => {
+      cell.textContent = digits[index] || '';
+      cell.dataset.active = String(index === Math.min(digits.length, 5));
+    });
+  }
+
+  function loginStep(step) {
+    if (!phoneFirstPage()) return;
+    const starting = step === 'start', code = step === 'code';
+    byId('login-back').hidden = starting;
+    byId('handoff-phone').hidden = !starting;
+    byId('login-alternatives').hidden = !starting;
+    byId('otp-block').hidden = starting;
+    byId('email-form').hidden = starting || code;
+    byId('code-form').hidden = !code;
+    byId('login-code-actions').hidden = !code;
+    const phone = door.method === 'phone';
+    byId('handoff-title').textContent = starting ? '휴대폰 번호로\n간편하게 시작해요'
+      : code ? '인증번호를\n입력해 주세요' : phone ? '휴대폰 번호를\n알려 주세요' : '이메일 주소를\n알려 주세요';
+    byId('handoff-status').textContent = starting ? '가입과 로그인을 한 번에'
+      : code ? '받은 인증번호 6자리를 입력해 주세요' : phone ? '문자로 인증번호를 보내요' : '이메일로 인증번호를 보내요';
+    byId('phone-prefix').hidden = !phone;
+    byId('email').inputMode = phone ? 'numeric' : 'email';
+    if (phone) { byId('email').placeholder = '0000 0000'; byId('value-label').textContent = '휴대폰 번호 뒤 8자리'; }
+    codeButton().textContent = phone ? '다음' : CODE_REQUEST_LABEL;
+    byId('login-edit').textContent = phone ? '번호 수정' : '이메일 수정';
+    paintCodeCells(); updateLoginControls();
+  }
+
+  function abandonLoginCode(step) {
+    loginFlow.generation += 1;
+    door.challengeId = null;
+    door.sending = false;
+    door.verifying = false;
+    byId('code').value = '';
+    setAuthStatus('', false);
+    if (step === 'start') byId('email').value = '';
+    loginStep(step);
+    if (step === 'value') { prepareTurnstile(); byId('email').focus(); }
+    else byId('handoff-phone').focus();
+  }
+
+  function bindLoginPresentation() {
+    if (!phoneFirstPage()) return;
+    const sheet = byId('login-methods');
+    byId('login-alternatives').addEventListener('click', () => sheet.showModal());
+    byId('login-methods-close').addEventListener('click', () => sheet.close());
+    sheet.addEventListener('click', (event) => { if (event.target === sheet) {
+      const rect = sheet.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) sheet.close();
+    } });
+    sheet.addEventListener('close', () => { if (!byId('login-alternatives').hidden) byId('login-alternatives').focus(); });
+    sheet.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const buttons = [...sheet.querySelectorAll('button:not(:disabled)')];
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    sheet.querySelectorAll('[data-login-option]').forEach((button) => button.addEventListener('click', () => {
+      if (button.id !== 'handoff-email') sheet.close();
+    }));
+    byId('login-back').addEventListener('click', () => abandonLoginCode('start'));
+    byId('login-edit').addEventListener('click', () => abandonLoginCode('value'));
+    byId('login-resend').addEventListener('click', (event) => {
+      if (!door.verifying && Date.now() >= loginFlow.resendAt) sendCode(event);
+    });
+    loginStep('start');
+  }
+
   function showCodePanel(method) {
     const block = $('otp-block');
     if (!block) return;
@@ -1688,6 +1788,13 @@
     if (!block.hidden && door.method === method) { $('email').focus(); return; }
     block.hidden = false;
     applyAuthMethod(method);
+    if (phoneFirstPage()) {
+      loginFlow.generation += 1;
+      byId('login-methods').close();
+      loginStep('value');
+      setAuthStatus('', false);
+      $('email').focus();
+    }
     prepareTurnstile();
   }
 
@@ -1701,6 +1808,11 @@
 
   // Puts the code doors back as they were before anything was asked or typed.
   function releaseDoors() {
+    if (phoneFirstPage()) {
+      loginFlow.generation += 1;
+      byId('login-methods').close();
+      byId('login-back').hidden = true;
+    }
     hideCodePanel();
     const form = $('code-form');
     if (form) form.hidden = true;
@@ -1719,6 +1831,7 @@
     $('code-form').addEventListener('submit', verifyCode);
     bindCodeField();
     bindValueField();
+    bindLoginPresentation();
   }
 
   // ---- Google / Apple through Supabase -------------------------------------
@@ -2128,7 +2241,7 @@
           return true;
         }
       }
-      webSay('로그인 방법을 골라 주세요.');
+      webSay(phoneFirstPage() ? '가입과 로그인을 한 번에' : '로그인 방법을 골라 주세요.');
       const choices = document.getElementById('handoff-choices');
       if (choices) choices.hidden = false;
       return false;
@@ -2608,6 +2721,7 @@
     turnstile.token = typeof token === 'string' ? token : '';
     const button = codeButton();
     if (button) button.disabled = !turnstile.token;
+    updateLoginControls();
     if (turnstile.token && turnstile.said) {
       const status = $('auth-status');
       if (status && status.textContent === turnstile.said) setAuthStatus('', false);
@@ -2712,7 +2826,9 @@
     event.preventDefault();
     if (door.sending) return;
     const method = door.method;
-    const body = { method, value: $('email').value.trim() };
+    const generation = loginFlow.generation;
+    const body = { method, value: loginNumber() };
+    if (phoneFirstPage() && method === 'phone' && !/^\d{8}$/.test($('email').value.replace(/\D/g, ''))) return;
     if (TURNSTILE_SITE_KEY) {
       if (!turnstile.token) { sayTurnstile(TURNSTILE_WAIT_COPY); return; }
       // Spent by this request: the next 인증번호 waits for a fresh token.
@@ -2721,9 +2837,16 @@
       turnstile.stale = true;
     }
     door.sending = true;
+    updateLoginControls();
     setAuthStatus('인증번호를 보내고 있어요.', false);
     try {
       const result = await door.call('/auth/start', body);
+      if (phoneFirstPage() && generation !== loginFlow.generation) return;
+      if (phoneFirstPage()) {
+        $('code').value = '';
+        loginFlow.resendAt = Date.now() + Math.max(0, Number(result.resend_after_seconds) || 0) * 1000;
+        loginStep('code');
+      }
       door.challengeId = result.challenge_id;
       $('code-form').hidden = false;
       $('code').focus();
@@ -2735,13 +2858,17 @@
       if (request) request.textContent = CODE_RESEND_LABEL;
       setAuthStatus(`${result.value_masked ? `${result.value_masked} ${config.noun}` : `입력한 ${config.label}`}로 인증번호를 보냈어요. ${config.sent}`, false);
     } catch (error) {
+      if (phoneFirstPage() && generation !== loginFlow.generation) return;
       setAuthStatus(error && error.network ? NETWORK_COPY
         : error && error.status === 422 ? AUTH_METHODS[method].invalid
         : error && error.status === 429 ? '인증번호를 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.'
         : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', true);
     } finally {
-      door.sending = false;
-      if (TURNSTILE_SITE_KEY && codeFormShowing()) resetTurnstile();
+      if (!phoneFirstPage() || generation === loginFlow.generation) {
+        door.sending = false;
+        if (TURNSTILE_SITE_KEY && codeFormShowing()) resetTurnstile();
+        updateLoginControls();
+      }
     }
   }
 
@@ -2751,14 +2878,17 @@
   async function submitCode() {
     if (!door.challengeId || door.verifying) return;
     const method = door.method;
+    const generation = loginFlow.generation;
     const field = $('code');
     door.verifying = true;
+    updateLoginControls();
     setAuthStatus('인증번호를 확인하고 있어요.', false);
     try {
       let result;
       try {
         result = await door.call('/auth/verify', { challenge_id: door.challengeId, code: field.value.trim() });
       } catch (error) {
+        if (phoneFirstPage() && generation !== loginFlow.generation) return;
         setAuthStatus(error && error.network ? NETWORK_COPY
           : error && error.status === 423 ? DELETION_PENDING_COPY
           : error && error.status === 429 ? '인증번호를 너무 여러 번 잘못 입력했어요. 잠시 뒤 다시 시도해 주세요.'
@@ -2767,12 +2897,13 @@
         field.focus();
         return;
       }
+      if (phoneFirstPage() && generation !== loginFlow.generation) return;
       // A code opens one session: the challenge is spent, so nothing sends it again.
       door.challengeId = null;
       setAuthStatus('', false);
       await door.signedIn(method, result);
     } finally {
-      door.verifying = false;
+      if (!phoneFirstPage() || generation === loginFlow.generation) { door.verifying = false; updateLoginControls(); }
     }
   }
 
@@ -2788,6 +2919,8 @@
     const field = $('code');
     const digits = String(field.value).replace(/\D/g, '').slice(0, CODE_DIGITS);
     if (field.value !== digits) field.value = digits;
+    paintCodeCells();
+    updateLoginControls();
     if (digits.length === CODE_DIGITS) submitCode();
   }
 
@@ -2824,6 +2957,15 @@
     if (!field || !field.dataset || field.dataset.shaped) return;
     field.dataset.shaped = '1';
     field.addEventListener('input', () => {
+      if (phoneFirstPage()) {
+        if (door.method === 'phone') {
+          let digits = field.value.replace(/\D/g, '');
+          if (digits.length > 8) digits = digits.replace(/^(?:820?10|010)/, '');
+          field.value = digits.slice(0, 8);
+        }
+        updateLoginControls();
+        return;
+      }
       if (door.method !== 'phone') return;
       const shaped = formatPhone(field.value);
       if (shaped !== field.value) field.value = shaped;
