@@ -783,11 +783,12 @@
   //
   // GET /ai-engine-providers without a project: the same catalog, each row `scope: "account"` and `connected` from the
   // person's own AI. Connected rows first, then the rest; a row's button is one line until a project can connect it.
+  // `summary` is the server's one Korean line about the AI, the same line the app's AI list shows (#3909).
   function sanitizeAccountCatalog(value) {
     const rows = Array.isArray(value) ? value : [];
     return orderedCatalog(sanitizeCatalog(value)).map((provider) => {
       const row = rows.find((entry) => entry && entry.id === provider.id) || {};
-      return { ...provider, connected: row.connected === true, description: cleanText(row.description, 160) };
+      return { ...provider, connected: row.connected === true, description: cleanText(row.summary || row.description, 160) };
     });
   }
 
