@@ -314,7 +314,8 @@
       const freeApi = FREE_API_IDS.includes(row.service) && way === 'managed';
       return [finish({
         id: `service:${row.service}`, kind: freeApi ? 'free_api' : way === 'oauth' ? 'external_account' : 'service', serviceId: row.service, source: 'connections',
-        name: serviceName(row.displayName),
+        // The Korean name the server gives without a project (#3909); a global brand keeps its own name.
+        name: serviceName(row.koreanName || row.displayName),
         method: method === 'oauth' ? 'oauth' : method === 'none' ? 'none' : 'api_key',
         status: record ? (record.status === 'connected' ? 'connected' : 'expired') : ready ? 'disconnected' : 'unavailable',
         keyHint: method === 'api_key' && record ? hintOf(record.credentialHint) : '',
@@ -367,7 +368,7 @@
       return [finish({
         id: `ai:${id}`, kind: 'ai_engine', serviceId: id, source: 'catalog', name: providerName(id, row),
         method: 'none', status: row.connected === true ? 'connected' : 'disconnected', keyHint: '', accountLabel: '',
-        detail: text(row.description, 160), webManageable: true, connect: null, projectScope: 'account'
+        detail: text(row.summary || row.description, 160), webManageable: true, connect: null, projectScope: 'account'
       }, [])];
     });
     const services = catalogItems(catalog, [], scope).map((item) => ({ ...item, actions: [], projectScope: 'project' }));
