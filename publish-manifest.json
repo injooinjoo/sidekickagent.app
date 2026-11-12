@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "4da1881b205edfafb5cb15e8db13c56724408bde59aa857213b92981f076f919",
+  "export_rules_sha256": "c185c56ab2423ec026d0d7dcef9d05c3bde956d90bb19fef9518927ee13fc432",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -46,16 +46,20 @@
       "sha256": "1b24d9ac43f26d16d24e3ff3a2187c63418831ebe6441bd0b3e5c4fb3b9b888c"
     },
     "ai/ai.css": {
-      "bytes": 27149,
-      "sha256": "56d91a726e39520123a4f1797936b2001412419c6eb0c2d89a4eb00c78e0ade7"
+      "bytes": 27709,
+      "sha256": "487b29b9ebcd9c7889ab2b0e585c4541eee3568ca6643e87a357ff5e1b38028d"
     },
     "ai/ai.js": {
-      "bytes": 115391,
-      "sha256": "83adb5dca5b3113fd3f82a51c1ae5340423fa353feef9a23b0531ba852530442"
+      "bytes": 118834,
+      "sha256": "c7a37ad307cdd97aabe5119f7aa492465aebc0c7946fe333af561bdb0089a52f"
     },
     "ai/index.html": {
-      "bytes": 19711,
-      "sha256": "886c46d903c2f21b40ec51784d8048bf017e31119c24c4f697c0817f8e433860"
+      "bytes": 19803,
+      "sha256": "e972557990d8b00efa88717e2dc9de7a66c5656c3a9b98c00b1fd397ed3d1aa3"
+    },
+    "ai/provider-logos.js": {
+      "bytes": 2760,
+      "sha256": "2c3726c242d927b0c3c74051b505223ac04ec4db116667d9fd64a55d279aa86e"
     },
     "analytics-config.js": {
       "bytes": 466,
@@ -89,6 +93,14 @@
       "bytes": 23088,
       "sha256": "e378bef46f6e58696b77bc40afcfe4322ab20b79db20f19e4c0e419214876c8f"
     },
+    "assets/ai/copilot-dark.svg": {
+      "bytes": 2006,
+      "sha256": "0fcde0adaf50b1b76a31888c09a01e1f1c64dad67809d6109b9f43ddb4a3e09e"
+    },
+    "assets/ai/copilot-light.svg": {
+      "bytes": 2006,
+      "sha256": "557bddaeba63ae96fa55d58a4414a99bc003b786d9b270da18c2e82fb466ab71"
+    },
     "assets/ai/copilot.png": {
       "bytes": 7266,
       "sha256": "66047b707404c958999fe2cbb0eb25bc425117fda4f1e8268456e2e2f8b8e97c"
@@ -112,6 +124,14 @@
     "assets/ai/kilocode.png": {
       "bytes": 4745,
       "sha256": "92f40e382c14d3a47dae06227409b18773f1cd0f4ec3d5c520dbcc7c3991752f"
+    },
+    "assets/ai/kimi-dark.svg": {
+      "bytes": 1083,
+      "sha256": "3821ae593eebce6940992f56e2fee3f55a08bbbba78713303c23ea714d44c5f9"
+    },
+    "assets/ai/kimi-light.svg": {
+      "bytes": 1083,
+      "sha256": "937616746780d0c7c4bda92820db39f503f6a3e9b7cfebe438a5fb61b62d3991"
     },
     "assets/ai/kimi.png": {
       "bytes": 3920,
@@ -145,9 +165,25 @@
       "bytes": 11190,
       "sha256": "66bcc9d15e47ad5ccfa577d5b97af6759a7a1c7464787947f86569e1f996f105"
     },
+    "assets/ai/openai-dark.svg": {
+      "bytes": 1751,
+      "sha256": "43d25078f2ce5a3b45701327798662776d9281dfd577200b0569694afdd330e8"
+    },
+    "assets/ai/openai-light.svg": {
+      "bytes": 1751,
+      "sha256": "69b1fec61a6ea244281321ec4ccbc906919266f6ab88f4dfee3a2c6f89d20cf5"
+    },
     "assets/ai/openai.png": {
       "bytes": 10724,
       "sha256": "e4f1fdf9facd1eccfa3604cd291953eb012108295eea8bdf97a016d2cf4a38b2"
+    },
+    "assets/ai/openrouter-dark.svg": {
+      "bytes": 558,
+      "sha256": "196adaf20b581485fc962cc8fa0975153cd875694ddd66e6de46caab4df80d1e"
+    },
+    "assets/ai/openrouter-light.svg": {
+      "bytes": 558,
+      "sha256": "bf3f94cc64d07d02b1802230da9b0334cf081194a3981bbf3cf116f093c3b52a"
     },
     "assets/ai/openrouter.png": {
       "bytes": 6812,
@@ -157,6 +193,14 @@
       "bytes": 8842,
       "sha256": "006687e72a13be16079e7888b0d9473e4b5d4d0a07b1070d32aad4329a718020"
     },
+    "assets/ai/sidekick-dark.svg": {
+      "bytes": 481,
+      "sha256": "90d699af34ca2dbe34aae6fdd3a0cfd961c21e34d4f46024c38071961ce5b2d1"
+    },
+    "assets/ai/sidekick-light.svg": {
+      "bytes": 481,
+      "sha256": "5aded62574c4181f3d5d8cd9d1ee7c5ea4925137fd6ab1594581f3a1635dcfe8"
+    },
     "assets/ai/stepfun.png": {
       "bytes": 8600,
       "sha256": "9acc2dac4a7f60a9d21f3b6f96864da085255e0aab47c85e5bfe5559f9a0b095"
@@ -164,6 +208,14 @@
     "assets/ai/tencent-tokenhub.png": {
       "bytes": 9131,
       "sha256": "5f66f9658022ff3b8084ca9cdad02d29b4b2f7c6efb5abbaf22643d9896da38d"
+    },
+    "assets/ai/xai-dark.svg": {
+      "bytes": 704,
+      "sha256": "77a5e62c4e8f04c76e46d38e0a81508769f432bdd3e52d2ef39eb71f50676990"
+    },
+    "assets/ai/xai-light.svg": {
+      "bytes": 704,
+      "sha256": "504c7bb535b097f3a957e40199e0ca031b5d14c0c766dda3dba1c0bbf622a6d2"
     },
     "assets/ai/xai.png": {
       "bytes": 6770,
@@ -968,5 +1020,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "872157355a400f5da86472fa09c1c12f7b424541"
+  "source_sha": "ed0589bb580ff3f6c2d724440c69b7205d57426e"
 }

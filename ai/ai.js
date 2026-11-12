@@ -280,6 +280,9 @@
     // for an account login, the flow the server started.
     flow: null,
     busy: false,
+    pageActive: true,
+    flowGeneration: 0,
+    connectionRead: 0,
     // Bumped by every reload, so a late answer cannot paint over a newer one.
     seq: 0,
 
@@ -294,7 +297,7 @@
     returnedCode: readReturnedCode(),
     // The project's 실행 설정 (see "AI 직원 실행 설정" below): which read this is, what it came to and what the controls
     // may do. Nothing in it outlives a reload of the projects; every answer is checked against the read that asked for it.
-    agent: { run: 0, phase: 'idle', settings: null, tools: null, busy: false, readOnly: false, wokeFor: '', wokeAt: 0 }
+    agent: { run: 0, loadRun: 0, toolsPhase: 'idle', phase: 'idle', settings: null, tools: null, busy: false, readOnly: false, wokeFor: '', wokeAt: 0 }
   };
 
   const $ = (id) => document.getElementById(id);
@@ -396,13 +399,15 @@
 
   // A connection check runs a real answer on the server; wait for it, but not
   // forever.
-  async function longCall(path, options) {
+  async function longCall(path, options, flow) {
     const controller = new AbortController();
+    if (flow) flow.controllers.add(controller);
     const timer = setTimeout(() => controller.abort(), PROOF_WAIT_MS);
     try {
       return await api(path, { ...options, signal: controller.signal });
     } finally {
       clearTimeout(timer);
+      if (flow) flow.controllers.delete(controller);
     }
   }
 
@@ -509,7 +514,7 @@
     const seen = new Set();
     const connections = [];
     value.forEach((row) => {
-      if (!row || typeof row !== 'object' || row.agent_id) return;
+      if (!row || typeof row !== 'object' || row.agent_id || !['connected', 'needs_reconnect'].includes(row.status)) return;
       const id = String(row.id || '');
       const provider = String(row.provider || '');
       if (!SAFE_ID.test(id) || !PROVIDER_ID.test(provider) || seen.has(id)) return;
@@ -541,20 +546,23 @@
   // Sidekick while a connected AI runs, or a connected AI back while Sidekick runs. Nothing is disconnected.
   async function selectEngine(engine, connection, controls) {
     if (state.busy || !state.user) return;
+    const ticket = scopeTicket();
     setBusy(true, controls);
     setStatus('providers-status', '처리할 AI를 바꾸고 있어요.', false);
     try {
-      state.engineChoice = sanitizeEngineChoice(await api('/ai-engine-connections/active', {
+      const choice = sanitizeEngineChoice(await api('/ai-engine-connections/active', {
         method: 'PUT',
         body: JSON.stringify({ ...scope(), engine, ...(connection ? { connection_id: connection.id } : {}) })
       }));
+      if (!scopeCurrent(ticket)) return;
+      state.engineChoice = choice;
       setStatus('providers-status', '', false);
     } catch (error) {
-      showFailure(error, 'providers-status');
+      if (scopeCurrent(ticket)) showFailure(error, 'providers-status');
     } finally {
-      setBusy(false, controls);
+      if (scopeCurrent(ticket)) setBusy(false, controls);
     }
-    if (state.user) await reloadConnections();
+    if (scopeCurrent(ticket)) await reloadConnections();
   }
 
   // ---- Signed-in state -------------------------------------------------------
@@ -625,6 +633,7 @@
   }
 
   async function boot() {
+    if (state.flow) stopFlow(state.flow);
     const seq = ++state.seq;
     hideProjectSteps();
     if (!signedIn()) {
@@ -661,6 +670,7 @@
     let workspaces = null;
     try {
       const targets = await api('/workspaces/ai-engine-targets', { method: 'GET' });
+      if (seq !== state.seq || state.pageActive === false) return;
       workspaces = sanitizeWorkspaces(targets);
       // D79 POLISH: the server says `ai_engine` only while the person chose Sidekick AI (their connection stays saved).
       state.engineChoice = sanitizeEngineChoice(targets && targets.ai_engine);
@@ -825,18 +835,17 @@
     }
   }
 
-  async function reloadConnections() {
+  async function reloadConnections(flow) {
     if (!state.user || !state.workspaceId) return;
-    const seq = state.seq;
-    const user = state.user;
-    const workspaceId = state.workspaceId;
+    const ticket = scopeTicket();
+    const read = ++state.connectionRead;
     try {
       const connections = await api(`/ai-engine-connections?${scopeQuery()}`, { method: 'GET' });
-      if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
+      if (!scopeCurrent(ticket) || read !== state.connectionRead || (flow && !ownsFlow(flow))) return;
       state.connections = sanitizeConnections(connections);
       renderProviders();
     } catch (error) {
-      if (seq !== state.seq || user !== state.user || workspaceId !== state.workspaceId) return;
+      if (!scopeCurrent(ticket) || read !== state.connectionRead || (flow && !ownsFlow(flow))) return;
       showFailure(error, 'connections-status');
     }
   }
@@ -937,16 +946,24 @@
   // The provider's mark, for a provider that has one published (PROVIDER_LOGOS); null for any other. It is decoration:
   // the name stands right beside it, so it has no alt text. Its width and height fix its box, so the row does not move
   // when the file arrives, and a file that does not load is taken out again instead of leaving a broken-image icon. The
-  // stylesheet draws every mark in black and white (owner, 2026-10-28: "로고 색상 싹빼고").
+  // stylesheet preserves official colour and shape; the asset registry supplies dark variants.
   function providerLogo(id) {
-    if (!PROVIDER_LOGOS.includes(id)) return null;
-    // src last: the image is asked for once every other attribute is in place.
+    const registry = window.SidekickProviderLogos;
+    const entry = registry && registry[id];
+    const safe = (path) => typeof path === 'string' && /^\/assets\/[A-Za-z0-9_/-]+\.(?:png|svg|webp)$/.test(path);
+    const themed = entry && safe(entry.light) && safe(entry.dark);
+    // An installed registry deliberately omits unverified variants; keep the readable provider name.
+    if (registry && !themed && id !== 'sidekick') return null;
+    if (!themed && id !== 'sidekick' && !PROVIDER_LOGOS.includes(id)) return null;
     const logo = el('img', {
-      className: 'provider-logo', alt: '', width: PROVIDER_LOGO_SIZE, height: PROVIDER_LOGO_SIZE, decoding: 'async',
-      src: `/assets/ai/${id}.png`
+      className: themed ? '' : 'provider-logo', alt: '', width: PROVIDER_LOGO_SIZE, height: PROVIDER_LOGO_SIZE, decoding: 'async'
     });
-    logo.addEventListener('error', () => logo.remove(), { once: true });
-    return logo;
+    const picture = themed ? el('picture', { className: 'provider-logo' }, [
+      el('source', { media: '(prefers-color-scheme: dark)', srcset: entry.dark }), logo
+    ]) : logo;
+    logo.addEventListener('error', () => picture.remove(), { once: true });
+    logo.setAttribute('src', themed ? entry.light : id === 'sidekick' ? '/assets/sidekick-mark.svg' : `/assets/ai/${id}.png`);
+    return picture;
   }
 
   // The way a connection is made again: the method it was made with.
@@ -1125,7 +1142,7 @@
   function renderModels(running) {
     const control = $('model-default-control');
     if (!running) {
-      const mark = $('sidekick-ai-card').querySelector('img').cloneNode(false);
+      const mark = providerLogo('sidekick');
       mark.className = 'model-mark';
       fill(control, [el('span', { className: 'model-value' }, [mark, el('span', { text: 'Sidekick 기본' })])]);
       return;
@@ -1159,10 +1176,37 @@
 
   // ---- The connect panel -------------------------------------------------------------
 
+  function scopeTicket() {
+    return { seq: state.seq, user: state.user, workspaceId: state.workspaceId, projectId: state.projectId };
+  }
+
+  function scopeCurrent(ticket) {
+    return state.pageActive && ticket.seq === state.seq && ticket.user === state.user
+      && ticket.workspaceId === state.workspaceId && ticket.projectId === state.projectId;
+  }
+
+  function newFlow(provider, method, flowId = '') {
+    return { provider, method, flowId, authorizationUrl: '', timer: null, successTimer: null,
+      controllers: new Set(), inFlight: false, stopped: false, generation: ++state.flowGeneration, ticket: scopeTicket() };
+  }
+
+  function ownsFlow(flow) {
+    return Boolean(flow) && state.flow === flow && flow.generation === state.flowGeneration && scopeCurrent(flow.ticket);
+  }
+
+  function verificationStatus(flow, checking) {
+    if (!ownsFlow(flow)) return;
+    const status = $('connect-status');
+    status.setAttribute('aria-busy', String(checking));
+    status.classList.toggle('is-checking', checking);
+    if (flow.confirm) flow.confirm.disabled = checking;
+    setStatus('connect-status', checking ? '연결 확인 중… 실제 테스트 답변을 기다리고 있어요.' : '로그인을 기다리고 있어요.', false);
+  }
+
   function openFlow(provider, method) {
     if (state.busy) return;
     closeFlow();
-    const flow = { provider, method, flowId: '', authorizationUrl: '', timer: null, inFlight: false, stopped: false };
+    const flow = newFlow(provider, method);
     state.flow = flow;
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
@@ -1178,11 +1222,23 @@
   function stopFlow(flow) {
     flow.stopped = true;
     if (flow.timer) clearTimeout(flow.timer);
+    if (flow.successTimer) clearTimeout(flow.successTimer);
+    flow.controllers.forEach((controller) => controller.abort());
+    flow.controllers.clear();
   }
 
   function closeFlow() {
     if (state.flow) stopFlow(state.flow);
     state.flow = null;
+    state.flowGeneration += 1;
+    state.connectionRead += 1;
+    state.busy = false;
+    $('connect-status').setAttribute('aria-busy', 'false');
+    $('connect-status').classList.remove('is-checking');
+    hideFlowPanel();
+  }
+
+  function hideFlowPanel() {
     const panel = $('connect-step');
     // The focus was in the panel (its 취소 or 닫기): it goes back to the picker the panel stood in for.
     const focused = panel.contains(document.activeElement);
@@ -1194,7 +1250,7 @@
   }
 
   function live(flow) {
-    return Boolean(flow) && !flow.stopped && state.flow === flow;
+    return ownsFlow(flow) && !flow.stopped;
   }
 
   // ---- Back to the app -----------------------------------------------------------------------------
@@ -1202,10 +1258,6 @@
   // The app opens this page in the device browser (?in_app=1) and refreshes its AI connections when it is brought back to
   // the front, so the way back only has to bring the app forward. It is a button that navigates, never a link:
   // /app-mode.js un-links every anchor that is not http(s) or mailto, so a link to the app's scheme would be dead.
-  function inApp() {
-    return document.documentElement.classList.contains('in-app');
-  }
-
   function appReturnAddress(providerId) {
     const connected = typeof providerId === 'string' && PROVIDER_ID.test(providerId)
       && state.catalog.some((provider) => provider.id === providerId);
@@ -1222,54 +1274,38 @@
     return `${provider.name}${SUBJECT_WITH_I.includes(provider.id) ? '이' : '가'}`;
   }
 
-  function connectAnother() {
-    closeFlow();
-    smoothScroll($('connect-aside'));
-  }
-
-  // The panel of a connection that ended well stays, and says so. A connection saved as needs_reconnect is not finished:
-  // it keeps the warning the page has always shown, with no check mark and no way back to the app.
-  function showConnected(provider, reconnect) {
+  // Every successful method uses the same short notice. The persistent header owns app return.
+  function showConnected(provider, reconnect, flow) {
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-cancel').textContent = '닫기';
     $('connect-step').hidden = false;
     showPanelIn(provider);
+    verificationStatus(flow, false);
     setStatus('connect-status', '', false);
-    if (reconnect) {
-      fill($('connect-body'), [el('div', { className: 'connect-done is-warn', 'aria-live': 'polite' }, [
-        el('p', { text: `${provider.name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.` })
-      ])]);
-      return;
-    }
-    const back = inApp() ? el('button', {
-      className: 'ai-button', type: 'button', text: '사이드킥 앱으로 돌아가기', onClick: () => returnToApp(provider.id)
-    }) : null;
-    const another = el('button', { className: 'ai-button secondary', type: 'button', text: '다른 AI 연결하기', onClick: connectAnother });
-    const first = back || another;
-    first.setAttribute('aria-describedby', 'connect-done-title connect-done-line');
-    fill($('connect-body'), [el('div', { className: 'connect-done', 'aria-live': 'polite' }, [
-      el('span', { className: 'connected-mark', 'aria-hidden': 'true' }),
-      el('h3', { id: 'connect-done-title', text: `${subjectOf(provider)} 연결됐어요` }),
-      el('p', { id: 'connect-done-line', text: '내 모든 프로젝트의 새 업무부터 이 AI로 일해요.' }),
-      el('div', { className: 'connect-actions' }, [back, another]),
-      back ? el('p', { className: 'ai-note', text: RETURN_HINT }) : null
+    fill($('connect-body'), [el('div', { className: reconnect ? 'connect-done is-warn' : 'connect-done', 'aria-live': 'polite' }, [
+      el(reconnect ? 'p' : 'h3', { id: reconnect ? false : 'connect-done-title', text: reconnect
+        ? `${provider.name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.`
+        : `${subjectOf(provider)} 연결됐어요` })
     ])]);
-    first.focus({ preventScroll: true });
+    if (!reconnect) flow.successTimer = setTimeout(() => {
+      if (!ownsFlow(flow)) return;
+      flow.successTimer = null;
+      hideFlowPanel();
+      setPickerOpen(false);
+      const row = $('provider-list').querySelector(`[data-provider="${provider.id}"]`);
+      if (row) row.focus({ preventScroll: true });
+    }, 3000);
   }
 
   async function finishFlow(flow, connection) {
-    const name = flow.provider.name;
+    if (!live(flow)) return;
     const reconnect = Boolean(connection && connection.status === 'needs_reconnect');
-    // Only a panel the person is still looking at is kept open; one they closed while the last answer was on its way stays closed.
-    const watching = live(flow);
     stopFlow(flow);
-    setStatus('connections-status', reconnect
-      ? `${name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.`
-      : `${name} 연결됐어요. 내 모든 프로젝트의 새 업무부터 이 AI로 일해요.`, false);
-    if (watching) showConnected(flow.provider, reconnect);
-    await reloadConnections();
+    setStatus('connections-status', reconnect ? `${flow.provider.name} 연결을 저장했지만 다시 연결이 필요해요. 한 번 더 연결해 주세요.` : '', false);
+    showConnected(flow.provider, reconnect, flow);
+    await reloadConnections(flow);
+    if (!ownsFlow(flow)) return;
     renderProviders();
-    if (watching && state.flow === flow) smoothScroll($('connect-step'));
   }
 
   // Key, free and cloud connections all end in the same POST, which checks the
@@ -1277,16 +1313,19 @@
   async function submitConnection(flow, body, controls, codeCopy) {
     if (!live(flow) || state.busy) return;
     setBusy(true, controls);
-    setStatus('connect-status', PROOF_PROGRESS, false);
+    verificationStatus(flow, true);
     try {
       const connection = await longCall('/ai-engine-connections', {
         method: 'POST',
         body: JSON.stringify({ ...scope(), provider: flow.provider.id, ...body })
-      });
+      }, flow);
+      if (!live(flow)) return;
       setBusy(false, controls);
       await finishFlow(flow, connection);
     } catch (error) {
+      if (!live(flow)) return;
       setBusy(false, controls);
+      verificationStatus(flow, false);
       // A provider's own words for a code (Azure names its three fields); anything else as every form says it.
       const own = codeCopy && error && error.status !== 401 && !error.network && !error.aborted && error.code ? codeCopy[error.code] : '';
       if (live(flow)) { if (own) setStatus('connect-status', own, true); else showFailure(error, 'connect-status'); }
@@ -1416,11 +1455,13 @@
     const body = $('connect-body');
     body.replaceChildren(el('p', { className: 'ai-note', text: `${flow.provider.name} 로그인을 준비하고 있어요.` }));
     let started;
+    const controller = new AbortController();
+    flow.controllers.add(controller);
     try {
       // A browser round trip (OpenRouter) needs to know where to come back to;
       // a device code does not.
       started = await api('/ai-engine-oauth/start', {
-        method: 'POST',
+        method: 'POST', signal: controller.signal,
         body: JSON.stringify({
           ...scope(),
           provider: flow.provider.id,
@@ -1433,7 +1474,7 @@
       body.replaceChildren();
       showFailure(error, 'connect-status');
       return;
-    }
+    } finally { flow.controllers.delete(controller); }
     if (!live(flow)) return;
     flow.flowId = String(started.flow_id || '');
     flow.authorizationUrl = auth.httpsUrl(started.authorization_url);
@@ -1551,6 +1592,8 @@
         className: 'ai-button', type: 'button', text: '새 코드 받기', onClick: () => openFlow(flow.provider, flow.method)
       }));
     };
+    flow.confirm = el('button', { className: 'ai-button', type: 'button', text: '연결 확인', onClick: () => pollAccount(flow) });
+    actions.append(flow.confirm);
     fill($('connect-body'), [
       el('p', { className: 'ai-note', text: code
         ? `${name} 로그인 페이지를 열어 아래 코드를 입력하면 연결돼요.`
@@ -1586,24 +1629,28 @@
     // Returning to the tab may advance the first check, but never a wait the
     // authorization service requested after a previous check.
     if (Date.now() < (flow.nextPollAt || 0)) {
+      setStatus('connect-status', '로그인을 기다리고 있어요. 다음 확인 시간에 다시 확인할게요.', false);
       schedulePoll(flow, flow.nextPollAt - Date.now());
       return;
     }
+    if (flow.timer) clearTimeout(flow.timer);
     flow.inFlight = true;
+    verificationStatus(flow, true);
     let result = null;
     let failure = null;
     try {
       result = await longCall(`/ai-engine-oauth/${encodeURIComponent(flow.flowId)}/poll`, {
         method: 'POST',
         body: JSON.stringify({ ...scope(), provider: flow.provider.id, flow_id: flow.flowId })
-      });
+      }, flow);
     } catch (error) {
       failure = error;
     } finally {
       flow.inFlight = false;
     }
-    if (result && result.status === 'complete') { await finishFlow(flow, result.connection); return; }
     if (!live(flow)) return;
+    verificationStatus(flow, false);
+    if (result && result.status === 'complete') { await finishFlow(flow, result.connection); return; }
     const temporary = failure && ((failure.network && !failure.aborted)
       || (failure.status === 503 && failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_UNAVAILABLE'));
     if (failure && !temporary) {
@@ -1634,7 +1681,7 @@
   async function completeAccount(flow, code, callbackUrl, controls) {
     if (!live(flow) || state.busy) return;
     setBusy(true, controls);
-    setStatus('connect-status', PROOF_PROGRESS, false);
+    verificationStatus(flow, true);
     try {
       const result = await longCall(`/ai-engine-oauth/${encodeURIComponent(flow.flowId)}/complete`, {
         method: 'POST',
@@ -1645,11 +1692,15 @@
           code,
           ...(callbackUrl ? { callback_url: callbackUrl } : {})
         })
-      });
+      }, flow);
+      if (!live(flow)) return;
+      verificationStatus(flow, false);
       setBusy(false, controls);
       if (result && result.status === 'complete') { await finishFlow(flow, result.connection); return; }
       if (live(flow)) setStatus('connect-status', CODE_COPY.AI_ENGINE_ACCOUNT_CONNECTION_FAILED, true);
     } catch (error) {
+      if (!live(flow)) return;
+      verificationStatus(flow, false);
       setBusy(false, controls);
       if (live(flow)) showFailure(error, 'connect-status');
       if (error.aborted && state.user) await reloadConnections();
@@ -1701,7 +1752,7 @@
     const method = provider.methods.find((item) => item.kind === 'account')
       || { kind: 'account', flow: 'pkce', requirement: '', note: '' };
     closeFlow();
-    const flow = { provider, method, flowId: pending.flow_id, authorizationUrl: '', timer: null, inFlight: false, stopped: false };
+    const flow = newFlow(provider, method, pending.flow_id);
     state.flow = flow;
     $('connect-heading').textContent = `${provider.name} 연결`;
     $('connect-step').hidden = false;
@@ -1739,6 +1790,9 @@
     const workspace = currentWorkspace();
     if (!offer || !state.user || !workspace || !workspace.ready || state.busy) return;
     const controls = [$('handoff-connect'), $('handoff-dismiss')];
+    closeFlow();
+    const flow = newFlow({ id: 'openai', name: 'ChatGPT' }, { kind: 'account' });
+    state.flow = flow;
     const workspaceId = workspace.id;
     setBusy(true, controls);
     setStatus('handoff-status', PROOF_PROGRESS, false);
@@ -1747,8 +1801,9 @@
       result = await longCall('/ai-engine/login-handoff/claim', {
         method: 'POST',
         body: JSON.stringify({ ...scope(), state: offer.state, code: offer.code })
-      });
+      }, flow);
     } catch (error) {
+      if (!live(flow)) return;
       setBusy(false, controls);
       if (error.status === 401) { showFailure(error, 'handoff-status'); return; }
       if (HANDOFF_SPENT_COPY[error.code]) { dropHandoff(HANDOFF_SPENT_COPY[error.code], error.code !== 'AI_ENGINE_HANDOFF_ALREADY_CLAIMED'); }
@@ -1760,20 +1815,11 @@
       if (state.user && workspaceId === state.workspaceId) await reloadConnections();
       return;
     }
+    if (!live(flow)) return;
     setBusy(false, controls);
     dropHandoff('', false);
-    const connection = result && result.connection;
-    const reconnect = Boolean(connection && connection.status === 'needs_reconnect');
-    setStatus('connections-status', reconnect
-      ? 'ChatGPT 연결을 저장했지만 다시 연결이 필요해요. 아래에서 한 번 더 연결해 주세요.'
-      : 'ChatGPT 연결됐어요. 내 모든 프로젝트의 새 업무부터 이 AI로 일해요.', false);
-    if (!state.user || workspaceId !== state.workspaceId) return;
-    // The same finished state as every other way of connecting; a login being made in the panel is over.
-    closeFlow();
-    showConnected(handoffProvider(connection), reconnect);
-    await reloadConnections();
-    renderProviders();
-    smoothScroll($('connect-step'));
+    flow.provider = handoffProvider(result && result.connection);
+    await finishFlow(flow, result && result.connection);
   }
 
   // The provider a claimed ChatGPT account connected: the connection's own id when it names one the page can use,
@@ -1792,8 +1838,8 @@
   // own server and written back to it, each control one real setting:
   //   실행 방식 -- GET/PUT /hermes-agent/settings (anyone in the project reads; only the owner writes), and
   //   도구 -- the Hermes toolsets the nine names in TOOLSETS stand for, through the owner-only relay.
-  // The rules this section keeps: it is drawn only when everything it shows has been read (one sentence and a retry
-  // instead while it is read, slow, refused or unreachable); a change locks the controls, asks the server, and then draws
+  // Each group shows only values it has read; slow tools do not hide known settings.
+  // A change locks the controls, asks the server, and then draws
   // what the SERVER says -- the tools list is read again after every switch -- so a switch never shows a state the server
   // does not have; a change that fails puts the old value back with one short sentence; and the server's own sentences are
   // never shown.
@@ -1809,7 +1855,7 @@
   }
 
   function agentCurrent(ticket) {
-    return ticket.run === state.agent.run && ticket.seq === state.seq && ticket.user === state.user
+    return state.pageActive !== false && (ticket.scopeOnly || ticket.run === state.agent.run) && ticket.seq === state.seq && ticket.user === state.user
       && ticket.workspaceId === state.workspaceId && ticket.projectId === state.projectId;
   }
 
@@ -1901,41 +1947,54 @@
     api('/hermes-agent/runtime-wake', { method: 'POST', body: JSON.stringify(scope()) }).catch(() => {});
   }
 
-  // How the two reads of one load came out, as the one state the section draws.
-  function agentReadKind(settings, tools) {
-    const kinds = [settings, tools].filter((result) => result.status === 'rejected').map((result) => agentFailure(result.reason));
-    for (const kind of ['signed-out', 'slow', 'unavailable', 'network']) {
-      if (kinds.includes(kind)) return kind;
-    }
-    if (settings.status === 'rejected') return 'failed';
-    if (tools.status === 'rejected') return kinds[0] === 'owner' ? 'owner' : 'failed';
-    return 'ready';
-  }
-
   async function loadAgentSettings() {
     const agent = state.agent;
-    const ticket = agentTicket();
-    Object.assign(agent, { phase: 'loading', settings: null, tools: null, busy: false, readOnly: false });
+    const ticket = { ...agentTicket(), scopeOnly: true, load: agent.loadRun = (agent.loadRun || 0) + 1 };
+    Object.assign(agent, { phase: 'loading', toolsPhase: 'loading', settings: null, tools: null, busy: false, readOnly: false });
     setStatus('agent-settings-status', '', false);
     renderProject();
     $('agent-settings-step').hidden = false;
-    // Only the captioned project's own server is asked, and only once its AI employee space is ready.
     const project = settingsProject();
-    if (!project || !project.ready || project.id !== state.workspaceId) {
-      agent.phase = 'not-ready';
-      drawAgent();
-      return;
-    }
+    if (!project || !project.ready || project.id !== state.workspaceId) { agent.phase = 'not-ready'; drawAgent(); return; }
     drawAgent();
-    const [settings, tools] = await Promise.allSettled([readAgentSettings(), readToolsets()]);
-    if (!agentCurrent(ticket)) return;
-    const kind = agentReadKind(settings, tools);
-    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
-    if (kind === 'ready' || kind === 'owner') {
-      // An owner-only refusal of the tools still shows the settings, read-only, with the tools group saying why.
-      Object.assign(agent, { phase: 'ready', settings: settings.value, tools: kind === 'owner' ? 'owner' : tools.value, readOnly: kind === 'owner' });
-    } else {
-      agent.phase = kind;
+    const current = () => agentCurrent(ticket) && ticket.load === agent.loadRun;
+    const failed = (error, tools) => {
+      if (!current()) return;
+      const kind = agentFailure(error);
+      if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
+      if (tools) { agent.toolsPhase = kind; if (kind === 'owner') agent.readOnly = true; }
+      else agent.phase = kind;
+      if (kind === 'unavailable') wakeRuntime();
+      drawAgent();
+    };
+    await Promise.all([
+      readAgentSettings().then((settings) => {
+        if (!current()) return;
+        agent.settings = settings; agent.phase = 'ready'; drawAgent();
+      }).catch((error) => failed(error, false)),
+      readToolsets().then((tools) => {
+        if (!current()) return;
+        agent.tools = tools; agent.toolsPhase = 'ready'; drawAgent();
+      }).catch((error) => failed(error, true))
+    ]);
+  }
+
+  async function retryTools() {
+    const agent = state.agent;
+    if (agent.busy || agent.toolsPhase === 'loading') return;
+    const ticket = { ...agentTicket(), scopeOnly: true, load: agent.loadRun = (agent.loadRun || 0) + 1 };
+    agent.toolsPhase = 'loading';
+    drawAgent();
+    try {
+      const tools = await readToolsets();
+      if (!agentCurrent(ticket) || ticket.load !== agent.loadRun) return;
+      agent.tools = tools; agent.toolsPhase = 'ready';
+    } catch (error) {
+      if (!agentCurrent(ticket) || ticket.load !== agent.loadRun) return;
+      const kind = agentFailure(error);
+      if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
+      agent.toolsPhase = kind;
+      if (kind === 'owner') agent.readOnly = true;
       if (kind === 'unavailable') wakeRuntime();
     }
     drawAgent();
@@ -1944,7 +2003,7 @@
   function drawAgent(keep) {
     const agent = state.agent;
     const body = $('agent-settings-body');
-    body.setAttribute('aria-busy', agent.phase === 'loading' ? 'true' : 'false');
+    body.setAttribute('aria-busy', agent.phase === 'loading' || agent.toolsPhase === 'loading' ? 'true' : 'false');
     if (agent.phase === 'ready') {
       fill(body, [agentRunGroup(), agentToolsGroup()]);
     } else if (agent.phase === 'not-ready') {
@@ -2040,6 +2099,13 @@
 
   function agentToolsGroup() {
     const agent = state.agent;
+    if (agent.toolsPhase !== 'ready') {
+      return el('section', { className: 'settings-group', 'aria-busy': String(agent.toolsPhase === 'loading') }, [
+        el('h3', { text: '도구' }),
+        el('p', { className: 'settings-state', text: agent.toolsPhase === 'owner' ? OWNER_ONLY_COPY : AGENT_STATE_COPY[agent.toolsPhase] || AGENT_STATE_COPY.failed }),
+        agent.toolsPhase === 'loading' || agent.toolsPhase === 'owner' ? null : el('button', { className: 'ai-button secondary', type: 'button', text: '다시 시도', onClick: retryTools })
+      ]);
+    }
     if (agent.tools === 'owner') {
       return el('section', { className: 'settings-group' }, [
         el('h3', { text: '도구' }),
@@ -2079,13 +2145,14 @@
   }
 
   // A change that went through but whose result could not be read back: nothing is drawn that is not known.
-  function agentUnconfirmed(kind) {
+  function agentUnconfirmed(kind, tools = false) {
     const agent = state.agent;
     if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
     agent.busy = false;
-    agent.phase = AGENT_STATE_COPY[kind] ? kind : 'failed';
+    if (tools) agent.toolsPhase = AGENT_STATE_COPY[kind] ? kind : 'failed';
+    else agent.phase = AGENT_STATE_COPY[kind] ? kind : 'failed';
     setStatus('agent-settings-status', '', false);
-    if (agent.phase === 'unavailable') wakeRuntime();
+    if (kind === 'unavailable') wakeRuntime();
     drawAgent();
   }
 
@@ -2128,7 +2195,7 @@
   async function changeTool(tool, enabled) {
     const agent = state.agent;
     const control = `tool-${tool.name}`;
-    if (agent.phase !== 'ready' || agent.busy || agent.readOnly || !Array.isArray(agent.tools)) { drawAgent(control); return; }
+    if (agent.phase !== 'ready' || agent.toolsPhase !== 'ready' || agent.busy || agent.readOnly || !Array.isArray(agent.tools)) { drawAgent(control); return; }
     const ticket = agentTicket();
     agent.busy = true;
     lockAgentControls();
@@ -2146,7 +2213,7 @@
     try {
       tools = await readToolsets();
     } catch (error) {
-      if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error));
+      if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error), true);
       return;
     }
     if (!agentCurrent(ticket)) return;
@@ -2160,6 +2227,12 @@
   }
 
   // ---- Wiring ----------------------------------------------------------------------
+
+  window.addEventListener('pagehide', () => { closeFlow(); state.pageActive = false; state.seq += 1; state.agent.run += 1; });
+  window.addEventListener('pageshow', (event) => { if (event.persisted) { state.pageActive = true; boot(); } });
+
+  const sidekickMark = document.getElementById('sidekick-logo');
+  if (sidekickMark) sidekickMark.replaceWith(Object.assign(providerLogo('sidekick'), { id: 'sidekick-logo' }));
 
   $('connect-cancel').addEventListener('click', closeFlow);
   $('connect-open').addEventListener('click', () => {

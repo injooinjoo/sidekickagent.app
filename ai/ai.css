@@ -123,12 +123,12 @@ textarea.ai-input { padding: 10px var(--space-3); min-height: 120px; resize: ver
 .provider-card:focus-visible, .provider-card.is-requested { background: var(--gray-fill); }
 .provider-head { grid-column: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); }
 .provider-head strong { color: var(--ink); font-size: 14.5px; font-weight: 600; line-height: 1.35; }
-/* Every mark in black and white (owner, 2026-10-28: "로고 색상 싹빼고"), in the 20px box of the space scale that ai.js gives the
+/* Official marks retain their colours and shape, in the 20px box of the space scale that ai.js gives the
  * image too, so a row does not move when the file arrives and never shrinks when the name is long. */
 .provider-logo { flex: none; display: block; width: var(--space-5); height: var(--space-5); margin: 0;
-  padding: 0; border: 0; border-radius: 0; background: none; object-fit: contain; filter: grayscale(1); }
+  padding: 0; border: 0; border-radius: 0; background: none; object-fit: contain; filter: none; }
 .provider-method { grid-column: 1; margin: 0 0 0 32px; color: var(--gray-text); font-size: 12.5px; line-height: 1.35; }
-.provider-head:not(:has(> img)) + .provider-method { margin-left: 0; }
+.provider-head:not(:has(> img, > picture)) + .provider-method { margin-left: 0; }
 .provider-method.is-warn { color: var(--ink-soft); font-weight: 600; }
 /* The circle that says which one runs; pressed, it makes that one run. */
 .provider-use { grid-column: 2; grid-row: 1 / span 2; position: relative; width: var(--control-h); height: var(--control-h); padding: 0; border: 0;
@@ -214,7 +214,7 @@ html.in-app .return-top { display: inline-flex; align-items: center; min-height:
   white-space: nowrap; cursor: pointer; }
 html.in-app .return-top:hover { background: var(--sunken); }
 
-/* A connection that is finished: the panel stays and says so, with the way back to the app. The check mark is drawn here. */
+/* The short connected notice; a reconnect warning remains until the person closes it. */
 .connect-done { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-3); }
 .connect-done.is-warn { padding: var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm); background: var(--gray-fill); }
 .connect-done h3 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
@@ -234,7 +234,7 @@ html.in-app .return-top:hover { background: var(--sunken); }
 .model-text span { color: var(--gray-text); font-size: 12.5px; }
 .model-control { min-width: 0; }
 .model-value { display: inline-flex; align-items: center; gap: var(--space-2); max-width: 100%; color: var(--ink-soft); font-size: 14px; }
-.model-value img, .model-mark { flex: none; width: var(--space-5); height: var(--space-5); object-fit: contain; filter: grayscale(1); }
+.model-value img, .model-mark { flex: none; width: var(--space-5); height: var(--space-5); object-fit: contain; filter: none; }
 .model-select { max-width: 100%; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm);
   background: var(--card); color: var(--ink); font-size: 14px; }
 
@@ -304,4 +304,12 @@ fieldset.setting legend + * { clear: both; }
 .ai-catalog-title { margin: var(--space-4) 0 var(--space-2); color: var(--ink-soft); font-size: var(--text-xs); font-weight: 600; }
 .catalog-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; row-gap: 2px; }
 .catalog-line { grid-column: 1; margin: 0 0 0 32px; color: var(--ink-soft); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
-.provider-head:not(:has(> img)) ~ .catalog-line { margin-left: 0; }
+.provider-head:not(:has(> img, > picture)) ~ .catalog-line { margin-left: 0; }
+
+/* Real, indeterminate verification. Status text remains visible with reduced motion. */
+.ai-status.is-checking::before { content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 8px;
+  border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; vertical-align: -2px; animation: ai-check-spin 1s linear infinite; }
+@keyframes ai-check-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ai-status.is-checking::before { animation: none; } }
+
+.provider-logo img, .model-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }

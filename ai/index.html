@@ -66,6 +66,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/ai/ai.css" />
   <script src="/auth.js" defer></script>
+  <script src="/ai/provider-logos.js" defer></script>
   <script src="/ai/ai.js" defer></script>
 </head>
 <body>
@@ -132,7 +133,7 @@
       <h2 id="providers-heading">제공자</h2>
       <ul class="provider-list" id="provider-list">
         <li class="provider-card sidekick-row" id="sidekick-ai-card">
-          <div class="provider-head"><img class="provider-logo" src="/assets/sidekick-mark.svg" width="20" height="20" alt="" decoding="async" /><strong id="sidekick-ai-name">Sidekick</strong></div>
+          <div class="provider-head"><picture class="provider-logo" id="sidekick-logo"><img src="/assets/sidekick-mark.svg" width="20" height="20" alt="" decoding="async" /></picture><strong id="sidekick-ai-name">Sidekick</strong></div>
           <span class="provider-method" id="sidekick-ai-state">기본 제공</span>
           <button class="provider-use" type="button" id="sidekick-ai-select" aria-pressed="true" aria-label="Sidekick 쓰기"></button>
         </li>
