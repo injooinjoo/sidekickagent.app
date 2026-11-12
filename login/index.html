@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-wexuMy2UgWYbk23FDKcdjgfmSSSHejWFnYtTcOPQtyY='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-RYIc0pF2bYdbLr7QN4w+nqqO4FEatd7ykuOpVLc714k='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -61,7 +61,7 @@
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
     body { margin: 0; min-height: 100vh; min-height: 100svh; padding: 24px; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
-    main { width: min(100%, 400px); min-height: calc(100svh - 48px); margin: auto; display: flex; flex-direction: column; }
+    main { width: min(100%, 400px); min-height: calc(var(--login-visible-height, 100svh) - 48px); margin: auto; display: flex; flex-direction: column; }
     .card { flex: 1; display: flex; flex-direction: column; text-align: left; }
     .card > .brand { display: inline-flex; align-self: flex-start; margin: 18px 0 52px; }
     .brand-mark { width: 32px; height: 32px; flex: none; }
@@ -132,7 +132,20 @@
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
     [hidden] { display: none !important; }
     @media (max-height: 620px) { .card > .brand { margin: 0 0 24px; } }
-    @media (min-width: 768px) { main { min-height: min(760px, calc(100svh - 48px)); } }
+    @media (min-width: 768px) { main { min-height: min(760px, calc(var(--login-visible-height, 100svh) - 48px)); } }
+    /* iOS app browsers keep the layout viewport tall when the keyboard opens. */
+    :root[data-login-compact] body { min-height: var(--login-visible-height, 100svh); padding: 12px; }
+    :root[data-login-compact] main { min-height: 0; height: calc(var(--login-visible-height, 100svh) - 24px); overflow-y: auto; overscroll-behavior: contain; }
+    :root[data-login-compact] .card { min-height: 0; }
+    :root[data-login-compact] .card > .brand { display: none; }
+    :root[data-login-compact] #login-back { min-height: 32px; margin-bottom: 8px; padding: 4px 0; }
+    :root[data-login-compact] h1 { margin-bottom: 8px; font-size: 24px; line-height: 30px; }
+    :root[data-login-compact] #handoff-status { min-height: 0; margin-bottom: 8px; font-size: 14px; }
+    :root[data-login-compact] .choices, :root[data-login-compact] .panel, :root[data-login-compact] #email-form { min-height: 0; gap: 8px; }
+    :root[data-login-compact] input, :root[data-login-compact] .form-row button { min-height: 48px; }
+    :root[data-login-compact] #email-form button { position: sticky; bottom: 0; }
+    :root[data-login-compact] .code-cells span { height: 48px; font-size: 24px; }
+    :root[data-login-compact] .legal { margin: 8px 0 0; font-size: 11px; line-height: 1.4; }
     @media (prefers-reduced-motion: reduce) { .option { transition: none; } }
     /* Dark follows the system (issue #3777): /styles.css's dark tokens, ink fills turn light with dark text. */
     @media (prefers-color-scheme: dark) { :root { color-scheme: dark; --ink: #e0e0e0; --ink-soft: #c8c8c8; --muted: #a0a0a0; --bg: #1a1a1a; --card: #242424; --sunken: #2c2c2c; --line: #3a3a3a; --hairline: #2f2f2f; --accent: #ff7a61; --shadow: 0 0 0 1px var(--line); --on-ink: #121212; } .option.primary, .option[data-hint="true"], .option[aria-pressed="true"], .form-row button { color: #121212; } .options .option.apple { border-color: var(--line); } .brand-mark polygon[fill="#1D1919"] { fill: var(--ink); } }
