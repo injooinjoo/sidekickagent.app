@@ -112,13 +112,22 @@
         <p class="account-status" id="policy-status" aria-live="polite">실행 방식을 확인하고 있어요.</p>
         <div class="account-actions" id="policy-actions" hidden></div>
         <!-- 무료 모델 쓰기 (owner 2026-10-27): GET/PUT /settings/free-llm. "준비 중" and locked before the privacy notice's
-             effective date (2026년 11월 27일); hidden when the server does not answer. -->
+             effective date (2026년 11월 13일); hidden when the server does not answer. -->
         <label class="policy-free-llm" id="free-llm-row" hidden>
-          <input type="checkbox" id="free-llm-toggle" disabled />
+          <input type="checkbox" id="free-llm-toggle" aria-controls="free-llm-consent" disabled />
           <span class="policy-free-llm-text"><strong>무료 모델 쓰기</strong>
             <span class="account-note">대화가 모델 학습에 쓰일 수 있어요</span></span>
-          <span class="account-note" id="free-llm-status"></span>
+          <span class="account-note" id="free-llm-status" aria-live="polite"></span>
         </label>
+        <div id="free-llm-consent" role="group" aria-labelledby="free-llm-consent-title" aria-describedby="free-llm-consent-detail" hidden>
+          <p class="account-note"><strong id="free-llm-consent-title">무료 모델 사용에 동의하시겠어요?</strong></p>
+          <p class="account-note" id="free-llm-consent-detail">이 요청의 대화와 자료는 OpenRouter를 거쳐 무료 AI 모델 제공업체로 전송되며, 업체의 학습·개선에 쓰일 수 있어요. 해당 요청에는 학습 미사용·승인 지역 기준이 적용되지 않고 미국·EU 밖에서 처리될 수 있어요. 언제든 끌 수 있지만 이미 보낸 내용은 해당 업체의 보관·이용 정책을 따라요. 무료 처리는 사용량 기록에 남아요.</p>
+          <p class="account-note">Free에서는 무료 라우터로 텍스트를 처리하며 유료로 자동 전환하지 않아요. 연결한 내 AI로 텍스트를 처리할 수도 있어요. Free의 통화·음성·음악 생성은 제공하지 않아요. 유료 플랜의 기존 실행 방식은 그대로예요. <a href="/privacy/#notice-free-llm">무료 모델 이용 안내 자세히 보기</a></p>
+          <div class="account-actions">
+            <button class="account-button" type="button" id="free-llm-confirm">동의하고 켜기</button>
+            <button class="account-button secondary" type="button" id="free-llm-cancel">취소</button>
+          </div>
+        </div>
       </section>
 
       <!-- GET /usage/breakdown?period=current|previous: where the credits went (owner, 2026-10-25). Refreshed on focus and
