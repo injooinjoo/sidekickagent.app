@@ -71,10 +71,13 @@
     token: auth.token(),
     user: null,
     billing: { sales_enabled: false, mode: 'unavailable', client_key: '', plans: {}, review_checkout_allowed: false },
-    // GET /membership/catalog?schema=v3, read once. null until it answered or
-    // when it could not be read; `catalogChecked` tells those two apart.
+    // GET /membership/catalog?schema=v3 signed in; signed out, the plan prices of
+    // GET /membership/catalog/public (#4110). null until it answered or when it could not be read;
+    // `catalogChecked` tells those two apart. `catalogPublic` marks the signed-out
+    // read, so a sign-in reads the account's own catalog as before.
     catalog: null,
     catalogChecked: false,
+    catalogPublic: false,
     // The Toss config answered (or failed): until then nothing says a purchase is closed.
     billingChecked: false,
     // Item groups the server refused to sell (404 or not configured). Closed for this visit.
@@ -472,14 +475,17 @@
     render();
   }
 
-  // The v3 catalog is public product data. An old backend answers 404 here: then
-  // no catalog price is shown and both purchase groups stay 준비 중.
+  // The v3 catalog is product data. Signed out only the plan prices are public (#4110);
+  // packs and tickets are shown signed in. An old backend answers 404 here: then no catalog price is shown and
+  // both purchase groups stay 준비 중.
   async function loadCatalog() {
+    const signedIn = Boolean(state.token);
     try {
-      state.catalog = readCatalog(await api('/membership/catalog?schema=v3', { method: 'GET' }));
+      state.catalog = readCatalog(await api(signedIn ? '/membership/catalog?schema=v3' : '/membership/catalog/public', { method: 'GET' }));
     } catch (_) {
       state.catalog = null;
     }
+    state.catalogPublic = !signedIn && Boolean(state.catalog);
     state.catalogChecked = true;
     render();
   }
@@ -586,8 +592,8 @@
     render();
     await loadBillingConfig();
     await loadSubscription();
-    // The catalog answers signed-in callers only: a visitor who just signed in reads it now.
-    if (!state.catalog) await loadCatalog();
+    // A visitor who just signed in reads the account's catalog now, in place of the public one.
+    if (!state.catalog || state.catalogPublic) await loadCatalog();
     await completePendingAuthorization();
     await completePendingPurchase();
     const subscribed = Boolean(state.subscription && state.subscription.active);
