@@ -886,8 +886,8 @@
       "sha256": "4253689322b1b260c732fb8fc3f7ec7c00b150e7336a2b577b9000fb8659b513"
     },
     "landing-prices.js": {
-      "bytes": 1896,
-      "sha256": "c66668a51b51df7ad3fd9073e1e94ca661c60f72770635d7a405b772b9ec5497"
+      "bytes": 2633,
+      "sha256": "f32ac932ac862a0deb7c1b90fa0c915c03619e347579a764e2df20a438fc38a7"
     },
     "landing-start.js": {
       "bytes": 1812,
@@ -942,8 +942,8 @@
       "sha256": "e739b140ba20d3c634bf3927ac32c768a00f67ae685a9de48005241634dcc6e8"
     },
     "membership/membership.js": {
-      "bytes": 48773,
-      "sha256": "9880c20ca9a9bfa4343acd3e0a2481f56785985997a99229b44a827eac5c88dc"
+      "bytes": 49245,
+      "sha256": "53d169718cbcfde6e83f8f276793836246f9c793594373b3efd7b8b9ba62afb0"
     },
     "motion.css": {
       "bytes": 8872,
@@ -1020,5 +1020,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "d553a9a034966870d8ef03f8a64883dea3c60925"
+  "source_sha": "a188f1fa424ef04f43660a87c4e7d8ad9325525d"
 }
