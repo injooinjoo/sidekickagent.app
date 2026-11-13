@@ -161,6 +161,7 @@
 
   function showGate(message, isError) {
     state.seq += 1;
+    renderFreeLlm(null);
     stopUsageRefresh();
     $('account-loading').hidden = true;
     $('account-view').hidden = true;
@@ -850,33 +851,82 @@
     renderPolicy();
   }
 
-  // ---- 무료 모델 쓰기 (owner 2026-10-27) ------------------------------------------------
-  // GET/PUT /settings/free-llm. Before the privacy notice's date the server says available: false: "준비 중", locked.
+  // ---- 무료 모델 쓰기: explicit confirmation, scoped to this account load ----
+  const freeLlm = { value: null, busy: false, confirmSeq: null, ask: 0 };
+
   function renderFreeLlm(value) {
     const ok = Boolean(value) && typeof value.available === 'boolean';
+    freeLlm.value = ok ? value : null;
+    freeLlm.busy = false;
+    freeLlm.confirmSeq = null;
+    $('free-llm-consent').hidden = true;
+    $('free-llm-confirm').disabled = false;
+    $('free-llm-cancel').disabled = false;
     $('free-llm-row').hidden = !ok;
-    if (!ok) return;
-    $('free-llm-toggle').checked = value.available && value.opted_in === true;
-    $('free-llm-toggle').disabled = !value.available;
-    $('free-llm-status').textContent = value.available ? '' : '준비 중';
+    $('free-llm-toggle').checked = ok && value.available && value.opted_in === true;
+    $('free-llm-toggle').disabled = !ok || !value.available;
+    setStatus('free-llm-status', ok && !value.available ? '준비 중' : '', false);
   }
 
   async function loadFreeLlm(seq) {
+    const ask = ++freeLlm.ask;
     let answer = null;
     try { answer = await api('/settings/free-llm', { method: 'GET' }); } catch (_error) { answer = null; }
-    if (seq !== state.seq) return;
+    if (seq !== state.seq || ask !== freeLlm.ask) return;
     renderFreeLlm(answer);
   }
 
-  async function saveFreeLlm(on) {
+  function cancelFreeLlm() {
+    renderFreeLlm(freeLlm.value);
+    if (!$('free-llm-toggle').disabled && !$('account-view').hidden) $('free-llm-toggle').focus();
+  }
+
+  async function persistFreeLlm(on) {
+    if (freeLlm.busy || !freeLlm.value?.available || !auth.token()) return;
     const seq = state.seq;
+    const ask = ++freeLlm.ask;
+    freeLlm.busy = true;
+    freeLlm.confirmSeq = null;
+    $('free-llm-consent').hidden = true;
     $('free-llm-toggle').disabled = true;
-    let answer = null;
+    $('free-llm-confirm').disabled = true;
+    $('free-llm-cancel').disabled = true;
+    setStatus('free-llm-status', '변경을 저장하고 있어요.', false);
     try {
-      answer = await api('/settings/free-llm', { method: 'PUT', body: JSON.stringify({ opted_in: on }) });
-    } catch (_error) { answer = null; }
-    if (seq !== state.seq) return;
-    if (answer) renderFreeLlm(answer); else loadFreeLlm(seq);
+      const answer = await api('/settings/free-llm', { method: 'PUT', body: JSON.stringify({ opted_in: on }) });
+      if (seq !== state.seq || ask !== freeLlm.ask) return;
+      renderFreeLlm(answer);
+    } catch (error) {
+      if (seq !== state.seq || ask !== freeLlm.ask) return;
+      freeLlm.busy = false;
+      if (refused(error)) return;
+      await loadFreeLlm(seq);
+      if (seq === state.seq) setStatus('free-llm-status', '변경 결과를 확인하지 못했어요. 다시 확인해 주세요.', true);
+    }
+  }
+
+  async function saveFreeLlm(on) {
+    if (freeLlm.busy || !freeLlm.value?.available || !auth.token()) return;
+    if (!on) {
+      if (freeLlm.value.opted_in === true) return persistFreeLlm(false);
+      cancelFreeLlm();
+      return;
+    }
+    if (freeLlm.value.opted_in === true) { renderFreeLlm(freeLlm.value); return; }
+    freeLlm.confirmSeq = state.seq;
+    $('free-llm-toggle').checked = false;
+    $('free-llm-toggle').disabled = true;
+    $('free-llm-consent').hidden = false;
+    $('free-llm-confirm').focus();
+  }
+
+  async function confirmFreeLlm() {
+    if (freeLlm.busy || $('free-llm-consent').hidden) return;
+    if (freeLlm.confirmSeq !== state.seq || !auth.token() || $('account-view').hidden) {
+      renderFreeLlm(null);
+      return;
+    }
+    return persistFreeLlm(true);
   }
 
   function sanitizeWorkspaces(value) {
@@ -1017,6 +1067,7 @@
 
   async function boot() {
     const seq = ++state.seq;
+    renderFreeLlm(null);
     if (!auth.token()) {
       const notice = state.notice;
       state.notice = null;
@@ -1044,6 +1095,11 @@
   $('usage-current').addEventListener('click', () => choosePeriod('current'));
   POLICIES.forEach((id) => $(`policy-${id}`).addEventListener('click', () => savePolicy({ policy: id })));
   $('free-llm-toggle').addEventListener('change', (event) => saveFreeLlm(event.target.checked));
+  $('free-llm-confirm').addEventListener('click', () => confirmFreeLlm());
+  $('free-llm-cancel').addEventListener('click', () => cancelFreeLlm());
+  $('free-llm-consent').addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !freeLlm.busy) { event.preventDefault(); cancelFreeLlm(); }
+  });
   $('usage-previous').addEventListener('click', () => choosePeriod('previous'));
   if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => onVisibility());
   if (typeof window.addEventListener === 'function') window.addEventListener('focus', () => onVisibility());
