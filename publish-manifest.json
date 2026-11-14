@@ -46,16 +46,16 @@
       "sha256": "1b24d9ac43f26d16d24e3ff3a2187c63418831ebe6441bd0b3e5c4fb3b9b888c"
     },
     "ai/ai.css": {
-      "bytes": 27709,
-      "sha256": "487b29b9ebcd9c7889ab2b0e585c4541eee3568ca6643e87a357ff5e1b38028d"
+      "bytes": 24087,
+      "sha256": "6a0d996128060ba5dcbf3f3777a3b37060dba5d96d455f1ce67c4b27065dea6d"
     },
     "ai/ai.js": {
-      "bytes": 118834,
-      "sha256": "c7a37ad307cdd97aabe5119f7aa492465aebc0c7946fe333af561bdb0089a52f"
+      "bytes": 95516,
+      "sha256": "78adec6c2173ac8b858dc38ec490b1b3d92de07ae71e99688256aa4342370a87"
     },
     "ai/index.html": {
-      "bytes": 19803,
-      "sha256": "e972557990d8b00efa88717e2dc9de7a66c5656c3a9b98c00b1fd397ed3d1aa3"
+      "bytes": 19162,
+      "sha256": "4e9d93b85b88e359266c873ddc9365d8d191b77325bad227974ee88cc6ed12cf"
     },
     "ai/provider-logos.js": {
       "bytes": 2760,
@@ -866,8 +866,8 @@
       "sha256": "7cb4676f3f2a2f517e797cf534988b619c97cc66a4f0dbdc865195dfddbe4fe4"
     },
     "index.html": {
-      "bytes": 40328,
-      "sha256": "ae5064205e93cbbdfeace5ef983c4bea0a1c1ab9a6717fc23da2d9f582dc147c"
+      "bytes": 40342,
+      "sha256": "bd52e3da80e171f852f7130f60f0b36efd64a6f708514da30223158f3ae44574"
     },
     "invite/index.html": {
       "bytes": 11085,
@@ -970,12 +970,12 @@
       "sha256": "f6ecac3b252b64cc126e3f045f3de01ed18cb6514eecfe5b223ccf0e9ec4d4ca"
     },
     "support/index.html": {
-      "bytes": 14679,
-      "sha256": "5ebe2bd2b06d1100d49624d7b4b9177f24f018f8c8fb824a655adb3be4fb079e"
+      "bytes": 14659,
+      "sha256": "21f8fffffe353422418c9373e2ce7c31cfe54e6a4c21da0f034cb884f7edf795"
     },
     "terms/index.html": {
-      "bytes": 28588,
-      "sha256": "9542507399970bae69bec210a9e77a3c17c40d7cea4dd5ed9968c1b1ea5df717"
+      "bytes": 28601,
+      "sha256": "4ba67221a6f423c416478c3ecd888aa68e85e7e998d1d6b7be4140771f6a4fe4"
     },
     "use.js": {
       "bytes": 3854,
@@ -1020,5 +1020,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "a188f1fa424ef04f43660a87c4e7d8ad9325525d"
+  "source_sha": "0227bfffec9c09aea784ab1db375e60ef313f91d"
 }
