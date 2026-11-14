@@ -78,10 +78,6 @@ html.has-app-login-notice { scroll-padding-top: var(--app-login-notice-h, 0px); 
 .ai-intro > .ai-who { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: var(--space-2) 0 0;
   color: var(--gray-text); font-size: 13px; }
 .ai-who strong { color: var(--ink-soft); font-weight: 600; }
-/* Which project the 실행 설정 belong to: the AI above is the account's, the settings are one project's (owner, 2026-10-07). */
-.ai-step > .ai-project { display: inline-flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); max-width: 100%; margin: 0 0 var(--space-2);
-  color: var(--gray-text); font-size: 13px; }
-.ai-project strong { color: var(--ink-soft); overflow-wrap: anywhere; }
 /* What to do next when there is nothing to connect yet: a gray box with its actions. */
 .ai-next { margin-top: var(--space-2); padding: var(--space-4); border: 1px solid var(--gray-line); border-radius: var(--radius-md); background: var(--gray-fill); }
 .ai-next p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
@@ -130,6 +126,9 @@ textarea.ai-input { padding: 10px var(--space-3); min-height: 120px; resize: ver
 .provider-method { grid-column: 1; margin: 0 0 0 32px; color: var(--gray-text); font-size: 12.5px; line-height: 1.35; }
 .provider-head:not(:has(> img, > picture)) + .provider-method { margin-left: 0; }
 .provider-method.is-warn { color: var(--ink-soft); font-weight: 600; }
+/* A lost connection's 다시 연결, in the line that says it was lost. */
+.provider-reconnect { display: inline-flex; align-items: center; min-height: var(--control-h); padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 /* The circle that says which one runs; pressed, it makes that one run. */
 .provider-use { grid-column: 2; grid-row: 1 / span 2; position: relative; width: var(--control-h); height: var(--control-h); padding: 0; border: 0;
   background: none; cursor: pointer; }
@@ -238,46 +237,7 @@ html.in-app .return-top:hover { background: var(--sunken); }
 .model-select { max-width: 100%; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--gray-line); border-radius: var(--radius-sm);
   background: var(--card); color: var(--ink); font-size: 14px; }
 
-/* ---- AI 직원 실행 설정: the same card and rows as the lists above -- a row is its name, one short gray line and its control
- * (a segmented track or a switch). Every control is a native radio or checkbox, so the keyboard and the screen reader work
- * without help; the look is drawn around them. */
-.settings-body { margin-top: var(--space-2); padding: 0 var(--space-4); border: 1px solid var(--gray-line); border-radius: var(--radius-md); }
-.settings-body > .settings-state:first-child { margin-top: var(--space-4); }
-.settings-body > .ai-button { margin-bottom: var(--space-4); }
-.settings-group + .settings-group { border-top: 1px solid var(--gray-line); }
-.settings-group h3 { margin: 0; padding: var(--space-3) 0 var(--space-1); color: var(--gray-text); font-size: 12px; font-weight: 600; }
-.settings-state { margin: var(--space-2) 0 var(--space-3); color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
-fieldset.setting { min-width: 0; margin: 0; padding: var(--space-3) 0; border: 0; border-top: 1px solid var(--gray-line); }
-fieldset.setting legend { float: left; padding: 0; margin: 0 0 var(--space-2); color: var(--ink); font-size: 14.5px; font-weight: 600; }
-fieldset.setting legend + * { clear: both; }
-.segments { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 2px; padding: 3px;
-  border-radius: var(--radius-sm); background: var(--gray-fill); }
-.segment { position: relative; display: flex; min-width: 0; }
-.segment input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.segment span { display: flex; flex: 1; align-items: center; justify-content: center; min-height: var(--control-h); padding: 0 var(--space-3);
-  border-radius: 6px; color: var(--gray-text); font-size: 13.5px; font-weight: 600; text-align: center; line-height: 1.3; }
-.segment input:checked + span { background: var(--card); color: var(--ink); box-shadow: 0 0 0 1px var(--gray-line); }
-.segment input:focus-visible + span { outline: 2px solid var(--ink-soft); outline-offset: 1px; }
-.segment input:disabled { cursor: not-allowed; }
-.segment input:disabled + span { opacity: .55; }
-.setting .ai-note { margin-top: 6px; font-size: 12.5px; }
-.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 56px;
-  padding: var(--space-2) 0; border-top: 1px solid var(--gray-line); cursor: pointer; }
-.settings-group h3 + .switch-row { border-top: 0; }
-.switch-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.switch-text strong { font-size: 14.5px; font-weight: 600; }
-.switch-line { color: var(--gray-text); font-size: 12.5px; line-height: 1.45; }
-.switch-need { color: var(--ink-soft); font-size: 12.5px; font-weight: 600; }
-.switch { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 46px; height: 28px; margin: 0;
-  border: 1px solid var(--gray-line); border-radius: var(--radius-pill); background: var(--gray-fill); cursor: pointer; }
-.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: var(--card);
-  box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-out); }
-.switch:checked { border-color: var(--ink); background: var(--ink); }
-.switch:checked::after { transform: translateX(18px); }
-.switch:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
-.switch:disabled { cursor: not-allowed; opacity: .55; }
 @media (prefers-reduced-motion: reduce) {
-  .switch::after { transition: none; }
   .app-login-notice[data-state="checking"]::before { animation: none; }
 }
 

@@ -6,9 +6,8 @@
   // The AI is the person's, not one project's (owner, 2026-10-07): it is connected once and every project they own
   // runs on it, a project made later too, so the page has no project picker. The backend keeps one copy per project and
   // answers every AI-engine route with the account's connection whichever ready project is named
-  // (apps/backend/app/ai_engine_account.py); the page names one (state.workspaceId). The 실행 설정 at the bottom are
-  // one project's: the one the person came from, else their most recently active one, named in a caption
-  // (state.projectId).
+  // (apps/backend/app/ai_engine_account.py); the page names one (state.workspaceId) and never shows it: no AI-connection
+  // screen shows a project (owner, 2026-11-14: "LLM 연동은 계정 단위야"), so there is no per-project setting here either.
   //
   // Sign-in is the shared /auth.js. Everything else is the backend's AI-engine
   // routes, the same ones the app calls: the project list, the provider catalog,
@@ -32,7 +31,7 @@
   // was asked through. Never a token and never a code.
   const FLOW_KEY = 'sidekick_web_ai_pending_flow';
   const FLOW_MAX_AGE_MS = 30 * 60 * 1000;
-  // The project whose 실행 설정 this tab shows, so a reload keeps showing it.
+  // The project this tab asks the AI routes through, so a reload keeps asking through the same one. Never shown.
   const WORKSPACE_KEY = 'sidekick_web_ai_workspace';
   // The server proves a connection by getting one real answer through it and
   // allows that up to 180 seconds; the page waits a little longer than that.
@@ -190,9 +189,6 @@
   const NO_PROJECT_ROW = '앱에서 첫 프로젝트를 시작하면 연결할 수 있어요.';
   const NO_PROJECT_HINT = '앱에서 이미 쓰고 있다면, 앱과 다른 방법으로 로그인했을 수 있어요. 앱에서 쓰는 로그인 방법으로 다시 로그인해 보세요.';
   const NOT_READY_HINT = '앱에서 이 프로젝트를 한 번 열면 준비돼요. 그다음 아래 다시 확인을 눌러 주세요.';
-  // The 실행 설정 of a project whose AI employee space is not prepared yet (the account's AI above is connected all the
-  // same): nothing is asked of its server until it is.
-  const SETTINGS_NOT_READY_COPY = '이 프로젝트의 AI 직원 공간을 아직 준비하고 있어요. 준비가 끝나면 여기서 설정을 바꿀 수 있어요.';
   // What ends a ChatGPT sign-in's claim for good (POST /ai-engine/login-handoff/claim):
   // spent, emptied, expired or changed. Anything else leaves the offer up to try again.
   const HANDOFF_SPENT_COPY = {
@@ -210,65 +206,15 @@
   // sound (Grok, Qwen, Copilot, Portal, Bedrock, Mistral); every other name takes 가.
   const SUBJECT_WITH_I = ['xai', 'qwen', 'copilot', 'nous', 'bedrock', 'mistral'];
   const CODE_TIP = '로그인 중 문자나 메일로 받은 6자리 번호는 복사하지 말고, 키보드 위에 뜨는 제안을 눌러 입력하면 위 코드가 지워지지 않아요.';
-
-  // AI 직원 실행 설정. The settings are the app's own (hermes_agent_ops.py: GET/PUT /hermes-agent/settings) and the tools
-  // are the Hermes toolsets of the person's own server, reached through the owner-only relay the app uses
-  // (POST /hermes-agent/native/request). The words for the settings are the app's (hermesAgentSettings.js), by value.
-  const SETTINGS_READ_MS = 10000;
-  const SETTINGS_WRITE_MS = 30000;
-  const WAKE_WINDOW_MS = 20000;
-  const REASONING_OPTIONS = [
-    { id: 'low', label: '빠르게', line: '짧게 생각하고 바로 답해요' },
-    { id: 'medium', label: '보통', line: '대부분의 일에 알맞아요' },
-    { id: 'high', label: '깊게', line: '오래 생각하지만 더 꼼꼼해요' }
-  ];
-  const NATIVE_REASONING = new Map([['none', '생각 단계 없이 답하기'], ['minimal', '아주 빠르게'], ['xhigh', '아주 깊게'],
-    ['max', '최대한 깊게'], ['ultra', '가장 깊게']]);
-  const RUNTIME_OPTIONS = [{ id: 10, label: '10분' }, { id: 30, label: '30분' }, { id: 60, label: '60분' }];
-  const APPROVAL_OPTIONS = [
-    { id: 'external_only', label: '보내기 전에만', line: '메일 발송·게시·삭제처럼 밖으로 나가는 일 전에만 확인을 받아요' },
-    { id: 'every_run', label: '모든 결과 전에', line: '결과를 적용하기 전에 매번 확인을 받아요' }
-  ];
-  // The only tools this page ever switches, in the order it shows them. The names are the dashboard's toolset names; they
-  // never reach the screen. A name is put in a request path only from this list (toolsetPath), never from the server's
-  // answer, the address or the page.
-  const TOOLSETS_PATH = '/api/tools/toolsets';
-  const TOOLSETS = [
-    { name: 'computer_use', title: '컴퓨터 사용 (Computer Use)', line: '화면을 보고 직접 누르고 입력하며 일해요.' },
-    { name: 'web', title: '웹 검색·읽기', line: '인터넷에서 찾고, 웹 페이지를 읽어 와요.' },
-    { name: 'file', title: '파일 읽기·쓰기', line: '파일을 읽고, 새로 만들고, 고쳐요.' },
-    { name: 'terminal', title: '터미널 명령 실행', line: '작업 공간에서 명령을 직접 실행해요.' },
-    { name: 'code_execution', title: '코드 실행', line: '코드를 짜서 돌려 보며 계산하고 확인해요.' },
-    { name: 'vision', title: '이미지 보기', line: '사진이나 화면 속 그림을 보고 이해해요.' },
-    { name: 'image_gen', title: '이미지 만들기', line: '글로 설명한 대로 그림을 만들어 줘요.' },
-    { name: 'tts', title: '음성 만들기', line: '글을 소리 내어 읽어 줘요.' },
-    { name: 'delegation', title: '작업 나누기', line: '큰 일을 나눠서 여러 도우미에게 맡겨요.' }
-  ];
-  const AGENT_STATE_COPY = {
-    loading: '불러오는 중…',
-    slow: '설정을 불러오는 데 시간이 오래 걸리고 있어요. 잠시 뒤 다시 시도해 주세요',
-    unavailable: 'AI 직원 공간이 아직 준비되지 않았어요. 켜 달라고 요청했으니 잠시 뒤 다시 시도해 주세요',
-    network: auth.NETWORK_COPY,
-    failed: '설정을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요'
-  };
-  const OWNER_ONLY_COPY = '프로젝트 소유자만 바꿀 수 있어요';
-  const CHANGE_COPY = {
-    owner: OWNER_ONLY_COPY,
-    slow: '시간이 오래 걸려 바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요',
-    unavailable: 'AI 직원 공간이 아직 준비되지 않았어요. 잠시 뒤 다시 시도해 주세요',
-    network: auth.NETWORK_COPY,
-    failed: '설정을 바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요'
-  };
-
   const state = {
     user: null,
     workspaces: [],
     // The project the AI-engine routes are asked through. The account's AI is the same in every project, so any ready
-    // project answers for it: the settings project below when that one is ready, else the first ready one.
+    // project answers for it: the preferred project below when that one is ready, else the first ready one. Never shown.
     workspaceId: '',
-    // The project whose 실행 설정 are shown and named in their caption, never chosen on this page: the one /account/
-    // linked here with ?workspace=, else the one this tab was already showing, else the one the server marks `recent`
-    // (the project the app handed the person over from, else their most recently active one). See loadWorkspaces.
+    // The project the page would rather ask through, never chosen on this page and never shown: the one /account/
+    // linked here with ?workspace=, else the one this tab was already asking through, else the one the server marks
+    // `recent` (the project the app handed the person over from, else their most recently active one). See loadWorkspaces.
     projectId: '',
     catalog: [],
     connections: [],
@@ -287,17 +233,14 @@
     seq: 0,
 
     // /account/ links here as /ai/?workspace=<id>. Read before the address bar
-    // is cleaned below; it only picks whose 실행 설정 are shown.
+    // is cleaned below; it only picks which project the AI routes are asked through, out of sight.
     requestedWorkspace: readRequestedWorkspace(),
     // The app's AI information page links here as /ai/?provider=<id>. Read
     // before the address bar is cleaned below; once the providers are on the
     // page, that provider's card is marked and brought into view. It never
     // starts a connection by itself.
     requestedProvider: readRequestedProvider(),
-    returnedCode: readReturnedCode(),
-    // The project's 실행 설정 (see "AI 직원 실행 설정" below): which read this is, what it came to and what the controls
-    // may do. Nothing in it outlives a reload of the projects; every answer is checked against the read that asked for it.
-    agent: { run: 0, loadRun: 0, toolsPhase: 'idle', phase: 'idle', settings: null, tools: null, busy: false, readOnly: false, wokeFor: '', wokeAt: 0 }
+    returnedCode: readReturnedCode()
   };
 
   const $ = (id) => document.getElementById(id);
@@ -579,15 +522,10 @@
   }
 
   function hideProjectSteps() {
-    ['account-catalog-step', 'workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step', 'agent-settings-step'].forEach((id) => { $(id).hidden = true; });
+    ['account-catalog-step', 'workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step'].forEach((id) => { $(id).hidden = true; });
     $('provider-list').replaceChildren($('sidekick-ai-card'));
     $('provider-groups').replaceChildren();
     $('model-default-control').replaceChildren();
-    // What the last person's settings drew goes with them, not only out of sight -- the project's name too.
-    $('agent-settings-body').replaceChildren();
-    $('agent-settings-project').replaceChildren();
-    $('agent-settings-project').hidden = true;
-    setStatus('agent-settings-status', '', false);
     showNext(null);
   }
 
@@ -686,8 +624,8 @@
     const pending = readPendingFlow();
     const returning = state.returnedCode && pending ? pending.workspace_id : '';
     const known = (id) => id && workspaces.some((workspace) => workspace.id === id);
-    // Whose 실행 설정 are shown -- there is no picker. A login coming back from its provider returns to the project it
-    // was started from; then the project the person came from; then the one this tab was showing; then the one the
+    // Which project is preferred -- there is no picker and it is never shown. A login coming back from its provider returns
+    // to the project it was started from; then the project the person came from; then the one this tab was showing; then the one the
     // server marks `recent` (the app's last hand-off, else the most recently active).
     state.projectId = [
       returning,
@@ -699,9 +637,9 @@
     ].find(known) || '';
     state.requestedWorkspace = '';
     if (state.projectId) writeStore(WORKSPACE_KEY, state.projectId);
-    // Which project the AI routes are asked through: the settings project when its AI employee space is ready (so the
-    // settings below and the AI above are asked about the same one), else any ready project -- the AI is the account's.
-    const project = settingsProject();
+    // Which project the AI routes are asked through: the preferred project when it is ready, else any ready project --
+    // the AI is the account's, so every ready project answers the same.
+    const project = state.workspaces.find((workspace) => workspace.id === state.projectId) || null;
     state.workspaceId = [
       returning,
       project && project.ready ? project.id : '',
@@ -716,19 +654,6 @@
     return state.workspaces.find((workspace) => workspace.id === state.workspaceId) || null;
   }
 
-  function settingsProject() {
-    return state.workspaces.find((workspace) => workspace.id === state.projectId) || null;
-  }
-
-  // The caption over the 실행 설정: which project they are. The name is the server's, as sanitizeWorkspaces kept it.
-  function renderProject() {
-    const node = $('agent-settings-project');
-    const project = settingsProject();
-    if (!project) { node.hidden = true; node.replaceChildren(); return; }
-    fill(node, [el('span', { text: '프로젝트' }), el('strong', { text: project.name })]);
-    node.hidden = false;
-  }
-
   async function loadWorkspaceData() {
     const seq = ++state.seq;
     closeFlow();
@@ -738,9 +663,6 @@
     $('providers-step').hidden = true;
     $('connect-aside').hidden = true;
     $('models-step').hidden = true;
-    $('agent-settings-step').hidden = true;
-    $('agent-settings-body').replaceChildren();
-    setStatus('agent-settings-status', '', false);
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
     setStatus('model-status', '', false);
@@ -786,7 +708,6 @@
     setStatus('workspace-status', '', false);
     renderProviders();
     renderHandoffOffer();
-    loadAgentSettings();
   }
 
   // ---- The AI list without a project (#3913) -----------------------------------------------------------------------------
@@ -927,10 +848,21 @@
       .map((entry) => entry.provider);
   }
 
-  // Sidekick runs while no AI of the person's is connected, or while they chose it (D79 POLISH: the connection stays).
+  // Sidekick runs while no AI of the person's is connected, or while they chose it (D79 POLISH: the connection stays). A
+  // connection that was lost is not Sidekick being chosen: while it stands in for the person's AI (lostConnection), the
+  // Sidekick row is not marked.
   function sidekickInUse() {
-    return !state.connections.some((connection) => connection.connected)
-      || Boolean(state.engineChoice && state.engineChoice.engine === 'sidekick');
+    if (state.engineChoice && state.engineChoice.engine === 'sidekick') return true;
+    return !state.connections.some((connection) => connection.connected) && !lostConnection();
+  }
+
+  // The person's AI when it is a lost connection (the server lists it as `needs_reconnect`): with no working connection and
+  // Sidekick not chosen, the one they chose if it is lost, else the first lost one. null otherwise.
+  function lostConnection() {
+    const choice = state.engineChoice;
+    if ((choice && choice.engine === 'sidekick') || state.connections.some((connection) => connection.connected)) return null;
+    const lost = state.connections.filter((connection) => !connection.connected);
+    return (choice && choice.connectionId && lost.find((connection) => connection.id === choice.connectionId)) || lost[0] || null;
   }
 
   // The connection the person's work runs on now, or null while Sidekick does: the one they chose, else -- the owner's rule,
@@ -1015,18 +947,24 @@
     });
   }
 
-  // One connected provider's row.
+  // One connected provider's row. A lost one says so and offers 다시 연결 right on the row, the same way "···" does.
   function connectionRow(connection, running) {
     const provider = state.catalog.find((row) => row.id === connection.provider) || null;
     const name = provider ? provider.name : connectionProviderName(connection.provider);
     const inUse = Boolean(running) && running.id === connection.id;
+    const method = provider ? reconnectMethod(provider, connection) : null;
     return el('li', { className: 'provider-card', 'data-provider': connection.provider, 'data-connection-id': connection.id, tabindex: '-1' }, [
       el('div', { className: 'provider-head' }, [
         providerLogo(connection.provider),
         el('strong', { text: name })
       ]),
-      el('span', { className: connection.connected ? 'provider-method' : 'provider-method is-warn',
-        text: connection.connected ? connectionMethodLabel(connection) : '다시 연결 필요' }),
+      connection.connected
+        ? el('span', { className: 'provider-method', text: connectionMethodLabel(connection) })
+        : el('span', { className: 'provider-method is-warn' }, [
+          el('span', { text: '연결이 끊겼어요' }),
+          method ? el('span', { 'aria-hidden': 'true', text: ' · ' }) : null,
+          method ? el('button', { className: 'provider-reconnect', type: 'button', text: '다시 연결', onClick: () => openFlow(provider, method) }) : null
+        ]),
       useButton(name, inUse, !connection.connected, (event) => selectEngine('connected', connection, [event.currentTarget])),
       rowMenu(provider, connection)
     ]);
@@ -1141,6 +1079,13 @@
   // task and an image model have no setting behind them, so they are not drawn.
   function renderModels(running) {
     const control = $('model-default-control');
+    const lost = running ? null : lostConnection();
+    if (lost) {
+      const mark = providerLogo(lost.provider);
+      fill(control, [el('span', { className: 'model-value' }, [mark ? Object.assign(mark, { className: 'model-mark' }) : null,
+        el('span', { text: `${connectionProviderName(lost.provider)} 연결이 끊겼어요` })])]);
+      return;
+    }
     if (!running) {
       const mark = providerLogo('sidekick');
       mark.className = 'model-mark';
@@ -1830,405 +1775,9 @@
       || { id, name: providerName(id), featured: false, endpointRequired: false, methods: [] };
   }
 
-  // ---- AI 직원 실행 설정 ----------------------------------------------------------------------------
-  //
-  // Shown under the provider cards for one project, named in the caption (state.projectId; there is no picker): while it
-  // is the project the AI routes are asked through, which loadWorkspaces makes it whenever it is ready, every request
-  // below is about it (scope()). One that is not ready says so and asks nothing. Two groups, both read from the person's
-  // own server and written back to it, each control one real setting:
-  //   실행 방식 -- GET/PUT /hermes-agent/settings (anyone in the project reads; only the owner writes), and
-  //   도구 -- the Hermes toolsets the nine names in TOOLSETS stand for, through the owner-only relay.
-  // Each group shows only values it has read; slow tools do not hide known settings.
-  // A change locks the controls, asks the server, and then draws
-  // what the SERVER says -- the tools list is read again after every switch -- so a switch never shows a state the server
-  // does not have; a change that fails puts the old value back with one short sentence; and the server's own sentences are
-  // never shown.
-
-  function malformed() {
-    return Object.assign(new Error('malformed'), { status: 0, network: false });
-  }
-
-  // Every read or change is one ticket, checked when its answer arrives: an answer for another project, an earlier read
-  // or a page that has since signed out paints nothing.
-  function agentTicket() {
-    return { run: ++state.agent.run, seq: state.seq, user: state.user, workspaceId: state.workspaceId, projectId: state.projectId };
-  }
-
-  function agentCurrent(ticket) {
-    return state.pageActive !== false && (ticket.scopeOnly || ticket.run === state.agent.run) && ticket.seq === state.seq && ticket.user === state.user
-      && ticket.workspaceId === state.workspaceId && ticket.projectId === state.projectId;
-  }
-
-  async function agentCall(path, options, ms) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    try {
-      return await api(path, { ...options, signal: controller.signal });
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  function toolsetPath(name) {
-    const tool = TOOLSETS.find((item) => item.name === name);
-    return tool ? `${TOOLSETS_PATH}/${tool.name}` : '';
-  }
-
-  // The two requests this page sends through the relay, and no others: the list of toolsets, and one switch of one tool on
-  // the page's own list. (Not /api/env, not /api/config/raw, not any other write.)
-  async function relayToolsets(name, body, ms) {
-    const reading = name === undefined;
-    const path = reading ? TOOLSETS_PATH : toolsetPath(name);
-    if (!path) throw malformed();
-    const answer = await agentCall('/hermes-agent/native/request', {
-      method: 'POST',
-      body: JSON.stringify({ ...scope(), method: reading ? 'GET' : 'PUT', path, body: reading ? null : body, query: {} })
-    }, ms);
-    const status = answer && Number.isInteger(answer.status) ? answer.status : 0;
-    if (status < 200 || status >= 300) throw Object.assign(new Error('relay_refused'), { status: 0, network: false, relay: status });
-    return answer.data;
-  }
-
-  function sanitizeAgentSettings(value) {
-    const raw = value && typeof value === 'object' && value.settings && typeof value.settings === 'object' ? value.settings : null;
-    if (!raw) return null;
-    return {
-      reasoning: typeof raw.reasoning_level === 'string' ? raw.reasoning_level : '',
-      runtime: Number.isInteger(raw.max_runtime_minutes) ? raw.max_runtime_minutes : 0,
-      approval: typeof raw.approval_policy === 'string' ? raw.approval_policy : '',
-      paused: value.paused === true,
-      canPause: value.canPause !== false
-    };
-  }
-
-  // The server's list, cut down to the nine tools this page knows: in the page's order, by the page's own names. A name
-  // that is not on the page's list is dropped here, so nothing the server sends can become a row or a request path.
-  function sanitizeToolsets(value) {
-    if (!Array.isArray(value)) return null;
-    const listed = new Map();
-    value.forEach((row) => {
-      if (row && typeof row === 'object' && typeof row.name === 'string' && !listed.has(row.name)) listed.set(row.name, row);
-    });
-    return TOOLSETS.filter((tool) => listed.has(tool.name)).map((tool) => ({
-      ...tool, enabled: listed.get(tool.name).enabled === true, configured: listed.get(tool.name).configured !== false
-    }));
-  }
-
-  async function readAgentSettings() {
-    const settings = sanitizeAgentSettings(await agentCall(`/hermes-agent/settings?${scopeQuery()}`, { method: 'GET' }, SETTINGS_READ_MS));
-    if (!settings) throw malformed();
-    return settings;
-  }
-
-  async function readToolsets() {
-    const tools = sanitizeToolsets(await relayToolsets(undefined, undefined, SETTINGS_READ_MS));
-    if (!tools) throw malformed();
-    return tools;
-  }
-
-  // What a failed request means to the person. The server's code only picks the sentence.
-  function agentFailure(error) {
-    if (error && error.status === 401) return 'signed-out';
-    if (error && error.aborted) return 'slow';
-    if (error && error.network) return 'network';
-    if (error && error.status === 403) return 'owner';
-    if (error && error.status === 503) return 'unavailable';
-    return 'failed';
-  }
-
-  // The person's own server may be asleep. Asking it to wake is what the app does too (POST /hermes-agent/runtime-wake);
-  // here it is asked once per window for a project, and the answer is not waited for.
-  function wakeRuntime() {
-    const agent = state.agent;
-    const now = Date.now();
-    if (agent.wokeFor === state.workspaceId && now - agent.wokeAt < WAKE_WINDOW_MS) return;
-    agent.wokeFor = state.workspaceId;
-    agent.wokeAt = now;
-    api('/hermes-agent/runtime-wake', { method: 'POST', body: JSON.stringify(scope()) }).catch(() => {});
-  }
-
-  async function loadAgentSettings() {
-    const agent = state.agent;
-    const ticket = { ...agentTicket(), scopeOnly: true, load: agent.loadRun = (agent.loadRun || 0) + 1 };
-    Object.assign(agent, { phase: 'loading', toolsPhase: 'loading', settings: null, tools: null, busy: false, readOnly: false });
-    setStatus('agent-settings-status', '', false);
-    renderProject();
-    $('agent-settings-step').hidden = false;
-    const project = settingsProject();
-    if (!project || !project.ready || project.id !== state.workspaceId) { agent.phase = 'not-ready'; drawAgent(); return; }
-    drawAgent();
-    const current = () => agentCurrent(ticket) && ticket.load === agent.loadRun;
-    const failed = (error, tools) => {
-      if (!current()) return;
-      const kind = agentFailure(error);
-      if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
-      if (tools) { agent.toolsPhase = kind; if (kind === 'owner') agent.readOnly = true; }
-      else agent.phase = kind;
-      if (kind === 'unavailable') wakeRuntime();
-      drawAgent();
-    };
-    await Promise.all([
-      readAgentSettings().then((settings) => {
-        if (!current()) return;
-        agent.settings = settings; agent.phase = 'ready'; drawAgent();
-      }).catch((error) => failed(error, false)),
-      readToolsets().then((tools) => {
-        if (!current()) return;
-        agent.tools = tools; agent.toolsPhase = 'ready'; drawAgent();
-      }).catch((error) => failed(error, true))
-    ]);
-  }
-
-  async function retryTools() {
-    const agent = state.agent;
-    if (agent.busy || agent.toolsPhase === 'loading') return;
-    const ticket = { ...agentTicket(), scopeOnly: true, load: agent.loadRun = (agent.loadRun || 0) + 1 };
-    agent.toolsPhase = 'loading';
-    drawAgent();
-    try {
-      const tools = await readToolsets();
-      if (!agentCurrent(ticket) || ticket.load !== agent.loadRun) return;
-      agent.tools = tools; agent.toolsPhase = 'ready';
-    } catch (error) {
-      if (!agentCurrent(ticket) || ticket.load !== agent.loadRun) return;
-      const kind = agentFailure(error);
-      if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
-      agent.toolsPhase = kind;
-      if (kind === 'owner') agent.readOnly = true;
-      if (kind === 'unavailable') wakeRuntime();
-    }
-    drawAgent();
-  }
-
-  function drawAgent(keep) {
-    const agent = state.agent;
-    const body = $('agent-settings-body');
-    body.setAttribute('aria-busy', agent.phase === 'loading' || agent.toolsPhase === 'loading' ? 'true' : 'false');
-    if (agent.phase === 'ready') {
-      fill(body, [agentRunGroup(), agentToolsGroup()]);
-    } else if (agent.phase === 'not-ready') {
-      // The captioned project cannot be asked yet: what to do about it, and the same 다시 확인 as the page's own.
-      fill(body, [
-        el('p', { className: 'settings-state', text: SETTINGS_NOT_READY_COPY }),
-        el('p', { className: 'ai-note', text: NOT_READY_HINT }),
-        el('button', { className: 'ai-button secondary', type: 'button', text: '다시 확인', onClick: recheckWorkspaces })
-      ]);
-    } else {
-      fill(body, [
-        el('p', { className: 'settings-state', text: AGENT_STATE_COPY[agent.phase] || AGENT_STATE_COPY.failed }),
-        agent.phase === 'loading' ? null : el('button', { className: 'ai-button secondary', type: 'button', text: '다시 시도', onClick: () => loadAgentSettings() })
-      ]);
-    }
-    if (keep) focusAgentControl(keep);
-  }
-
-  // A redraw replaces the controls; the one the person was using gets the focus back, unless it has gone somewhere else.
-  function focusAgentControl(key) {
-    const active = document.activeElement;
-    if (active && active !== document.body) return;
-    const nodes = Array.from($('agent-settings-body').querySelectorAll('[data-control]')).filter((node) => node.getAttribute('data-control') === key);
-    const target = nodes.find((node) => node.checked) || nodes[0];
-    if (target && !target.disabled) target.focus({ preventScroll: true });
-  }
-
-  function lockAgentControls() {
-    Array.from($('agent-settings-body').querySelectorAll('[data-control]')).forEach((control) => { control.disabled = true; });
-  }
-
-  function switchRow(spec) {
-    const input = el('input', {
-      className: 'switch', type: 'checkbox', role: 'switch', disabled: spec.disabled, 'data-control': spec.control,
-      'data-tool': spec.tool || false, 'aria-label': spec.title, 'aria-describedby': `${spec.id}-line`
-    });
-    input.checked = spec.checked;
-    input.addEventListener('change', () => spec.onChange(input.checked));
-    return el('label', { className: 'switch-row' }, [
-      el('span', { className: 'switch-text' }, [
-        el('strong', { text: spec.title }),
-        el('span', { className: 'switch-line', id: `${spec.id}-line`, text: spec.line }),
-        spec.need ? el('span', { className: 'switch-need', text: spec.need }) : null
-      ]),
-      input
-    ]);
-  }
-
-  function segmentField(spec) {
-    return el('fieldset', { className: 'setting' }, [
-      el('legend', { text: spec.legend }),
-      el('div', { className: 'segments' }, spec.options.map((option) => {
-        const input = el('input', { type: 'radio', name: `agent-${spec.control}`, value: String(option.id), disabled: spec.disabled, 'data-control': spec.control });
-        input.checked = option.id === spec.value;
-        input.addEventListener('change', () => spec.onSelect(option.id));
-        return el('label', { className: 'segment' }, [input, el('span', { text: option.label })]);
-      })),
-      el('p', { className: 'ai-note', text: spec.line })
-    ]);
-  }
-
-  function agentRunGroup() {
-    const agent = state.agent;
-    const settings = agent.settings;
-    const locked = agent.busy || agent.readOnly;
-    const approval = APPROVAL_OPTIONS.find((option) => option.id === settings.approval);
-    const depth = REASONING_OPTIONS.find((option) => option.id === settings.reasoning);
-    return el('section', { className: 'settings-group' }, [
-      el('h3', { text: '실행 방식' }),
-      switchRow({
-        id: 'agent-intake', control: 'paused', title: '새 작업 받기', checked: !settings.paused, disabled: locked || !settings.canPause,
-        line: settings.paused ? '지금은 새 작업을 받지 않아요. 켜면 바로 다시 받아요' : '끄면 진행 중인 일은 끝까지 하고, 새 작업만 잠시 쉬어요',
-        need: settings.canPause ? '' : '지금은 바꿀 수 없어요',
-        onChange: (on) => changeSettings({ paused: !on }, 'paused')
-      }),
-      segmentField({
-        control: 'reasoning_level', legend: '생각 깊이', options: REASONING_OPTIONS, value: settings.reasoning, disabled: locked,
-        line: depth ? depth.line : `현재 설정: ${NATIVE_REASONING.get(settings.reasoning) || '확인 필요'}`,
-        onSelect: (id) => changeSettings({ settings: { reasoning_level: id } }, 'reasoning_level')
-      }),
-      segmentField({
-        control: 'max_runtime_minutes', legend: '한 작업에 쓰는 최대 시간', options: RUNTIME_OPTIONS, value: settings.runtime, disabled: locked,
-        line: '이 시간을 넘기면 작업을 멈추고 거기까지의 결과를 알려줘요',
-        onSelect: (id) => changeSettings({ settings: { max_runtime_minutes: id } }, 'max_runtime_minutes')
-      }),
-      segmentField({
-        control: 'approval_policy', legend: '확인 요청 기준', options: APPROVAL_OPTIONS, value: settings.approval, disabled: locked,
-        line: approval ? approval.line : '현재 설정: 확인 필요',
-        onSelect: (id) => changeSettings({ settings: { approval_policy: id } }, 'approval_policy')
-      })
-    ]);
-  }
-
-  function agentToolsGroup() {
-    const agent = state.agent;
-    if (agent.toolsPhase !== 'ready') {
-      return el('section', { className: 'settings-group', 'aria-busy': String(agent.toolsPhase === 'loading') }, [
-        el('h3', { text: '도구' }),
-        el('p', { className: 'settings-state', text: agent.toolsPhase === 'owner' ? OWNER_ONLY_COPY : AGENT_STATE_COPY[agent.toolsPhase] || AGENT_STATE_COPY.failed }),
-        agent.toolsPhase === 'loading' || agent.toolsPhase === 'owner' ? null : el('button', { className: 'ai-button secondary', type: 'button', text: '다시 시도', onClick: retryTools })
-      ]);
-    }
-    if (agent.tools === 'owner') {
-      return el('section', { className: 'settings-group' }, [
-        el('h3', { text: '도구' }),
-        el('p', { className: 'settings-state', text: OWNER_ONLY_COPY })
-      ]);
-    }
-    const locked = agent.busy || agent.readOnly;
-    const rows = agent.tools.map((tool) => switchRow({
-      id: `agent-tool-${tool.name.split('_').join('-')}`, control: `tool-${tool.name}`, tool: tool.name, title: tool.title, line: tool.line,
-      need: tool.configured ? '' : '추가 설정이 필요해요', checked: tool.enabled, disabled: locked,
-      onChange: (on) => changeTool(tool, on)
-    }));
-    return el('section', { className: 'settings-group' }, [
-      el('h3', { text: '도구' }),
-      rows.length ? null : el('p', { className: 'settings-state', text: '지금 바꿀 수 있는 도구가 없어요.' }),
-      ...rows
-    ]);
-  }
-
-  const SETTING_FIELDS = { reasoning_level: 'reasoning', max_runtime_minutes: 'runtime', approval_policy: 'approval' };
-  const KEPT_COPY = '바뀌지 않았어요. 지금 상태를 그대로 보여 드려요.';
-
-  function settingsMatch(change, settings) {
-    if (typeof change.paused === 'boolean' && settings.paused !== change.paused) return false;
-    return Object.entries(change.settings || {}).every(([key, value]) => settings[SETTING_FIELDS[key]] === value);
-  }
-
-  // A change that did not go through: the controls come back with the values they had, and one short sentence says so.
-  function agentChangeFailed(kind, control) {
-    const agent = state.agent;
-    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
-    agent.busy = false;
-    if (kind === 'owner') agent.readOnly = true;
-    if (kind === 'unavailable') wakeRuntime();
-    drawAgent(control);
-    setStatus('agent-settings-status', CHANGE_COPY[kind] || CHANGE_COPY.failed, true);
-  }
-
-  // A change that went through but whose result could not be read back: nothing is drawn that is not known.
-  function agentUnconfirmed(kind, tools = false) {
-    const agent = state.agent;
-    if (kind === 'signed-out') { signOutHere(STATUS_COPY[401]); return; }
-    agent.busy = false;
-    if (tools) agent.toolsPhase = AGENT_STATE_COPY[kind] ? kind : 'failed';
-    else agent.phase = AGENT_STATE_COPY[kind] ? kind : 'failed';
-    setStatus('agent-settings-status', '', false);
-    if (kind === 'unavailable') wakeRuntime();
-    drawAgent();
-  }
-
-  async function changeSettings(change, control) {
-    const agent = state.agent;
-    if (agent.phase !== 'ready' || agent.busy || agent.readOnly) { drawAgent(control); return; }
-    const ticket = agentTicket();
-    agent.busy = true;
-    lockAgentControls();
-    setStatus('agent-settings-status', '저장하고 있어요…', false);
-    let answer = null;
-    try {
-      answer = await agentCall('/hermes-agent/settings', {
-        method: 'PUT',
-        body: JSON.stringify({ ...scope(), settings: change.settings || {}, ...(typeof change.paused === 'boolean' ? { paused: change.paused } : {}) })
-      }, SETTINGS_WRITE_MS);
-    } catch (error) {
-      if (agentCurrent(ticket)) agentChangeFailed(agentFailure(error), control);
-      return;
-    }
-    if (!agentCurrent(ticket)) return;
-    // The server answers a change with the settings as they now are; that, not what was asked, is what is drawn.
-    let settings = sanitizeAgentSettings(answer);
-    if (!settings) {
-      try {
-        settings = await readAgentSettings();
-      } catch (error) {
-        if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error));
-        return;
-      }
-      if (!agentCurrent(ticket)) return;
-    }
-    agent.busy = false;
-    agent.settings = settings;
-    drawAgent(control);
-    const kept = settingsMatch(change, settings);
-    setStatus('agent-settings-status', kept ? '' : KEPT_COPY, !kept);
-  }
-
-  async function changeTool(tool, enabled) {
-    const agent = state.agent;
-    const control = `tool-${tool.name}`;
-    if (agent.phase !== 'ready' || agent.toolsPhase !== 'ready' || agent.busy || agent.readOnly || !Array.isArray(agent.tools)) { drawAgent(control); return; }
-    const ticket = agentTicket();
-    agent.busy = true;
-    lockAgentControls();
-    setStatus('agent-settings-status', '바꾸고 있어요…', false);
-    let answer = null;
-    try {
-      answer = await relayToolsets(tool.name, { enabled }, SETTINGS_WRITE_MS);
-    } catch (error) {
-      if (agentCurrent(ticket)) agentChangeFailed(agentFailure(error), control);
-      return;
-    }
-    if (!agentCurrent(ticket)) return;
-    // The page does not take its own word for it: the list is read again, and the switch shows what the server says now.
-    let tools;
-    try {
-      tools = await readToolsets();
-    } catch (error) {
-      if (agentCurrent(ticket)) agentUnconfirmed(agentFailure(error), true);
-      return;
-    }
-    if (!agentCurrent(ticket)) return;
-    agent.busy = false;
-    agent.tools = tools;
-    drawAgent(control);
-    const now = tools.find((item) => item.name === tool.name);
-    if (!now || now.enabled !== enabled) setStatus('agent-settings-status', KEPT_COPY, true);
-    else if (enabled && answer && answer.post_setup_started) setStatus('agent-settings-status', '켰어요. 준비에 몇 분 걸릴 수 있어요.', false);
-    else setStatus('agent-settings-status', '', false);
-  }
-
   // ---- Wiring ----------------------------------------------------------------------
 
-  window.addEventListener('pagehide', () => { closeFlow(); state.pageActive = false; state.seq += 1; state.agent.run += 1; });
+  window.addEventListener('pagehide', () => { closeFlow(); state.pageActive = false; state.seq += 1; });
   window.addEventListener('pageshow', (event) => { if (event.persisted) { state.pageActive = true; boot(); } });
 
   const sidekickMark = document.getElementById('sidekick-logo');
