@@ -67,6 +67,7 @@
   <link rel="stylesheet" href="/ai/ai.css" />
   <script src="/auth.js" defer></script>
   <script src="/ai/provider-logos.js" defer></script>
+  <script src="/ai/connect-check.js" defer></script>
   <script src="/ai/ai.js" defer></script>
 </head>
 <body>
@@ -161,17 +162,6 @@
         <p class="ai-status" id="connect-status" aria-live="polite"></p>
       </section>
     </aside>
-
-    <section class="ai-step ai-models" id="models-step" aria-labelledby="models-heading" hidden>
-      <h2 id="models-heading">작업별 모델</h2>
-      <div class="model-list">
-        <div class="model-row">
-          <div class="model-text"><strong id="model-default-label">기본 모델</strong><span id="model-default-line">새 업무가 쓰는 모델</span></div>
-          <div class="model-control" id="model-default-control"></div>
-        </div>
-      </div>
-      <p class="ai-status" id="model-status" aria-live="polite"></p>
-    </section>
 
     <footer class="footer">
       <a href="/">홈</a>

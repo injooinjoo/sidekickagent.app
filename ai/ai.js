@@ -13,7 +13,7 @@
   // routes, the same ones the app calls: the project list, the provider catalog,
   // the account logins (a device code, or a redirect that returns here), the key
   // and cloud forms, and the account's connections with
-  // their model choice and disconnect. No secret stays on this page: a key goes
+  // their disconnect. No secret stays on this page: a key goes
   // out once in a request body, and nothing this page keeps in sessionStorage is
   // a token or a code. After a ChatGPT sign-in it also offers to make that same
   // ChatGPT account the person's AI (auth.js holds the one-time claim).
@@ -62,49 +62,6 @@
   // The order of the providers (owner, 2026-10-26): ChatGPT, Claude, Gemini and Grok first, then every other one in the
   // server's order. Which providers exist is still the server's answer; this only orders them.
   const AI_ENGINE_LIST_ORDER = ['openai', 'anthropic', 'gemini', 'xai'];
-  // A model's name as people read it ('claude-sonnet-5' -> 'Sonnet 5', 'gpt-5.6-terra' -> 'GPT-5.6 Terra'): the same rules,
-  // word for word, as the app's names for models (apps/mobile/app/data/aiEngineIdentity.js MODEL_LABEL_RULES;
-  // apps/site/test_ai_connect_page.py holds the two together). A model no rule names is shown by its id.
-  const SNAPSHOT_SEGMENTS = /(?:^|[-_:])(?:\d{4}-\d{2}-\d{2}|\d{2}-\d{2}|\d{3,8})(?=$|[-_:])/g;
-  // OpenAI 가 소문자로 쓰는 크기 낱말('GPT-4o mini', 'o3 pro'). 그 밖의 낱말은 첫 글자를 대문자로 쓴다('Terra', 'Sol', 'Turbo').
-  const OPENAI_LOWER_WORDS = (['mini', 'nano', 'pro']);
-
-  function variantSuffix(rest, lowerWords = []) {
-    return String(rest || '')
-      .replace(SNAPSHOT_SEGMENTS, '')
-      .split(/[-_:\s]+/)
-      .filter(Boolean)
-      .map((word) => {
-        if (lowerWords.includes(word.toLowerCase())) return ` ${word.toLowerCase()}`;
-        return /^[a-z]/i.test(word) ? ` ${word[0].toUpperCase()}${word.slice(1)}` : ` ${word}`;
-      })
-      .join('');
-  }
-
-  // 정확한 이름표. 순서가 곧 우선순위라 앞의 규칙이 이긴다. 규칙은 (맞은 조각, 맞은 뒤에 남은 식별자)를 받는다. 작은 버전은 한두
-  // 자리뿐이라 'claude-opus-4-20250514' 의 날짜가 버전(4.20250514)으로 읽히지 않는다.
-  const MODEL_LABEL_RULES = ([
-    [/^claude-opus-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Opus ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
-    [/^claude-sonnet-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Sonnet ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
-    [/^claude-haiku-(\d+)(?:[.-](\d{1,2})(?!\d))?/i, (m) => `Haiku ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
-    [/^claude-(\d+)(?:[.-](\d+))?-(opus|sonnet|haiku)/i, (m) => `${m[3][0].toUpperCase()}${m[3].slice(1)} ${m[1]}${m[2] ? `.${m[2]}` : ''}`],
-    [/^claude$/i, () => 'Claude'],
-    [/^gpt-oss-(\d+)b/i, (m) => `GPT-OSS ${m[1]}B`],
-    [/^gpt-(\d+(?:\.\d+)?)(o)?(?![a-z0-9])/i, (m, rest) => `GPT-${m[1]}${m[2] ? 'o' : ''}${variantSuffix(rest, OPENAI_LOWER_WORDS)}`],
-    [/^o(\d+)(?![a-z0-9])/i, (m, rest) => `o${m[1]}${variantSuffix(rest, OPENAI_LOWER_WORDS)}`],
-    [/^gemini-(\d+(?:\.\d+)?)(?![a-z0-9])/i, (m, rest) => `Gemini ${m[1]}${variantSuffix(rest)}`],
-    [/^grok-(\d+)(?:[.-](\d{1,2})(?!\d))?(?![a-z0-9])/i, (m, rest) => `Grok ${m[1]}${m[2] ? `.${m[2]}` : ''}${variantSuffix(rest)}`],
-    [/^deepseek-(?:v)?(\d+(?:\.\d+)?)/i, (m) => `DeepSeek ${m[1]}`],
-    [/^deepseek-(chat|reasoner)/i, (m) => `DeepSeek ${m[1] === 'chat' ? 'V3' : 'R1'}`],
-    [/^deepseek-r(\d+)/i, (m) => `DeepSeek R${m[1]}`],
-    [/^qwen(\d+(?:\.\d+)?)/i, (m) => `Qwen ${m[1]}`],
-    [/^kimi-k(\d+)/i, (m) => `Kimi K${m[1]}`],
-    [/^glm-(\d+(?:\.\d+)?)/i, (m) => `GLM ${m[1]}`],
-    [/^minimax-(m\d+)/i, (m) => `MiniMax ${m[1].toUpperCase()}`],
-    [/^llama-(\d+(?:\.\d+)?)/i, (m) => `Llama ${m[1]}`],
-    [/^mistral-(\w+)/i, (m) => `Mistral ${m[1][0].toUpperCase()}${m[1].slice(1)}`],
-  ]);
-
   // The cloud forms ask for exactly the fields the server's credential models
   // accept (schemas.py), in the order the app asks for them.
   const CLOUD_FIELDS = {
@@ -155,8 +112,6 @@
     AI_ENGINE_CONNECTION_NOT_SUPPORTED: '아직 지원하지 않는 AI 연결이에요.',
     AI_ENGINE_ACCOUNT_CONNECTION_NOT_SUPPORTED: '이 AI는 계정 로그인 연결을 지원하지 않아요. API 키로 연결해 주세요.',
     AI_ENGINE_OAUTH_CODE_REQUIRED: '로그인 페이지에서 받은 코드를 붙여넣어 주세요.',
-    AI_ENGINE_MODEL_NOT_VERIFIED: '이 연결에서 확인된 모델만 고를 수 있어요.',
-    AI_ENGINE_MODELS_NOT_READY: '확인된 모델 목록이 아직 없어요. 잠시 뒤 다시 시도해 주세요.',
     AI_ENGINE_CONNECTION_VERIFICATION_FAILED: '연결 정보를 확인하지 못했어요. 키나 계정을 확인한 뒤 다시 시도해 주세요.',
     AI_ENGINE_CONNECTION_ANSWER_FAILED: '연결은 됐지만 AI가 테스트 답변을 하지 못했어요. 계정의 사용 한도와 모델을 확인한 뒤 다시 시도해 주세요.',
     AI_ENGINE_ACCOUNT_CONNECTION_DENIED: '로그인 페이지에서 연결을 허용하지 않았어요. 다시 시도하려면 허용해 주세요.',
@@ -444,12 +399,6 @@
     return providers;
   }
 
-  function modelList(value) {
-    return Array.isArray(value)
-      ? [...new Set(value.filter((model) => typeof model === 'string' && SAFE_ID.test(model)))]
-      : [];
-  }
-
   // The account's connections only. An employee's own AI (agent_id) belongs to one project's employee and is managed in
   // the app; the list here is the AI every project runs on.
   function sanitizeConnections(value) {
@@ -462,15 +411,11 @@
       const provider = String(row.provider || '');
       if (!SAFE_ID.test(id) || !PROVIDER_ID.test(provider) || seen.has(id)) return;
       seen.add(id);
-      const model = typeof row.model === 'string' && SAFE_ID.test(row.model) ? row.model : '';
       connections.push({
         id,
         provider,
         method: CONNECTION_METHODS[row.auth_method] || '연결',
         kind: row.auth_method === 'oauth' || row.auth_method === 'cloud' ? row.auth_method : 'credential',
-        model,
-        models: modelList([model, ...modelList(row.models)]).filter(Boolean),
-        candidates: modelList(row.candidate_models),
         connected: row.status === 'connected' && row.readiness === 'ready'
       });
     });
@@ -522,10 +467,9 @@
   }
 
   function hideProjectSteps() {
-    ['account-catalog-step', 'workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside', 'models-step'].forEach((id) => { $(id).hidden = true; });
+    ['account-catalog-step', 'workspace-step', 'handoff-step', 'connect-step', 'providers-step', 'connect-aside'].forEach((id) => { $(id).hidden = true; });
     $('provider-list').replaceChildren($('sidekick-ai-card'));
     $('provider-groups').replaceChildren();
-    $('model-default-control').replaceChildren();
     showNext(null);
   }
 
@@ -662,10 +606,8 @@
     state.connections = [];
     $('providers-step').hidden = true;
     $('connect-aside').hidden = true;
-    $('models-step').hidden = true;
     setStatus('connections-status', '', false);
     setStatus('providers-status', '', false);
-    setStatus('model-status', '', false);
     showNext(null);
     const workspace = currentWorkspace();
     if (!workspace || !workspace.ready) loadAccountCatalog(seq);
@@ -790,27 +732,6 @@
   function setBusy(busy, controls) {
     state.busy = busy;
     (controls || []).forEach((control) => { control.disabled = busy; });
-  }
-
-  async function changeModel(connection, model, controls) {
-    if (state.busy || !model || model === connection.model) return;
-    const tryingNew = !connection.models.includes(model);
-    setBusy(true, controls);
-    setStatus('model-status', tryingNew
-      ? `${modelDisplayName(model)}로 바꾸기 전에 테스트 답변을 받아 보고 있어요. 최대 3분까지 걸릴 수 있어요.`
-      : '모델을 바꾸고 있어요.', false);
-    try {
-      await longCall(`/ai-engine-connections/${encodeURIComponent(connection.id)}/model`, {
-        method: 'PUT',
-        body: JSON.stringify({ ...scope(), connection_id: connection.id, model })
-      });
-      setStatus('model-status', `${modelDisplayName(model)}로 바꿨어요.`, false);
-    } catch (error) {
-      showFailure(error, 'model-status');
-    } finally {
-      setBusy(false, controls);
-    }
-    if (state.user) await reloadConnections();
   }
 
   async function disconnectConnection(connection, controls) {
@@ -991,10 +912,8 @@
       $('provider-list').replaceChildren($('sidekick-ai-card'), ...rows);
       renderPicker();
     });
-    renderModels(running);
     $('providers-step').hidden = false;
     $('connect-aside').hidden = false;
-    $('models-step').hidden = false;
     setStatus('providers-status', state.catalog.length ? '' : '지금 연결할 수 있는 AI가 없어요. 잠시 뒤 다시 시도해 주세요.', !state.catalog.length);
     showRequestedProvider();
   }
@@ -1062,47 +981,6 @@
     if (action) action.focus({ preventScroll: true });
   }
 
-  function modelDisplayName(model) {
-    const text = typeof model === 'string' ? model.trim() : '';
-    const slash = text.lastIndexOf('/');
-    const id = (slash >= 0 ? text.slice(slash + 1) : text).replace(/:free$/i, '');
-    for (const [pattern, format] of MODEL_LABEL_RULES) {
-      const match = id.match(pattern);
-      if (match) return format(match, id.slice(match[0].length));
-    }
-    return text;
-  }
-
-  // ---- 작업별 모델 ------------------------------------------------------------------------------------------------------
-  //
-  // Only what the server has today: the model of the connection that runs (PUT /ai-engine-connections/{id}/model). Tiers by
-  // task and an image model have no setting behind them, so they are not drawn.
-  function renderModels(running) {
-    const control = $('model-default-control');
-    const lost = running ? null : lostConnection();
-    if (lost) {
-      const mark = providerLogo(lost.provider);
-      fill(control, [el('span', { className: 'model-value' }, [mark ? Object.assign(mark, { className: 'model-mark' }) : null,
-        el('span', { text: `${connectionProviderName(lost.provider)} 연결이 끊겼어요` })])]);
-      return;
-    }
-    if (!running) {
-      const mark = providerLogo('sidekick');
-      mark.className = 'model-mark';
-      fill(control, [el('span', { className: 'model-value' }, [mark, el('span', { text: 'Sidekick 기본' })])]);
-      return;
-    }
-    const name = connectionProviderName(running.provider);
-    const candidates = running.candidates.filter((model) => !running.models.includes(model));
-    const select = el('select', { className: 'model-select', 'aria-label': `${name} 모델` }, [
-      el('optgroup', { label: '확인된 모델' }, running.models.map((model) => el('option', { value: model, text: modelDisplayName(model), selected: model === running.model }))),
-      candidates.length ? el('optgroup', { label: '새로 시험할 모델' }, candidates.map((model) => el('option', { value: model, text: modelDisplayName(model) }))) : null
-    ]);
-    select.addEventListener('change', () => changeModel(running, select.value, [select]));
-    const mark = providerLogo(running.provider);
-    fill(control, [el('label', { className: 'model-value' }, [mark ? Object.assign(mark, { className: 'model-mark' }) : null, select])]);
-  }
-
   // ---- Where the connect panel sits ------------------------------------------------------------------------------------
   //
   // #connect-step lives in the aside, under the picker; while it is open it stands in for the picker. A redraw keeps the
@@ -1139,13 +1017,13 @@
     return Boolean(flow) && state.flow === flow && flow.generation === state.flowGeneration && scopeCurrent(flow.ticket);
   }
 
-  function verificationStatus(flow, checking) {
+  function verificationStatus(flow, checking, label) {
     if (!ownsFlow(flow)) return;
     const status = $('connect-status');
     status.setAttribute('aria-busy', String(checking));
     status.classList.toggle('is-checking', checking);
     if (flow.confirm) flow.confirm.disabled = checking;
-    setStatus('connect-status', checking ? '연결 확인 중… 실제 테스트 답변을 기다리고 있어요.' : '로그인을 기다리고 있어요.', false);
+    setStatus('connect-status', label || window.SidekickConnectCheck.LABELS[checking ? 'checking' : 'waiting'], false);
   }
 
   function openFlow(provider, method) {
@@ -1563,6 +1441,7 @@
     flow.timer = setTimeout(() => pollAccount(flow), delay);
   }
 
+  // Drawn as ai/connect-check.js says; a failed real-answer check waits for the person's press, never a timer or tab return.
   async function pollAccount(flow) {
     if (!live(flow) || flow.inFlight) return;
     if (Date.now() > flow.expiresAt) {
@@ -1579,12 +1458,12 @@
       return;
     }
     if (flow.timer) clearTimeout(flow.timer);
+    if (flow.phase === 'failed') { flow.phase = flow.resumePhase || 'verifying'; if (flow.retry) flow.retry.remove(); }
     flow.inFlight = true;
-    verificationStatus(flow, true);
-    let result = null;
-    let failure = null;
+    verificationStatus(flow, true, flow.phase === 'verifying' ? window.SidekickConnectCheck.LABELS.verifying : '');
+    let result = null, failure = null;
     try {
-      result = await longCall(`/ai-engine-oauth/${encodeURIComponent(flow.flowId)}/poll`, {
+      result = await longCall(`/ai-engine-oauth/${encodeURIComponent(flow.flowId)}/poll` + '?verify_next=true', {
         method: 'POST',
         body: JSON.stringify({ ...scope(), provider: flow.provider.id, flow_id: flow.flowId })
       }, flow);
@@ -1594,30 +1473,29 @@
       flow.inFlight = false;
     }
     if (!live(flow)) return;
-    verificationStatus(flow, false);
-    if (result && result.status === 'complete') { await finishFlow(flow, result.connection); return; }
-    const temporary = failure && ((failure.network && !failure.aborted)
-      || (failure.status === 503 && failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_UNAVAILABLE'));
-    if (failure && !temporary) {
-      stopFlow(flow);
-      showFailure(failure, 'connect-status');
-      // The server says the code ran out: the same way on as a code that ran out here.
-      if ((failure.status === 410 || failure.code === 'AI_ENGINE_ACCOUNT_CONNECTION_EXPIRED') && flow.onExpire) flow.onExpire();
+    const step = window.SidekickConnectCheck.next({ phase: flow.phase || 'waiting', result, failure, failures: flow.failures || 0,
+      interval: flow.interval, expiresAt: flow.expiresAt, now: Date.now() });
+    Object.assign(flow, { phase: step.phase, interval: step.interval, expiresAt: step.expiresAt, failures: step.failures, resumePhase: step.resumePhase });
+    verificationStatus(flow, step.busy, step.label);
+    if (step.phase === 'connected') { await finishFlow(flow, result.connection); return; }
+    if (step.phase === 'verifying') { flow.nextPollAt = 0; pollAccount(flow); return; }
+    if (step.phase === 'failed' || step.phase === 'expired') {
+      if (!step.retry) stopFlow(flow);
+      showFailure(step.error, 'connect-status');
+      if (step.phase === 'expired' && flow.onExpire) flow.onExpire();
+      if (step.retry && flow.confirm && live(flow)) flow.confirm.after(flow.retry = el('button', { className: 'ai-button secondary',
+        type: 'button', text: window.SidekickConnectCheck.LABELS.retry, onClick: () => pollAccount(flow) }));
       return;
     }
-    const requested = Number(result && result.poll_interval_seconds);
-    if (result && result.slow_down) flow.interval += 5000;
-    if (Number.isFinite(requested) && requested >= 2) flow.interval = Math.max(flow.interval, requested * 1000);
-    const delay = Math.min(flow.interval, Math.max(1, flow.expiresAt - Date.now() + 1));
-    flow.nextPollAt = Date.now() + delay;
-    schedulePoll(flow, delay);
+    flow.nextPollAt = Date.now() + step.delayMs;
+    schedulePoll(flow, step.delayMs);
   }
 
   // Timers in a background tab are throttled, and the moment the person comes
   // back from the login tab is exactly when the answer is ready.
   document.addEventListener('visibilitychange', () => {
     const flow = state.flow;
-    if (document.visibilityState !== 'visible' || !live(flow) || !flow.interval) return;
+    if (document.visibilityState !== 'visible' || !live(flow) || !flow.interval || flow.phase === 'failed') return;
     if (flow.onReturn) flow.onReturn();
     if (flow.timer) clearTimeout(flow.timer);
     pollAccount(flow);
