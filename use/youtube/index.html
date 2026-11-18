@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/motion.css" />
   <script src="/auth.js" defer></script>
+  <script src="/living-light.js" defer></script>
 </head>
 <body class="landing use-page">
 <header class="site-header">
@@ -58,8 +59,8 @@
         </div>
       </div>
       <div class="use-team">
-        <span class="avatar">채</span>
-        <span class="team-who"><b>채널 매니저 · 유튜브 운영 총괄</b><small>팀원 5명 · 리서처 · 작가 · 크리에이티브 · 프로듀서 · 그로스</small></span>
+        <span class="avatar">팀</span>
+        <span class="team-who"><b>팀장 · 유튜브 팀 이끌기</b><small>팀장과 이야기하며 이 프로젝트의 팀을 꾸려요</small></span>
       </div>
       <div class="actions" id="hero-actions">
         <a class="button" href="/account/" data-start="youtube">유튜브 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
@@ -86,7 +87,7 @@
           </div>
         </div>
         <ol class="story-steps" id="story-steps">
-          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>팀이 꾸려져요</h3><p><b>채널 매니저가 팀을 이끌어요.</b> 리서처·작가·크리에이티브·프로듀서·그로스가 일을 나눠 맡아요.</p></div></li>
+          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>팀이 꾸려져요</h3><p><b>팀장이 팀을 이끌어요.</b> 팀장과 이야기하며 이 프로젝트의 팀을 꾸려요.</p></div></li>
           <li class="story-step" data-step="2"><span class="step-no">2</span><div><h3>필요한 것만 물어봐요</h3><p><b>“어떤 채널을 만들고 싶으세요?”</b> 나머지는 사이드킥이 알아서 정해요.</p></div></li>
           <li class="story-step" data-step="3"><span class="step-no">3</span><div><h3>첫 작업을 바로 시작해요</h3><p><b>첫 영상 후보 3개부터 시작해요.</b> 유튜브 채널 연결은 필요할 때만 물어봐요.</p></div></li>
           <li class="story-step" data-step="4"><span class="step-no">4</span><div><h3>확인할 때만 부르고, 결과를 가져와요</h3><p><b>첫 영상을 정하기 전에 물어봐요.</b> 결과는 바로 쓸 수 있는 모습으로 도착해요.</p></div></li>
@@ -183,7 +184,7 @@
     </address>
   </footer>
 </main>
-<script type="application/json" id="use-scenario">{"slug": "youtube", "goal": "유튜브 시작하기", "short": "유튜브", "featured": true, "lead": {"name": "채널 매니저", "role": "유튜브 운영 총괄"}, "team": ["리서처", "작가", "크리에이티브", "프로듀서", "그로스"], "helpers": [], "status": "일하는 중", "connections": ["유튜브 채널"], "messages": [{"type": "team"}, {"type": "ai", "text": "어떤 채널을 만들고 싶으세요? 그것만 알려 주시면 나머지는 팀이 준비할게요."}, {"type": "me", "text": "캠핑 초보를 위한 장비 리뷰요."}, {"type": "progress", "label": "첫 영상 준비", "steps": [["요즘 반응 좋은 주제 조사", "리서처"], ["첫 영상 후보 3개", "작가"], ["썸네일 문구", "크리에이티브"]]}, {"type": "approval", "title": "첫 영상 고르기", "text": "후보 3개 중 1번 '캠핑 초보 장비 5가지'로 갈까요? 고르면 대본을 이어서 써요.", "files": ["첫 영상 후보 3개", "썸네일 문구 3가지"], "approve": "1번으로", "hold": "다른 후보"}, {"type": "result", "kicker": "보고 도착", "title": "첫 영상 대본과 썸네일 문구 준비 완료", "rows": [["대본", "6분 분량 · 장면 9개"], ["썸네일 문구", "3가지 안"]]}, {"type": "note", "text": "올리기 전에는 꼭 확인을 받아요."}]}</script>
+<script type="application/json" id="use-scenario">{"slug": "youtube", "goal": "유튜브 시작하기", "short": "유튜브", "featured": true, "lead": {"name": "팀장", "role": "유튜브 팀 이끌기"}, "team": [], "team_note": "팀장과 이야기하며 이 프로젝트의 팀을 꾸려요", "helpers": [], "status": "일하는 중", "connections": ["유튜브 채널"], "messages": [{"type": "team"}, {"type": "ai", "text": "어떤 채널을 만들고 싶으세요? 그것만 알려 주시면 나머지는 팀이 준비할게요."}, {"type": "me", "text": "캠핑 초보를 위한 장비 리뷰요."}, {"type": "progress", "label": "첫 영상 준비", "steps": ["요즘 반응 좋은 주제 조사", "첫 영상 후보 3개", "썸네일 문구"]}, {"type": "approval", "title": "첫 영상 고르기", "text": "후보 3개 중 1번 '캠핑 초보 장비 5가지'로 갈까요? 고르면 대본을 이어서 써요.", "files": ["첫 영상 후보 3개", "썸네일 문구 3가지"], "approve": "1번으로", "hold": "다른 후보"}, {"type": "result", "kicker": "보고 도착", "title": "첫 영상 대본과 썸네일 문구 준비 완료", "rows": [["대본", "6분 분량 · 장면 9개"], ["썸네일 문구", "3가지 안"]]}, {"type": "note", "text": "올리기 전에는 꼭 확인을 받아요."}]}</script>
 <script src="/landing.js" defer></script>
 <script src="/use.js" defer></script>
 </body>

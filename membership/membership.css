@@ -137,8 +137,8 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 .plan-card:nth-child(2) { animation-delay: .06s; }
 .plan-card:nth-child(3) { animation-delay: .12s; }
 .plan-card:nth-child(4) { animation-delay: .18s; }
-/* The recommended card: a light blue face and a blue edge, from the shared tokens (dark mode follows). */
-.plan-card.is-featured { border-color: var(--work); background: var(--work-bg); box-shadow: 0 0 0 1px var(--work); }
+/* The recommended card: the denser glass face, no edge (2026-11-16: emphasis is a face, never a border). */
+.plan-card.is-featured { border-color: transparent; background: var(--glass-strong); box-shadow: none; }
 .plan-card.is-current { border-color: #a9c3b3; box-shadow: 0 0 0 1px #a9c3b3; }
 /* The plan a landing link named: marked, not chosen — nothing starts until its button is pressed. */
 .plan-card.is-selected { outline: 2px solid var(--ink); outline-offset: 3px; }
@@ -165,7 +165,7 @@ input { min-width: 0; min-height: 44px; padding: 0 11px; border: 1px solid #d9d2
 @keyframes price-in { from { opacity: .25; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 .plan-includes { margin: 18px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); list-style: none;
   display: flex; flex-direction: column; gap: 12px; }
-.plan-card.is-featured .plan-includes { border-top-color: color-mix(in srgb, var(--work) 30%, transparent); }
+.plan-card.is-featured .plan-includes { border-top-color: transparent; }
 .plan-includes li { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
 .plan-includes svg { flex: 0 0 auto; width: 17px; height: 17px; margin-top: 1px; fill: none;
   stroke: var(--ink-soft); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

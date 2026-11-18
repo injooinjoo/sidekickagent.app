@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/motion.css" />
   <script src="/auth.js" defer></script>
+  <script src="/living-light.js" defer></script>
 </head>
 <body class="landing use-page">
 <header class="site-header">
@@ -58,8 +59,8 @@
         </div>
       </div>
       <div class="use-team">
-        <span class="avatar">블</span>
-        <span class="team-who"><b>블로그 매니저 · 블로그 운영 총괄</b><small>팀원 4명 · 리서처 · 작가 · 크리에이티브 · 그로스</small></span>
+        <span class="avatar">팀</span>
+        <span class="team-who"><b>팀장 · 블로그 팀 이끌기</b><small>팀장과 이야기하며 이 프로젝트의 팀을 꾸려요</small></span>
       </div>
       <div class="actions" id="hero-actions">
         <a class="button" href="/account/" data-start="blog">블로그 시작하기 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
@@ -86,7 +87,7 @@
           </div>
         </div>
         <ol class="story-steps" id="story-steps">
-          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>팀이 꾸려져요</h3><p><b>블로그 매니저가 팀을 이끌어요.</b> 리서처·작가·크리에이티브·그로스가 일을 나눠 맡아요.</p></div></li>
+          <li class="story-step" data-step="1"><span class="step-no">1</span><div><h3>팀이 꾸려져요</h3><p><b>팀장이 팀을 이끌어요.</b> 팀장과 이야기하며 이 프로젝트의 팀을 꾸려요.</p></div></li>
           <li class="story-step" data-step="2"><span class="step-no">2</span><div><h3>필요한 것만 물어봐요</h3><p><b>“어떤 블로그를 키우고 싶으세요?”</b> 나머지는 사이드킥이 알아서 정해요.</p></div></li>
           <li class="story-step" data-step="3"><span class="step-no">3</span><div><h3>첫 작업을 바로 시작해요</h3><p><b>리뷰 글 3편 초안부터 시작해요.</b> 네이버 블로그·워드프레스 연결은 필요할 때만 물어봐요.</p></div></li>
           <li class="story-step" data-step="4"><span class="step-no">4</span><div><h3>확인할 때만 부르고, 결과를 가져와요</h3><p><b>올리기 전에 꼭 물어봐요.</b> 결과는 바로 쓸 수 있는 모습으로 도착해요.</p></div></li>
@@ -183,7 +184,7 @@
     </address>
   </footer>
 </main>
-<script type="application/json" id="use-scenario">{"slug": "blog", "goal": "블로그 시작하기", "short": "블로그", "featured": true, "lead": {"name": "블로그 매니저", "role": "블로그 운영 총괄"}, "team": ["리서처", "작가", "크리에이티브", "그로스"], "helpers": [], "status": "일하는 중", "connections": ["네이버 블로그", "워드프레스"], "messages": [{"type": "team"}, {"type": "ai", "text": "어떤 블로그를 키우고 싶으세요? 네이버 블로그도, 워드프레스도 괜찮아요."}, {"type": "me", "text": "캠핑용품 리뷰 블로그요. 이번 주에 3편 올리고 싶어요."}, {"type": "progress", "label": "첫 글 준비", "steps": [["노릴 검색어 조사", "리서처"], ["제목과 본문 초안 3편", "작가"], ["사진 자리 표시", "크리에이티브"]]}, {"type": "approval", "title": "리뷰 3편 확인", "text": "초안 3편을 확인해 주세요. 확인하면 목·금·토 오전에 올릴 수 있게 정리해 둘게요.", "files": ["캠핑 의자 리뷰_초안", "썸네일 문구 3개"], "approve": "확인 완료", "hold": "수정 요청"}, {"type": "result", "kicker": "보고 도착", "title": "리뷰 3편 올릴 준비 완료", "rows": [["준비된 글", "초안 3편 · 사진 자리 표시"], ["올릴 시간", "목·금·토 오전 제안"]]}, {"type": "note", "text": "초안은 내 자료함에 저장했어요."}]}</script>
+<script type="application/json" id="use-scenario">{"slug": "blog", "goal": "블로그 시작하기", "short": "블로그", "featured": true, "lead": {"name": "팀장", "role": "블로그 팀 이끌기"}, "team": [], "team_note": "팀장과 이야기하며 이 프로젝트의 팀을 꾸려요", "helpers": [], "status": "일하는 중", "connections": ["네이버 블로그", "워드프레스"], "messages": [{"type": "team"}, {"type": "ai", "text": "어떤 블로그를 키우고 싶으세요? 네이버 블로그도, 워드프레스도 괜찮아요."}, {"type": "me", "text": "캠핑용품 리뷰 블로그요. 이번 주에 3편 올리고 싶어요."}, {"type": "progress", "label": "첫 글 준비", "steps": ["노릴 검색어 조사", "제목과 본문 초안 3편", "사진 자리 표시"]}, {"type": "approval", "title": "리뷰 3편 확인", "text": "초안 3편을 확인해 주세요. 확인하면 목·금·토 오전에 올릴 수 있게 정리해 둘게요.", "files": ["캠핑 의자 리뷰_초안", "썸네일 문구 3개"], "approve": "확인 완료", "hold": "수정 요청"}, {"type": "result", "kicker": "보고 도착", "title": "리뷰 3편 올릴 준비 완료", "rows": [["준비된 글", "초안 3편 · 사진 자리 표시"], ["올릴 시간", "목·금·토 오전 제안"]]}, {"type": "note", "text": "초안은 내 자료함에 저장했어요."}]}</script>
 <script src="/landing.js" defer></script>
 <script src="/use.js" defer></script>
 </body>

@@ -10,6 +10,10 @@
     "light": "/assets/ai/anthropic.png",
     "dark": "/assets/ai/anthropic.png"
   },
+  "arcee": {
+    "light": "/assets/ai/arcee.png",
+    "dark": "/assets/ai/arcee.png"
+  },
   "copilot": {
     "light": "/assets/ai/copilot-light.svg",
     "dark": "/assets/ai/copilot-dark.svg"
@@ -25,6 +29,10 @@
   "gemini": {
     "light": "/assets/ai/gemini.png",
     "dark": "/assets/ai/gemini.png"
+  },
+  "gmi": {
+    "light": "/assets/ai/gmi.png",
+    "dark": "/assets/ai/gmi-dark.png"
   },
   "huggingface": {
     "light": "/assets/ai/huggingface.png",
@@ -60,7 +68,7 @@
   },
   "ollama-cloud": {
     "light": "/assets/ai/ollama-cloud.png",
-    "dark": "/assets/ai/ollama-cloud.png"
+    "dark": "/assets/ai/ollama-cloud-dark.png"
   },
   "openai": {
     "light": "/assets/ai/openai-light.svg",
@@ -80,11 +88,15 @@
   },
   "stepfun": {
     "light": "/assets/ai/stepfun.png",
-    "dark": "/assets/ai/stepfun.png"
+    "dark": "/assets/ai/stepfun-dark.png"
   },
   "tencent-tokenhub": {
     "light": "/assets/ai/tencent-tokenhub.png",
     "dark": "/assets/ai/tencent-tokenhub.png"
+  },
+  "vertex": {
+    "light": "/assets/ai/vertex.png",
+    "dark": "/assets/ai/vertex.png"
   },
   "xai": {
     "light": "/assets/ai/xai-light.svg",
