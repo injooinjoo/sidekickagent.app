@@ -55,7 +55,7 @@
   // catalog's own. A provider that is not listed keeps the text-only card; nothing is ever asked of another host.
   const PROVIDER_LOGOS = [
     'anthropic', 'copilot', 'deepseek', 'gemini', 'kimi', 'meta', 'minimax', 'mistral',
-    'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai',
+    'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai', 'arcee', 'gmi', 'vertex',
     'ai-gateway', 'fireworks', 'huggingface', 'kilocode', 'novita', 'ollama-cloud', 'stepfun', 'tencent-tokenhub', 'xiaomi'
   ];
   const PROVIDER_LOGO_SIZE = 20;

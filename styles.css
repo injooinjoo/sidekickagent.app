@@ -16,43 +16,49 @@
  * /membership/membership.css still reads them. */
 :root {
   color-scheme: light dark;
-  --ink: #1b1a18;
-  --ink-soft: #3d3b37;
-  --muted: #6e6b64;
-  --soft: #a19d94;
-  --bg: #faf9f6;
-  --card: #ffffff;
-  --sunken: #f2f0ea;
-  --line: #e7e4dc;
-  --line-soft: #eeebe4;
-  --hairline: #efece6;
+  --ink: #161b22;
+  --ink-soft: #1f252c;
+  --muted: #2b323b;
+  --soft: #2b323b;
+  --bg: transparent;
+  --card: rgba(255, 255, 255, 0.46);
+  --sunken: rgba(22, 27, 34, 0.05);
+  --line: transparent;
+  --line-soft: transparent;
+  --hairline: transparent;
   --brand: #ff330d;
-  --accent: #b3230a;
-  --accent-soft: #fff1ee;
-  --accent-border: #ffcec4;
-  --warm: #f2f0ea;
+  --accent: #161b22;
+  --accent-soft: rgba(255, 51, 13, 0.12);
+  --accent-border: transparent;
+  --warm: rgba(22, 27, 34, 0.05);
   --warning: #8a5300;
   --warning-bg: #faf0e1;
   --positive: #2f6b45;
   --positive-bg: #e7eee6;
   --work: #1f6a7d;
   --work-bg: #e4eef2;
-  --dark: #1b1a18;
+  --dark: #161b22;
   --dark-card: #2a2825;
   --dark-line: rgba(255, 255, 255, 0.1);
   --dark-muted: #a8a39a;
-  --shadow: 0 18px 50px rgba(27, 26, 24, 0.07);
-  --shadow-sm: 0 4px 16px rgba(27, 26, 24, 0.05);
+  --shadow: none;
+  --shadow-sm: none;
   /* Surfaces that only had a literal colour, so the dark block below can flip them. */
   --on-ink: #fff;
   --ink-hover: #2b3036;
-  --line-strong: #c9cfd6;
-  --header-bg: rgba(255, 255, 255, 0.9);
-  --bar-bg: rgba(247, 248, 250, 0.94);
-  --glow: #f5e7db;
-  --day-bg: #ede8df;
+  --line-strong: transparent;
+  --header-bg: rgba(255, 255, 255, 0.46);
+  --bar-bg: rgba(255, 255, 255, 0.62);
+  --glow: rgba(255, 255, 255, 0.3);
+  --day-bg: rgba(255, 255, 255, 0.46);
   /* The sticky header's height, for anything that scrolls a heading into view
      and must not land it under the bar. Redefined for the two-row phone bar. */
+  /* Living light (owner 2026-11-16): the page has no ground of its own. /living-light.js paints the
+     app's moving stage behind everything; --stage-ground is what shows without WebGL. Surfaces are
+     glass, never borders or shadows. --glass-strong is for what floats over text (sheets, dialogs). */
+  --stage-ground: hsl(16 80% 82%);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass-blur: blur(22px) saturate(1.4);
   --header-h: 64px;
   --section-y: clamp(88px, 10vw, 144px);
   --section-y-lg: clamp(120px, 14vw, 200px);
@@ -96,37 +102,39 @@
    The /v2/ prototype (noindex) is drawn over a light photo and stays light. */
 @media (prefers-color-scheme: dark) {
   :root:not(:has(> body.v2)) {
-    --ink: #e0e0e0;
-    --ink-soft: #c8c8c8;
-    --muted: #a0a0a0;
-    --soft: #7a7a7a;
-    --bg: #1a1a1a;
-    --card: #242424;
-    --sunken: #2c2c2c;
-    --line: #3a3a3a;
-    --line-soft: #2f2f2f;
-    --hairline: #2f2f2f;
-    --accent: #ff7a61;
-    --accent-soft: #3a1a14;
-    --accent-border: #6b2a1e;
-    --warm: #2c2c2c;
+    --ink: #eef2f6;
+    --ink-soft: #dde3e9;
+    --muted: #d5dce3;
+    --soft: #d5dce3;
+    --bg: transparent;
+    --card: rgba(18, 24, 32, 0.5);
+    --sunken: rgba(255, 255, 255, 0.06);
+    --line: transparent;
+    --line-soft: transparent;
+    --hairline: transparent;
+    --accent: #eef2f6;
+    --accent-soft: rgba(255, 122, 97, 0.16);
+    --accent-border: transparent;
+    --warm: rgba(255, 255, 255, 0.06);
     --warning: #e0a85a;
     --warning-bg: #33280f;
     --positive: #8ccb9c;
     --positive-bg: #1c3324;
     --work: #7cc4d8;
     --work-bg: #16303a;
-    --dark: #121212;
+    --dark: #0e1218;
     --dark-card: #242424;
-    --shadow: 0 0 0 1px var(--line);
-    --shadow-sm: 0 0 0 1px var(--line);
-    --on-ink: #121212;
-    --ink-hover: #c8c8c8;
-    --line-strong: #4a4a4a;
-    --header-bg: rgba(26, 26, 26, 0.9);
-    --bar-bg: rgba(26, 26, 26, 0.94);
-    --glow: #3a1a14;
-    --day-bg: #242424;
+    --shadow: none;
+    --shadow-sm: none;
+    --on-ink: #161b22;
+    --ink-hover: #c9d1da;
+    --line-strong: transparent;
+    --header-bg: rgba(18, 24, 32, 0.5);
+    --bar-bg: rgba(18, 24, 32, 0.64);
+    --glow: rgba(255, 255, 255, 0.06);
+    --stage-ground: hsl(16 52% 13%);
+    --glass-strong: rgba(18, 24, 32, 0.8);
+    --day-bg: rgba(18, 24, 32, 0.5);
   }
   /* The dark-ink logo files read as light ink; the brand orange keeps its hue. */
   body:not(.v2) img[src$="/sidekick-wordmark.png"], body:not(.v2) img[src$="/sidekick-mark.svg"] { filter: invert(1) hue-rotate(180deg); }
@@ -135,7 +143,9 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--stage-ground); }
+/* The living light's canvas (/living-light.js): fixed behind every page, never in the way. */
+.stage-light { position: fixed; inset: 0; z-index: -1; display: block; width: 100%; height: 100%; pointer-events: none; }
 body {
   margin: 0;
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
@@ -1374,7 +1384,7 @@ h1, h2, h3 { word-break: keep-all; overflow-wrap: break-word; text-wrap: balance
 .account-pill, .button, .product-story .goal-tile, .product-story .revise-sample,
 .product-story .demo-phone .btn-row button { border-radius: 10px; font-weight: 500; }
 .account-pill, .button, .product-story .goal-tile:first-child,
-.product-story .revise-sample { background: var(--ink); border-color: var(--ink); color: var(--bg); min-height: var(--control-h); }
+.product-story .revise-sample { background: var(--ink); border-color: var(--ink); color: var(--on-ink); min-height: var(--control-h); }
 .product-story .goal-tile:not(:first-child) { background: transparent; border: 1px solid var(--line); color: var(--ink); }
 .product-story .promise-card, .product-story .team-stage,
 .product-story .work-stage, .product-story .approval-stage, .product-story .film-frame { border-radius: var(--radius-xl); box-shadow: none; }
@@ -1463,7 +1473,7 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 /* A day moves with native scrolling; smaller screens read the three scenes in order. */
 .product-story .day-goals { justify-content: flex-start; gap: 8px; margin: 24px 0 0; }
 .product-story .day-goals .goal-chip { padding: 8px 14px; font-size: 13px; min-height: 44px; background: transparent; }
-.product-story .day-goals .goal-chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.product-story .day-goals .goal-chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
 .product-story .day-goals .goal-chip[aria-pressed="true"] svg { color: inherit; }
 .product-story .day-story { margin-top: 32px; }
 .product-story .day-scene { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; }
@@ -1477,7 +1487,7 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 .product-story .day-sample .thread-head { padding-bottom: 14px; }
 .product-story .day-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 .product-story .day-actions .goal-chip { background: var(--card); font: inherit; font-size: 12px; cursor: pointer; min-height: 44px; }
-.product-story .day-actions a.goal-chip { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.product-story .day-actions a.goal-chip { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
 .product-story .day-rail { display: none; }
 @media (min-width: 701px) and (prefers-reduced-motion: no-preference) {
   .product-story .day.day-enhanced { height: 300vh; padding-bottom: 0; }
@@ -1531,7 +1541,7 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 .product-story .start-input-row { display: flex; gap: 12px; align-items: center; padding: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
 .product-story .start-input-row input { min-width: 0; flex: 1; padding: 12px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 18px; }
 .product-story .start-input-row input::placeholder { color: var(--muted); }
-.product-story .start-input-row button { flex-shrink: 0; width: 48px; height: 48px; border: 0; border-radius: 10px; background: var(--ink); color: var(--bg); font: inherit; font-size: 24px; cursor: pointer; }
+.product-story .start-input-row button { flex-shrink: 0; width: 48px; height: 48px; border: 0; border-radius: 10px; background: var(--ink); color: var(--on-ink); font: inherit; font-size: 24px; cursor: pointer; }
 .product-story .start-recommendation { min-height: 24px; margin: 12px 0 0; color: var(--muted); font-size: 13px; }
 .product-story .start .goal-chips li:nth-child(n+3) { display: block; }
 .product-story .start .goal-chips li .goal-chip { background: transparent; color: var(--ink); border: 1px solid var(--line); }
@@ -1553,3 +1563,26 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 
 .product-story .start .goal-chips li:first-child .goal-chip { background: transparent; border-color: var(--line); color: var(--ink); }
 .product-story .start-note a { color: var(--ink); }
+
+/* Living light (owner 2026-11-16) ------------------------------------------------------------
+   The page has no ground of its own: /living-light.js paints the app's moving stage behind it.
+   Page-wide bands are see-through so the light runs the whole page. Cards and controls are glass
+   (var(--card)). Whatever floats over text (the header, sheets, menus, toasts, the consent bar)
+   is the denser glass with a blur, so words scrolling behind never show through.
+   No borders and no shadows: faces and spacing separate things. */
+.site-header { -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.signin-inner, .signin-sheet.phone-first dialog, .account-menu, .maintenance-notice,
+.product-story .availability-toast, .app-login-notice, .provider-menu, .sidekick-consent {
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: transparent;
+  box-shadow: none;
+}
+@media (max-width: 700px) {
+  .cta-bar:not([hidden]) { background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+}
+.landing .tone-white, .landing .how, .landing .pricing, .landing .start, .landing .use-week, .landing .use-faq,
+.use-page .use-hero, .product-story .how, .product-story .film-feature, .product-story .footer {
+  background: transparent;
+}

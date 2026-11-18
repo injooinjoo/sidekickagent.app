@@ -314,6 +314,7 @@
     card.appendChild(el('div', 'kicker', role.short + ' 팀이 꾸려졌어요'));
     card.appendChild(teamRow(role.lead.name.charAt(0), false, role.lead.name, role.lead.role, '맡았어요', 'work'));
     if (role.team && role.team.length) card.appendChild(teamRow('+' + role.team.length, true, '팀원 ' + role.team.length + '명', role.team.join(' · '), '함께해요', 'idle'));
+    else if (role.team_note) card.appendChild(teamRow('+', true, '팀원', role.team_note, '함께해요', 'idle'));
     if (role.helpers && role.helpers.length) card.appendChild(teamRow('+' + role.helpers.length, true, '알바 ' + role.helpers.length + '명', role.helpers.join(' · '), '필요할 때', 'idle'));
     return card;
   }
