@@ -56,7 +56,8 @@
   const PROVIDER_LOGOS = [
     'anthropic', 'copilot', 'deepseek', 'gemini', 'kimi', 'meta', 'minimax', 'mistral',
     'nous', 'nvidia', 'openai', 'openrouter', 'qwen', 'xai', 'zai', 'arcee', 'gmi', 'vertex',
-    'ai-gateway', 'fireworks', 'huggingface', 'kilocode', 'novita', 'ollama-cloud', 'stepfun', 'tencent-tokenhub', 'xiaomi'
+    'ai-gateway', 'fireworks', 'huggingface', 'kilocode', 'novita', 'ollama-cloud', 'stepfun', 'tencent-tokenhub', 'xiaomi',
+    '9router', 'alibaba-cloud', 'azure-foundry', 'bedrock', 'omniroute', 'opencode'
   ];
   const PROVIDER_LOGO_SIZE = 20;
   // The order of the providers (owner, 2026-10-26): ChatGPT, Claude, Gemini and Grok first, then every other one in the
