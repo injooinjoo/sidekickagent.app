@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "458c863bfb8c35a04d6940666f9ebc9a16bac35e0c2311f5c1ff64d9a79fd379",
+  "export_rules_sha256": "ec9a877e4631b3d44e970acb6ec3c655429cb97da97b07cd0e2f92d96798c9b0",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -50,8 +50,8 @@
       "sha256": "d2993201ffaf7ba0dcbf11822f2a04dae78b0e349cfbf66e14447cbf839533a7"
     },
     "ai/ai.js": {
-      "bytes": 88915,
-      "sha256": "66eb40ff3b40df53859f03ad58edf2604a1cfbc20bc6212fced112a7020e5ce4"
+      "bytes": 89000,
+      "sha256": "e3d333fd94a313a08d5a202b88b9f68760cb376415a7e0313abd7349f285e008"
     },
     "ai/connect-check.js": {
       "bytes": 3010,
@@ -89,9 +89,17 @@
       "bytes": 5568,
       "sha256": "8e7d915b8ee26d26447ff47c1bd80e50d7ca868af4c6487bdf4be88b140520b2"
     },
+    "assets/ai/9router.png": {
+      "bytes": 11228,
+      "sha256": "9f7ef4181dc37cd5e2fc8c94039aacb8a1c30887848cfc2ef78058bc612792b7"
+    },
     "assets/ai/ai-gateway.png": {
       "bytes": 2419,
       "sha256": "1c0aa1796cc217d8445545f22493e61459aac2b2fb2ca980303168137d2260b8"
+    },
+    "assets/ai/alibaba-cloud.png": {
+      "bytes": 23428,
+      "sha256": "a91a8bb3aa16b5fb30fcadfb7b5647f3df7e6054cfe9c31856009e19f7361d64"
     },
     "assets/ai/anthropic.png": {
       "bytes": 23088,
@@ -100,6 +108,14 @@
     "assets/ai/arcee.png": {
       "bytes": 11632,
       "sha256": "db12d928706558a04d4e374f70405cafff368c4859bbc9d9ec545b71b926f01e"
+    },
+    "assets/ai/azure-foundry.png": {
+      "bytes": 15799,
+      "sha256": "552cccbe7a6997e4efa5e330408f8850934cc7b96947f5648c14b172c75207c6"
+    },
+    "assets/ai/bedrock.png": {
+      "bytes": 11877,
+      "sha256": "95908d2433fbce96468649468799c515a583fb2a8edef5e1749ef9bdb824aebb"
     },
     "assets/ai/copilot-dark.svg": {
       "bytes": 2006,
@@ -185,6 +201,10 @@
       "bytes": 8879,
       "sha256": "e9640688b7acfbf202f36d23d5684bac48576020e36b91293ad175449a11c2a2"
     },
+    "assets/ai/omniroute.png": {
+      "bytes": 14242,
+      "sha256": "3b58a9f03b5a7574b936312f17c990c1f9942c28beaeb72df9515f0359712a45"
+    },
     "assets/ai/openai-dark.svg": {
       "bytes": 1751,
       "sha256": "43d25078f2ce5a3b45701327798662776d9281dfd577200b0569694afdd330e8"
@@ -196,6 +216,10 @@
     "assets/ai/openai.png": {
       "bytes": 10724,
       "sha256": "e4f1fdf9facd1eccfa3604cd291953eb012108295eea8bdf97a016d2cf4a38b2"
+    },
+    "assets/ai/opencode.png": {
+      "bytes": 976,
+      "sha256": "6bfb5fc85896b297ea2c6f4408c770d99e467ec6ae6b3f9061ff75bbb1da2421"
     },
     "assets/ai/openrouter-dark.svg": {
       "bytes": 558,
@@ -1052,5 +1076,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "b03e9ee1f97ac939153b524d2d8f2f043d5ac3ab"
+  "source_sha": "e00419fcf2cea13798dd15bdc10c9922cba24cfb"
 }
