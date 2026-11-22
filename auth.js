@@ -206,6 +206,7 @@
     '      <div id="handoff-choices" class="choices">',
     '          <button type="button" id="handoff-phone" class="option primary" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">휴대폰 번호로 시작하기</button>',
     '        <button type="button" id="otp-toggle" class="quiet" aria-haspopup="dialog">다른 방법으로 로그인</button>',
+    '        <a class="quiet app-login-link" href="/login/">앱으로 로그인</a>',
     '        <dialog id="login-methods" aria-labelledby="login-methods-title">',
     '          <div class="sheet-heading"><h2 id="login-methods-title">다른 방법으로 로그인</h2><button type="button" id="login-methods-close" class="quiet">닫기</button></div>',
     '        <div class="options" role="group" aria-label="로그인 방법">',
@@ -3132,6 +3133,9 @@
     forgetChatGptHandoff,
     appWebHandoff,
     webHandoffWorkspace,
+    adoptSignIn, loginMode: () => (loginInput && ['app', 'web'].includes(loginInput.mode) ? loginInput.mode : 'none'),
+    // login-with-app.js: the Turnstile token spent as sendCode spends it (null when off; '' after the wait sentence).
+    humanCheckToken: () => { if (!TURNSTILE_SITE_KEY) return null; const t = turnstile.token; if (!t) { sayTurnstile(TURNSTILE_WAIT_COPY); return ''; } holdTurnstileToken(''); turnstile.stale = true; prepareTurnstile(); return t; },
     token: () => session.token,
     user: () => session.user
   });

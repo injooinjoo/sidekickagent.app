@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-5oXpZTMYFmXvRc50BL04Tvp7RbGYTrsbAjGYIInUQQk='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-yG/DXCh385ZPSBy/+5nB4SPY8G4JPM7CtNiDzNKmwe8='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -130,6 +130,12 @@
     .legal { margin: 18px 8px 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; text-align: center; }
     .legal a { color: var(--ink-soft); font-weight: 600; text-underline-offset: 3px; }
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    /* The 앱으로 로그인 door under the code button and its waiting panel (login-with-app.js). */
+    #email-form #login-with-app { position: static; align-self: center; margin-top: 0; }
+    .app-login { display: flex; flex-direction: column; gap: 12px; }
+    .app-login p { margin: 0; }
+    .app-login-qr { display: block; width: min(100%, 240px); height: auto; margin: 0 auto; background: #ffffff; border-radius: var(--radius-md); }
+    .app-login-qr path { fill: #000000; }
     [hidden] { display: none !important; }
     @media (max-height: 620px) { .card > .brand { margin: 0 0 24px; } }
     @media (min-width: 768px) { main { min-height: min(760px, calc(var(--login-visible-height, 100svh) - 48px)); } }
@@ -152,6 +158,7 @@
 </style>
   <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>
+  <script src="/login-with-app.js" defer></script>
   <script src="/living-light.js" defer></script>
 </head>
 <body>
@@ -189,7 +196,13 @@
               <div class="number-line"><span id="phone-prefix" hidden><small>+82</small>010</span><input id="email" name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
               <button type="submit">인증번호 받기</button>
             </div>
+            <button type="button" id="login-with-app" class="quiet" hidden>앱으로 로그인</button>
           </form>
+          <div id="app-login-panel" class="app-login" hidden>
+            <div id="app-login-waiting"><svg id="app-login-qr" class="app-login-qr" viewBox="0 0 41 41" role="img" aria-label="로그인 요청 큐알코드" focusable="false"><path id="app-login-qr-path" d=""/></svg><p>휴대폰의 사이드킥 앱으로 이 큐알코드를 찍고, 앱에서 승인해 주세요.</p><p id="app-login-left" class="note"></p></div>
+            <p id="app-login-status" class="form-status" role="status" aria-live="polite"></p>
+            <div class="code-actions"><button type="button" id="app-login-renew" class="quiet" hidden>새로 만들기</button><button type="button" id="app-login-code" class="quiet">인증번호로 로그인</button><button type="button" id="app-login-cancel" class="quiet">취소</button></div>
+          </div>
           <form id="code-form" hidden>
             <label for="code" id="code-label">인증번호 6자리</label>
             <div class="form-row">

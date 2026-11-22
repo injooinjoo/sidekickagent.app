@@ -526,6 +526,8 @@ li + li { margin-top: 8px; }
 .signin-sheet.phone-first .turnstile-slot { display: flex; justify-content: center; }
 .signin-sheet.phone-first .turnstile-slot:empty { display: none; }
 .signin-sheet.phone-first .quiet { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-decoration: none; }
+/* 앱으로 로그인 (#6028): a link to /login/'s QR door, drawn like the quiet button above it. */
+.signin-sheet.phone-first .app-login-link { display: flex; align-items: center; justify-content: center; }
 .signin-sheet.phone-first #login-back { align-self: flex-start; margin: 0 0 16px; }
 .signin-sheet.phone-first .code-actions { display: flex; justify-content: space-between; gap: 16px; }
 .signin-sheet.phone-first dialog { inset: auto 0 0; width: min(100%, 480px); max-height: calc(100svh - 24px); overflow-y: auto; margin: auto auto 0; padding: 24px 24px max(24px, env(safe-area-inset-bottom)); border: 1px solid var(--line); border-radius: 24px 24px 0 0; background: var(--card); color: var(--ink); }
@@ -792,14 +794,6 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .team-who small { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
 
 /* How it works: three steps in the order the person lives them. */
-.how .wrap-wide { display: flex; flex-direction: column; gap: var(--space-10); }
-.how-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); }
-.how-step { margin: 0; display: flex; flex-direction: column; }
-.how-step h3 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.02em; }
-.how-step > p { margin: 0; font-size: var(--text-md); line-height: 1.7; color: var(--muted); }
-.how-ui { margin-top: var(--space-5); padding: var(--space-4); border-radius: var(--radius-xl); background: var(--bg); font-size: 12.5px; line-height: 1.45; }
-.how-ui p { font-size: inherit; margin: 0; color: inherit; }
-.how-ui > :first-child { margin-top: 0; }
 .step-no { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex: 0 0 auto; }
 
 /* Why it is safe: three plain sentences. */
@@ -1098,29 +1092,9 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .product-story .section-p { color: var(--story-muted); font-size: 18px; line-height: 1.65; }
 .product-story .sec-head { text-align: center; width: 100%; max-width: none; }
 .product-story .sec-head .section-p { margin-inline: auto; max-width: 650px; }
-.product-story .work-layout { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 64px; }
-.product-story .how-steps { display: flex; flex-direction: column; gap: 44px; }
-.product-story .how-step { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .product-story .step-no { align-self: start; justify-content: flex-start; font-size: 44px; line-height: 1; color: var(--story-accent); background: none; padding: 0; width: auto; height: auto; border: 0; font-weight: 500; }
-.product-story .how-step h3 { color: var(--ink); font-size: 22px; line-height: 1.4; margin: 0 0 12px; letter-spacing: -.025em; }
-.product-story .how-step p { margin: 0; color: var(--story-muted); font-size: 16px; line-height: 1.7; }
-.product-story .work-stage { position: relative; padding: 32px; background: var(--story-stage); border-radius: 24px; }
-.product-story .sample-paper { padding: 30px; background: var(--card); border-radius: 16px; box-shadow: 0 8px 28px #1b1a1805; }
 .product-story .sample-caption { margin: 0 0 20px; color: var(--story-muted); font-size: 12px; }
-.product-story .sample-content { min-height: 330px; }
-.product-story .sample-content h3 { font-size: 25px; letter-spacing: -.025em; line-height: 1.4; margin: 0 0 28px; }
-.product-story .sample-content h4 { font-size: 13px; margin: 24px 0 10px; }
-.product-story .sample-content p, .product-story .sample-content li { font-size: 14px; line-height: 1.8; color: var(--ink-soft); }
-.product-story .sample-content ol { padding-left: 20px; margin: 0; }
-.product-story .sample-content li { padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
-.product-story .sample-content li:last-child { border: 0; }
-.product-story .sample-controls { display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 20px; }
 .product-story [hidden] { display: none !important; }
-.product-story .sample-switch { display: flex; width: 100%; gap: 10px; }
-.product-story .sample-switch button, .product-story .revise-sample { font: inherit; font-size: 13px; border: 0; border-radius: 99px; padding: 12px 20px; min-height: 44px; cursor: pointer; }
-.product-story .sample-switch button { flex: 1; color: var(--ink-soft); background: var(--line); border-radius: 10px; }
-.product-story .sample-switch button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
-.product-story .revise-sample { position: absolute; right: 18px; top: -20px; color: #fff; background: var(--story-accent); border-bottom-right-radius: 6px; }
 .product-story .trust-layout { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 72px; }
 .product-story .approval-stage { position: relative; min-height: 540px; display: flex; align-items: center; background: var(--story-stage); border-radius: 24px; padding: 36px 28px 190px 70px; isolation: isolate; }
 .product-story .companion-art { position: absolute; width: 180px; height: 180px; left: 18px; bottom: 4px; }
@@ -1204,24 +1178,8 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
   .product-story .section-p { font-size: 15px; line-height: 1.75; word-break: keep-all; overflow-wrap: break-word; }
   .product-story .sec-head .section-p { margin: 18px 0 0; }
   .product-story .work-layout, .product-story .trust-layout { grid-template-columns: 1fr; gap: 32px; }
-  .product-story .how-steps { gap: 0; }
-  .product-story .how-step { position: relative; grid-template-columns: 30px minmax(0, 1fr); gap: 16px; padding-bottom: 28px; }
-  .product-story .how-step:last-child { padding-bottom: 0; }
-  .product-story .how-step:not(:last-child)::after { content: ""; position: absolute; left: 11px; top: 34px; bottom: 9px; width: 1px; background: var(--line); }
   .product-story .step-no { font-size: 20px; font-weight: 650; line-height: 1.4; }
-  .product-story .how-step h3 { font-size: 18px; line-height: 1.45; margin-bottom: 8px; word-break: keep-all; }
-  .product-story .how-step p { font-size: 14px; line-height: 1.7; word-break: keep-all; }
-  .product-story .work-stage { display: flex; flex-direction: column; gap: 14px; padding: 14px; width: calc(100% + 16px); margin-left: -8px; }
-  .product-story .sample-paper { order: 2; padding: 22px 20px; border-radius: 18px; }
   .product-story .sample-caption { font-size: 11px; line-height: 1.5; margin-bottom: 18px; }
-  .product-story .sample-content { min-height: 0; }
-  .product-story .sample-content h3 { font-size: 23px; line-height: 1.4; word-break: keep-all; margin-bottom: 24px; }
-  .product-story .sample-content p, .product-story .sample-content li { font-size: 14px; line-height: 1.75; word-break: keep-all; }
-  .product-story .sample-content h4 { margin-top: 20px; }
-  .product-story .sample-controls { display: contents; }
-  .product-story .sample-switch { order: 1; gap: 4px; background: var(--line); padding: 4px; border-radius: 15px; }
-  .product-story .sample-switch button { min-height: 44px; padding: 10px; border-radius: 11px; font-weight: 600; }
-  .product-story .revise-sample { order: 3; position: static; align-self: flex-end; font-size: 12px; padding: 12px 18px; margin: 0 2px 2px; border-radius: 16px 16px 5px 16px; }
   .product-story .trust-copy { grid-row: 1; }
   .product-story .trust-list { gap: 0; margin-top: 28px; }
   .product-story .trust-list li { gap: 14px; padding: 20px 0; border-bottom: 1px solid var(--line-soft); }
@@ -1381,16 +1339,15 @@ h1, h2, h3 { word-break: keep-all; overflow-wrap: break-word; text-wrap: balance
 .product-story .motion-band { margin: 0; }
 
 /* Quiet controls and open, paper-like demonstrations. */
-.account-pill, .button, .product-story .goal-tile, .product-story .revise-sample,
+.account-pill, .button, .product-story .goal-tile,
 .product-story .demo-phone .btn-row button { border-radius: 10px; font-weight: 500; }
-.account-pill, .button, .product-story .goal-tile:first-child,
-.product-story .revise-sample { background: var(--ink); border-color: var(--ink); color: var(--on-ink); min-height: var(--control-h); }
+.account-pill, .button, .product-story .goal-tile:first-child { background: var(--ink); border-color: var(--ink); color: var(--on-ink); min-height: var(--control-h); }
 .product-story .goal-tile:not(:first-child) { background: transparent; border: 1px solid var(--line); color: var(--ink); }
 .product-story .promise-card, .product-story .team-stage,
-.product-story .work-stage, .product-story .approval-stage, .product-story .film-frame { border-radius: var(--radius-xl); box-shadow: none; }
+.product-story .approval-stage, .product-story .film-frame { border-radius: var(--radius-xl); box-shadow: none; }
 .product-story .trust .approval-stage, .product-story .trust .promise-card { background: var(--card); }
 .product-story .promise-ico { background: var(--sunken); }
-.product-story .sample-paper, .product-story .approval-paper { box-shadow: none; }
+.product-story .approval-paper { box-shadow: none; }
 .role-phone, .product-story .role-phone.demo-phone {
   border: 1px solid var(--line); border-radius: 16px; box-shadow: none;
   background: var(--card); padding: 16px 16px 0;
@@ -1399,15 +1356,12 @@ h1, h2, h3 { word-break: keep-all; overflow-wrap: break-word; text-wrap: balance
 .product-story .team-stage {
   background: radial-gradient(ellipse at 20% 10%, var(--glow), transparent 65%), var(--sunken);
 }
-.product-story .goal-tile, .product-story .goal-chip,
-.product-story .sample-switch button, .product-story .revise-sample {
+.product-story .goal-tile, .product-story .goal-chip {
   transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 @media (hover: hover) {
-  .product-story .goal-tile:hover, .product-story .goal-chip:hover, .product-story .revise-sample:hover { transform: none; box-shadow: none; border-color: var(--ink); }
+  .product-story .goal-tile:hover, .product-story .goal-chip:hover { transform: none; box-shadow: none; border-color: var(--ink); }
 }
-.product-story #how .sec-head { text-align: left; }
-.product-story #how .sec-head .section-p { margin-left: 0; }
 .product-story .step-no, .product-story .plan-row .goal-go,
 .product-story .plan-row-price b:empty::before { color: var(--ink); }
 .product-story .demo-chip.answer, .product-story .demo-chip.demo-go { background: var(--ink); border-color: var(--ink); }
@@ -1515,17 +1469,7 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
   .product-story .day-sample { max-height: 360px; }
 }
 
-/* Three principles, one working sample, and one concise safety list. */
-.product-story .principles .work-layout { display: block; }
-.product-story .principles .how-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-bottom: 64px; }
-.product-story .principles .step-no { font-size: 12px; line-height: 1.5; color: var(--muted); }
-.product-story .principles .how-step h3 { font-weight: 600; font-size: 21px; }
-.product-story .principles .how-step p { font-size: 16px; line-height: 1.75; }
-.product-story .principles .work-stage { padding: 40px; }
-.product-story .principles .sample-paper { max-width: 820px; margin: auto; }
-.product-story .principles .sample-content { min-height: 280px; }
-.product-story .principles .sample-controls { max-width: 600px; margin: auto; }
-.product-story .principles .revise-sample { position: static; border-radius: 10px; }
+/* One concise safety list. */
 .product-story .safety { padding-block: 88px; }
 .product-story .safety .trust-layout { max-width: 1160px; gap: 56px; }
 .product-story .safety .section-h { font-size: clamp(28px, 2.6vw, 38px); line-height: 1.3; }
@@ -1551,8 +1495,6 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 .product-story .footer .biz, .product-story .footer .foot-col a { color: var(--dark-muted); }
 .product-story .footer .foot-col h4, .product-story .footer .foot-col a:hover { color: #ece9e2; }
 @media (max-width: 700px) {
-  .product-story .principles .how-steps { grid-template-columns: 1fr; gap: 32px; margin-bottom: 40px; }
-  .product-story .principles .work-stage { padding: 20px; width: 100%; margin: 0; }
   .product-story .safety .approval-stage { width: 100%; margin: 0; min-height: 0; padding: 20px 20px 120px; }
   .product-story .safety-policy { text-align: left; padding-inline: 24px; }
   .product-story .faq .section-h { text-align: center; }
@@ -1585,4 +1527,144 @@ body:has(.sidekick-consent:not([hidden])) .availability-toast { display: none; }
 .landing .tone-white, .landing .how, .landing .pricing, .landing .start, .landing .use-week, .landing .use-faq,
 .use-page .use-hero, .product-story .how, .product-story .film-feature, .product-story .footer {
   background: transparent;
+}
+
+/* The landing's moments (#4021): a creator's situation, the result in one line, and the conversation that gets there.
+ *
+ * Each moment's stage is one of the app's cloud palettes, the owner's HEX exactly as in
+ * apps/mobile/app/theme/stagePalettes.js (STAGE_CLOUD_PALETTES): 말린 장미 (driedRose), 살구빛 저녁 (apricotEvening),
+ * 장밋빛 안개 (rosyMist). As in the app the third colour is the ground and the other four are very soft masses on it;
+ * here they are blurred CSS light, so the edges never band or break into blocks. Text never sits on the cloud itself:
+ * it sits on its own surfaces (bubbles, the card, the caption pill), and dark mode lays a scrim over the cloud only.
+ * Spacing and radius read the shared scale in styles.css. */
+
+.moments .cloud-dried-rose { --c1: #54658E; --c2: #66739A; --c3: #797391; --c4: #8A7285; --c5: #956663; }
+.moments .cloud-apricot-evening { --c1: #576DA1; --c2: #7682AE; --c3: #9F97A8; --c4: #B99889; --c5: #C89268; }
+.moments .cloud-rosy-mist { --c1: #8D85A4; --c2: #A185A0; --c3: #B88D9B; --c4: #CB8A94; --c5: #B57382; }
+
+.product-story .moments { padding: var(--section-y) 32px; background: transparent; }
+.moments .sec-head { max-width: 720px; margin: 0 auto; text-align: center; }
+.moments .sec-head .section-p { max-width: 560px; }
+.moments-kicker { margin: 0 0 var(--space-4); font-size: var(--text-md); font-weight: 600; letter-spacing: -.01em; color: var(--muted); }
+
+.moment-list { list-style: none; margin: var(--space-12) auto 0; padding: 0; max-width: 1120px; display: flex; flex-direction: column; gap: clamp(56px, 7vw, 96px); }
+.moment { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(32px, 5vw, 72px); }
+.moment:nth-child(even) .moment-copy { order: 2; }
+
+.moment-copy { max-width: 440px; }
+.moment:nth-child(even) .moment-copy { justify-self: end; }
+.moment-when { display: inline-flex; align-items: center; gap: var(--space-3); margin: 0 0 var(--space-5); padding: 6px 14px 6px 6px; border-radius: var(--radius-pill); background: var(--card); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); font-size: var(--text-md); font-weight: 600; color: var(--ink); }
+.moment-no { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--ink); color: var(--on-ink); font-size: var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+.moment-copy h3 { margin: 0; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.35; font-weight: 600; letter-spacing: -.025em; color: var(--ink); word-break: keep-all; text-wrap: balance; }
+.moment-copy > p:last-child { margin: var(--space-4) 0 0; font-size: 17px; line-height: 1.7; color: var(--muted); word-break: keep-all; text-wrap: pretty; }
+
+/* The stage: the palette's ground with four soft masses, blurred well past their edges. */
+.moment-stage { position: relative; isolation: isolate; overflow: hidden; margin: 0; min-width: 0; padding: clamp(28px, 4vw, 48px) clamp(20px, 4vw, 48px); border-radius: 28px; background: var(--c3); }
+.moment-stage::before {
+  content: ""; position: absolute; inset: -25%; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(38% 44% at 22% 24%, var(--c1), transparent 72%),
+    radial-gradient(40% 40% at 80% 20%, var(--c2), transparent 72%),
+    radial-gradient(44% 42% at 76% 78%, var(--c5), transparent 74%),
+    radial-gradient(42% 46% at 26% 80%, var(--c4), transparent 72%),
+    var(--c3);
+  filter: blur(36px);
+}
+.moment-stage::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: transparent; }
+
+.moment-chat { display: flex; flex-direction: column; max-width: 420px; margin: 0 auto; }
+.moment-cap { margin: 0 0 var(--space-2); }
+.moment-cap span { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.88); color: #161b22; font-size: var(--text-xs); font-weight: 600; }
+
+.moments .msg { max-width: 86%; margin: var(--space-3) 0 0; padding: 11px 14px; border: 0; font-size: var(--text-md); line-height: 1.6; word-break: keep-all; overflow-wrap: break-word; }
+.moments .msg.me { background: #161b22; color: #fff; border-radius: 18px 18px 6px 18px; }
+.moments .msg.ai { background: rgba(255, 255, 255, 0.92); color: #161b22; border-radius: 18px 18px 18px 6px; }
+.moments .msg .from { font-size: var(--text-xs); color: #4a525c; margin-bottom: 3px; }
+
+.moment-card { margin-top: var(--space-4); padding: var(--space-5); border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.92); color: #161b22; -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.moment-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.moment-card-top b { font-size: var(--text-md); font-weight: 600; letter-spacing: -.01em; word-break: keep-all; }
+.moment-card .badge { font-size: 11px; }
+.moment-card .badge.done { background: #e7eee6; color: #2f6b45; }
+.moment-card .badge.wait { background: #faf0e1; color: #8a5300; }
+.moment-card .badge.work { background: #e4eef2; color: #1f6a7d; }
+.moment-items, .moment-picks { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.moment-items li { position: relative; padding-left: 18px; font-size: var(--text-sm); line-height: 1.5; color: #2b323b; }
+.moment-items li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 6px; height: 6px; border-radius: 50%; background: #2b323b; }
+.moment-picks li { padding: 10px 12px; border-radius: var(--radius-md); background: rgba(22, 27, 34, 0.05); font-size: var(--text-sm); line-height: 1.45; color: #2b323b; word-break: keep-all; }
+.moment-picks li.picked { background: #161b22; color: #fff; font-weight: 600; }
+.moment-quote { margin: var(--space-3) 0 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: rgba(22, 27, 34, 0.05); font-size: var(--text-sm); line-height: 1.65; color: #2b323b; word-break: keep-all; }
+.moment-actions { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+.moment-actions span { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 var(--space-3); border-radius: 10px; font-size: var(--text-sm); font-weight: 600; text-align: center; white-space: nowrap; }
+.moment-actions .ink { background: #161b22; color: #fff; }
+.moment-actions .line { background: transparent; color: #161b22; box-shadow: inset 0 0 0 1px rgba(22, 27, 34, 0.22); }
+
+/* Dark: as in the app, the palette HEX under a dark scrim — a deep blue-grey, plum-tinted near-black — and the
+   surfaces turn to night glass. The section lays its own ground (말린 장미's cool masses under the scrim) over the
+   page's living light, so no warm glow from behind shows between the cards, and the stages keep only their cool
+   masses: the warm ones (4th and 5th colours) turn olive or brown once darkened. */
+@media (prefers-color-scheme: dark) {
+  .product-story .moments { position: relative; isolation: isolate; }
+  .product-story .moments::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(rgba(12, 14, 22, 0.84), rgba(12, 14, 22, 0.84)),
+      radial-gradient(60% 40% at 15% 20%, #54658E, transparent 75%),
+      radial-gradient(55% 40% at 85% 55%, #66739A, transparent 75%),
+      radial-gradient(60% 40% at 25% 88%, #8A7285, transparent 75%),
+      #797391;
+    -webkit-mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent);
+    mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent);
+  }
+  .moment-stage::before {
+    background:
+      radial-gradient(46% 52% at 22% 24%, var(--c1), transparent 72%),
+      radial-gradient(48% 50% at 80% 70%, var(--c2), transparent 72%),
+      var(--c3);
+  }
+  .moment-stage::after { background: rgba(12, 14, 22, 0.56); }
+  .moment-cap span { background: rgba(18, 24, 32, 0.86); color: #eef2f6; }
+  .moments .msg.me { background: #eef2f6; color: #161b22; }
+  .moments .msg.ai, .moment-card { background: rgba(18, 24, 32, 0.88); color: #eef2f6; }
+  .moments .msg .from { color: #b4bcc6; }
+  .moment-items li, .moment-quote, .moment-picks li { color: #d5dce3; }
+  .moment-items li::before { background: #d5dce3; }
+  .moment-quote, .moment-picks li { background: rgba(255, 255, 255, 0.07); }
+  .moment-picks li.picked { background: #eef2f6; color: #161b22; }
+  .moment-card .badge.done { background: #1c3324; color: #8ccb9c; }
+  .moment-card .badge.wait { background: #33280f; color: #e0a85a; }
+  .moment-card .badge.work { background: #16303a; color: #7cc4d8; }
+  .moment-actions .ink { background: #eef2f6; color: #161b22; }
+  .moment-actions .line { color: #eef2f6; box-shadow: inset 0 0 0 1px rgba(238, 242, 246, 0.28); }
+}
+
+/* The masses drift very slowly, as the app's do; still under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .moment-stage::before { animation: moment-cloud 36s ease-in-out infinite alternate; }
+  .moment:nth-child(2) .moment-stage::before { animation-delay: -12s; }
+  .moment:nth-child(3) .moment-stage::before { animation-delay: -24s; }
+}
+@keyframes moment-cloud {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+
+@media (max-width: 900px) {
+  .moment { grid-template-columns: 1fr; gap: var(--space-8); }
+  .moment:nth-child(even) .moment-copy { order: 0; justify-self: start; }
+  .moment-copy { max-width: 560px; }
+}
+@media (max-width: 700px) {
+  .product-story .moments { padding: 72px 24px; }
+  .moments .sec-head { text-align: left; }
+  .moment-list { margin-top: var(--space-10); gap: 64px; }
+  .moment-copy h3 { font-size: 24px; }
+  .moment-copy > p:last-child { font-size: 15px; line-height: 1.75; }
+  .moment-stage { width: calc(100% + 16px); margin-left: -8px; padding: 24px 16px; border-radius: 24px; }
+  .moments .msg { max-width: 90%; font-size: 14px; }
+  .moment-card { padding: var(--space-4); }
+}
+@media (max-width: 359px) {
+  .product-story .moments { padding-inline: 20px; }
+  .moment-actions { flex-direction: column; }
 }
