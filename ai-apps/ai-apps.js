@@ -1,4 +1,5 @@
 import { renderCard, safeHttps } from './view.js';
+import { renderConsent } from './consent.js';
 // The public guide works before sign-in and never calls an account API.
 function initConnectionGuide() {
   const list = document.getElementById('guide-tabs');
@@ -126,11 +127,9 @@ async function boot() {
   try {
     if (id('connect')) {
       const [request, projects] = await Promise.all([api('/assistant/oauth/requests/' + id('connect'), {}, s), api('/workspaces/ai-engine-targets', {}, s)]);
-      $('client-name').textContent = request.client_name + ' 연결' + (request.redirect_host ? ` (${request.redirect_host})` : '');
-      const labels = { 'sidekick.read': '이 프로젝트의 작업·결과 읽기', 'sidekick.work': '확인한 일과 진행·제작 견적 준비', 'sidekick.manage': '작업 수정 준비·중단 요청' };
-      $('scope-copy').textContent = request.scopes.map((v) => labels[v] || v).join(' · ');
-      $('project').replaceChildren();
-      for (const project of projects.workspaces || []) { const n = element('option', project.name || project.id); n.value = project.id; $('project').append(n); }
+      renderConsent($('connect'), request, projects, { decide: async (workspaceId, approve) => {
+        try { open((await post('/assistant/oauth/requests/' + id('connect') + '/decision', { workspace_id: workspaceId, approve }, session())).redirect_url); } catch { fail(); }
+      } });
       $('connect').hidden = false;
     } else if (id('prepare')) {
       const data = await api('/assistant/preparations/' + id('prepare'), {}, s); show(data);
@@ -146,15 +145,6 @@ async function boot() {
     }
     $('grants').hidden = false;
   } catch { if (current(s)) fail(); }
-}
-for (const [name, approve] of [['allow', true], ['deny', false]]) {
-  $(name).addEventListener('click', async () => {
-    const s = session(); $('allow').disabled = $('deny').disabled = true;
-    try {
-      const result = await post('/assistant/oauth/requests/' + id('connect') + '/decision', { workspace_id: $('project').value, approve }, s);
-      open(result.redirect_url);
-    } catch { fail(); } finally { $('allow').disabled = $('deny').disabled = false; }
-  });
 }
 // Consent pages cannot be embedded by an external client to solicit a hidden click.
 if (window.top !== window.self) { document.body.hidden = true; }
