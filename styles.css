@@ -146,6 +146,25 @@
 html { scroll-behavior: smooth; background: var(--stage-ground); }
 /* The living light's canvas (/living-light.js): fixed behind every page, never in the way. */
 .stage-light { position: fixed; inset: 0; z-index: -1; display: block; width: 100%; height: 100%; pointer-events: none; }
+/* The scroll light (/scroll-light.js, owner 2026-11-22): the landing's ground instead of the living light.
+   The owner's 24 palettes follow the scroll; the script only writes --sl-0 … --sl-4 ("r g b") and the
+   drift --sl-dx/--sl-dy. The palette's 3rd colour is the ground, the other four are very large soft lights
+   that fade to their own colour at alpha 0 (never through grey). The grain canvas keeps them from banding.
+   --stage-ground on a scroll page is the first scene's ground, so nothing flashes before the script runs. */
+.scroll-light {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; contain: strict;
+  background-color: rgb(var(--sl-2));
+  background-image:
+    radial-gradient(ellipse 90% 70% at calc(8% + var(--sl-dx)) calc(4% + var(--sl-dy)), rgb(var(--sl-0) / 0.9), rgb(var(--sl-0) / 0.42) 48%, rgb(var(--sl-0) / 0) 100%),
+    radial-gradient(ellipse 85% 80% at calc(96% - var(--sl-dx)) calc(34% + var(--sl-dy)), rgb(var(--sl-1) / 0.85), rgb(var(--sl-1) / 0.4) 48%, rgb(var(--sl-1) / 0) 100%),
+    radial-gradient(ellipse 85% 70% at calc(14% - var(--sl-dy)) calc(94% - var(--sl-dx)), rgb(var(--sl-3) / 0.85), rgb(var(--sl-3) / 0.4) 48%, rgb(var(--sl-3) / 0) 100%),
+    radial-gradient(ellipse 80% 70% at calc(90% + var(--sl-dy)) calc(100% - var(--sl-dx)), rgb(var(--sl-4) / 0.8), rgb(var(--sl-4) / 0.36) 48%, rgb(var(--sl-4) / 0) 100%);
+}
+.scroll-light-grain { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+:root[data-stage="scroll"] { --stage-ground: #EAD3DE; }
+@media (prefers-color-scheme: dark) {
+  :root[data-stage="scroll"]:not(:has(> body.v2)) { --stage-ground: #35272E; }
+}
 body {
   margin: 0;
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
