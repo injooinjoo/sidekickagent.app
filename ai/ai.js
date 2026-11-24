@@ -735,23 +735,43 @@
     (controls || []).forEach((control) => { control.disabled = busy; });
   }
 
+  // A disconnect is one short write on the server; it is not left to wait forever (owner 11-25: the page sat on
+  // "연결을 해제하고 있어요." while the employee server was slow). Done or not, it ends in the list as the server has it.
+  const DISCONNECT_WAIT_MS = 30000;
+  const DISCONNECT_FAILED = '연결을 해제하지 못했어요. 다시 눌러 주세요.';
+
+  function dropConnection(id) {
+    state.connections = state.connections.filter((item) => item.id !== id);
+    renderProviders();
+  }
+
   async function disconnectConnection(connection, controls) {
     if (state.busy) return;
     const name = connectionProviderName(connection.provider);
     if (!window.confirm(`${name} 연결을 해제할까요? 내 모든 프로젝트의 새 업무가 이 AI를 쓰지 않아요.`)) return;
     setBusy(true, controls);
     setStatus('connections-status', '연결을 해제하고 있어요.', false);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), DISCONNECT_WAIT_MS);
+    let failure = null;
     try {
       await api(`/ai-engine-connections/${encodeURIComponent(connection.id)}?${scopeQuery({ connection_id: connection.id })}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        signal: controller.signal
       });
-      setStatus('connections-status', `${name} 연결을 해제했어요.`, false);
     } catch (error) {
-      showFailure(error, 'connections-status');
+      // Already gone (a second press, another tab): that is the disconnect the person asked for.
+      if (!error || error.status !== 404) failure = error || {};
     } finally {
+      clearTimeout(timer);
       setBusy(false, controls);
     }
+    if (failure && failure.status === 401) { showFailure(failure, 'connections-status'); return; }
+    if (!failure) dropConnection(connection.id);
     if (state.user) await reloadConnections();
+    const stillListed = state.connections.some((item) => item.id === connection.id);
+    if (!failure || !stillListed) setStatus('connections-status', `${name} 연결을 해제했어요.`, false);
+    else setStatus('connections-status', DISCONNECT_FAILED, true);
   }
 
   // ---- 제공자: Sidekick, the connected providers, and + 연결하기 ----------------------------------------------------------
