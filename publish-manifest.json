@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "e1e6a10a83e150f39f127b1880551201a9007dcb44f7231fa90bdb6911983cc8",
+  "export_rules_sha256": "c83d2f62b5881191bd1f6a94769c6f337d07072139e417fdac261feb8508009d",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -877,6 +877,10 @@
       "bytes": 23074,
       "sha256": "5a87706c0683d24e27390dcd48164900092ba9177b174796d949b8e8415e9b4f"
     },
+    "assets/studio/media/loop-v1.mp4": {
+      "bytes": 1727487,
+      "sha256": "28d46b56191c625ccd9278f76caae86a2a02104b2d173f84317c340b058ba928"
+    },
     "auth.js": {
       "bytes": 160538,
       "sha256": "e778d523a318846ee15bc6f5556a8c4bf6220c611d66898f9bfc0ccd54509cd4"
@@ -1088,5 +1092,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "f187486a519285754891f6247729bff3335c5f57"
+  "source_sha": "e87103ac7b7f3aad84316873eeec86201e73f093"
 }
