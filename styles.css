@@ -98,10 +98,10 @@
    with the app's dark palette (apps/mobile/app/theme/colors.js darkPalette):
    #1A1A1A page, #242424-#2C2C2C surfaces, #E0E0E0/#A0A0A0 text, the same brand
    orange, and a hairline ring instead of a drop shadow. Where ink is a fill
-   (primary buttons) it turns light with dark text on it. Light is unchanged.
-   The /v2/ prototype (noindex) is drawn over a light photo and stays light. */
+   (primary buttons) it turns light with dark text on it. Light is unchanged. */
+/* Keep shared dark tokens above page-specific root declarations. */
 @media (prefers-color-scheme: dark) {
-  :root:not(:has(> body.v2)) {
+  :root:first-child:is(html) {
     --ink: #eef2f6;
     --ink-soft: #dde3e9;
     --muted: #d5dce3;
@@ -137,7 +137,7 @@
     --day-bg: rgba(18, 24, 32, 0.5);
   }
   /* The dark-ink logo files read as light ink; the brand orange keeps its hue. */
-  body:not(.v2) img[src$="/sidekick-wordmark.png"], body:not(.v2) img[src$="/sidekick-mark.svg"] { filter: invert(1) hue-rotate(180deg); }
+  body img[src$="/sidekick-wordmark.png"], body img[src$="/sidekick-mark.svg"] { filter: invert(1) hue-rotate(180deg); }
   /* Character art is drawn on white and was blended into a light page. */
   .product-story .character-media { mix-blend-mode: normal; }
 }
@@ -163,7 +163,7 @@ html { scroll-behavior: smooth; background: var(--stage-ground); }
 .scroll-light-grain { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 :root[data-stage="scroll"] { --stage-ground: #EAD3DE; }
 @media (prefers-color-scheme: dark) {
-  :root[data-stage="scroll"]:not(:has(> body.v2)) { --stage-ground: #35272E; }
+  :root[data-stage="scroll"] { --stage-ground: #35272E; }
 }
 body {
   margin: 0;
@@ -429,8 +429,7 @@ li + li { margin-top: 8px; }
 /* The sign-in sheet, one look on every page. /auth.js builds it on pages that
    do not ship it; /membership/ and /ai/ carry the same markup in their HTML.
    Scoped under .signin-sheet so its generic class names (.form-row, .legal)
-   cannot reach a page's own layout. The door buttons are reached through
-   their container: /v3/ owns a `door` class of its own. */
+   cannot reach a page's own layout. The door buttons are scoped to their container. */
 .signin-sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
   padding: 24px; background: rgba(26, 29, 33, .34); opacity: 0; transition: opacity .22s ease;
   -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -722,8 +721,7 @@ body.landing .home { max-width: none; margin: 0; padding: 0; }
 .demo-cap { margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 600; color: var(--ink-soft); }
 .role-phone.demo-phone { height: 540px; }
 
-/* Shared phone pieces (the landing, the /use/ pages and the candidates at
-   /v2/ and /v3/ draw the app's screens from these). */
+/* Shared phone pieces for the landing and the /use/ pages. */
 .stage { position: absolute; inset: 44px 0 0; display: flex; justify-content: center; align-items: flex-start; gap: 24px; padding: 0 24px; }
 .phone {
   width: 296px;
