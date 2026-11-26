@@ -21,7 +21,7 @@
   const CONNECT_PATH = /^\/connections\/([a-z][a-z0-9_]{0,119})\/(mcp|managed|oauth)\/connect$/;
   const POLL_MS = 15000;
   const WAIT_MS = 240000;
-  const KINDS = ['ai_engine', 'service', 'external_account', 'browser_login', 'store', 'notification', 'claude_code', 'free_api'];
+  const KINDS = ['ai_engine', 'service', 'external_account', 'browser_login', 'store', 'notification', 'claude_code', 'free_api', 'device'];
   // 무료 API 키 (owner 2026-10-26, FREE-5): the person's own free-tier keys. Sidekick uses them first, inside their free
   // quota. Connected through the managed key route; GET /integrations lists them as kind 'free_api' with
   // free_quota {limit, used, resets_at}. The same table as the app (apps/mobile/app/data/integrations.js FREE_API_SERVICES).
@@ -260,6 +260,41 @@
     return FREE_API_SERVICES.find((service) => service.id === id) || null;
   }
 
+  const DEVICE_COPY = {
+    'device.ios': 'iPhone',
+    'device.android': 'Android',
+    'device.phone': '휴대폰',
+    'platform.ios': 'iOS',
+    'platform.android': 'Android',
+    'status.connected': '켜짐',
+    'status.disconnected': '꺼짐 · 폰 앱에서 켜기',
+    'status.unavailable': '이 기기에서 쓸 수 없음'
+  };
+  const t = (key) => DEVICE_COPY[key];
+  // The app's icon for each capability (the registry's `icon`), drawn by /connections/icons.js.
+  const CAPABILITY_ICON = {
+    calendar: 'calendar', reminders: 'checkmark-circle', photos: 'image', files: 'document',
+    contacts: 'person-circle', camera: 'camera', location: 'location', shortcuts: 'flash'
+  };
+
+  function deviceItem(row, id, serviceId) {
+    const device = /^device:([A-Za-z0-9._:-]+):([a-z][a-z0-9_]*)$/.exec(id);
+    if (!device || serviceId !== `device:${device[2]}`) return null;
+    const status = ['connected', 'disconnected', 'unavailable'].includes(row.status) ? row.status : 'unavailable';
+    const updated = Date.parse(text(row.updated_at, 64));
+    return {
+      kind: 'device',
+      installation: device[1],
+      capability: device[2],
+      deviceLabel: text(row.device_label, 120) || t(`device.${text(row.platform, 16)}`) || t('device.phone'),
+      platform: t(`platform.${text(row.platform, 16)}`) || '',
+      updatedAt: Number.isFinite(updated) ? updated : 0,
+      name: serviceName(row.name),
+      state: status,
+      status: t(`status.${status}`)
+    };
+  }
+
   // GET /integrations. Rows that do not parse are left out; an answer that is not the contract's shape is a failure.
   function integrationItems(answer) {
     if (!answer || typeof answer !== 'object' || !Array.isArray(answer.items)) throw new Error('invalid_integrations');
@@ -267,7 +302,14 @@
     return answer.items.flatMap((row) => {
       if (!row || typeof row !== 'object') return [];
       const id = String(row.id || ''), kind = row.kind, serviceId = String(row.service_id || '');
-      if (!ID.test(id) || seen.has(id) || !KINDS.includes(kind) || !(kind === 'ai_engine' ? PROVIDER_ID : SERVICE_ID).test(serviceId)) return [];
+      if (!ID.test(id) || seen.has(id) || !KINDS.includes(kind)) return [];
+      if (kind === 'device') {
+        const item = deviceItem(row, id, serviceId);
+        if (!item) return [];
+        seen.add(id);
+        return [item];
+      }
+      if (!(kind === 'ai_engine' ? PROVIDER_ID : SERVICE_ID).test(serviceId)) return [];
       if (kind === 'ai_engine' && inApp()) return [];
       seen.add(id);
       const webManageable = row.web_manageable === true && !DEVICE_KINDS.includes(kind);
@@ -538,10 +580,60 @@
     if (state.flow && state.flow.item.id === item.id && state.flow.node) card.append(state.flow.node);
     return card;
   }
+  // 내 기기 (#6828): one glass card per registered phone, read-only. Settings change only in the phone app.
+  const DEVICE_DATE = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' });
+  function deviceIcon(capability) {
+    const icons = window.SidekickIcons;
+    return (icons && icons.create(CAPABILITY_ICON[capability] || 'phone')) || document.createTextNode('');
+  }
+  function deviceStatus(item) {
+    const pill = node('span', '', `service-state device-state is-${item.state}${item.state === 'connected' ? ' connected' : ''}`);
+    pill.append(node('span', '', 'device-state-dot'), node('span', item.status));
+    return pill;
+  }
+  function deviceSection(items) {
+    const devices = new Map();
+    for (const item of items) {
+      if (item.kind !== 'device') continue;
+      if (!devices.has(item.installation)) devices.set(item.installation, []);
+      devices.get(item.installation).push(item);
+    }
+    if (!devices.size) return null;
+    // A second line tells same-named phones apart, only from what the server sent: platform and the last settings change.
+    const lines = [...devices.values()].map((rows) => {
+      const last = Math.max(...rows.map((row) => row.updatedAt));
+      return [rows[0].platform === rows[0].deviceLabel ? '' : rows[0].platform, last ? `${DEVICE_DATE.format(last)} 설정 바꿈` : ''].filter(Boolean).join(' · ');
+    });
+    const keys = [...devices.values()].map((rows, index) => `${rows[0].deviceLabel}\n${lines[index]}`);
+    const section = node('section', '', 'service-group'); section.dataset.group = 'devices';
+    section.append(node('h2', '내 기기'), node('p', '폰 앱에서 켠 기기 기능이에요. 켜고 끄는 건 폰 앱에서 해요.', 'service-group-line'));
+    const grid = node('div', '', 'service-grid');
+    [...devices.values()].forEach((rows, index) => {
+      const card = node('article', '', 'service-card device-card'); card.dataset.kind = 'device';
+      const same = keys.filter((key) => key === keys[index]).length;
+      const order = keys.slice(0, index + 1).filter((key) => key === keys[index]).length;
+      const line = [lines[index], same > 1 ? `같은 이름 중 ${order}번째` : ''].filter(Boolean).join(' · ');
+      card.append(node('h3', rows[0].deviceLabel, 'service-device-heading'));
+      if (line) card.append(node('p', line, 'device-line'));
+      const list = node('ul', '', 'device-capabilities');
+      for (const item of rows) {
+        const row = node('li', '', 'device-capability');
+        const name = node('span', '', 'device-capability-name');
+        name.append(deviceIcon(item.capability), node('span', item.name));
+        row.append(name, deviceStatus(item));
+        list.append(row);
+      }
+      card.append(list); grid.append(card);
+    });
+    section.append(grid);
+    return section;
+  }
   function renderCatalog() {
     const search = $('service-search').value.trim().toLocaleLowerCase('ko');
     const visible = state.items.filter((item) => item.name.toLocaleLowerCase('ko').includes(search));
     const groups = $('service-groups'); groups.replaceChildren();
+    const devices = deviceSection(visible);
+    if (devices) groups.append(devices);
     for (const group of GROUPS) {
       const rows = visible.filter((item) => item.group === group.id);
       const aiDoor = group.id === 'ai' && !inApp() && !search && Boolean(state.workspace);
