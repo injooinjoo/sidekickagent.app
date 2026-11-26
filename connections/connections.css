@@ -29,6 +29,17 @@ button, input, select { font: inherit; }
 .service-state.app-only { background: var(--work-bg); color: var(--work); }
 .service-card-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .service-group > h2 { margin-bottom: 4px; }
+/* 내 기기 (#6828): each phone is a glass card; each capability is an icon, a name and a dot-and-label state. */
+.service-device-heading { overflow-wrap: anywhere; }
+.service-card p.device-line { margin: 4px 0 0; }
+.device-capabilities { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 4px; }
+.device-capability { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; min-height: 36px; }
+.device-capability-name { display: inline-flex; gap: 8px; align-items: center; min-width: 0; font-size: 15px; color: var(--ink); overflow-wrap: anywhere; }
+.device-capability-name > svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--ink-soft); }
+.device-state { display: inline-flex; gap: 6px; align-items: center; }
+.device-state-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: 0 0 auto; box-sizing: border-box; }
+.device-state.is-unavailable { background: transparent; padding-left: 0; padding-right: 0; }
+.device-state.is-unavailable .device-state-dot { background: transparent; border: 1.5px solid currentColor; }
 .service-group-line { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
 .service-more { margin-top: 12px; }
 .service-more > summary { cursor: pointer; font-size: 15px; font-weight: 700; min-height: 44px; padding: 10px 0; box-sizing: border-box; }
