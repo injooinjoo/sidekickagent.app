@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-yG/DXCh385ZPSBy/+5nB4SPY8G4JPM7CtNiDzNKmwe8='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a4vfC2qWsvzDMn5xmJgTdy9n77ZoiKOGpv6R5HM0Tuc=' 'sha256-iApW1RWVQ/8WD4mPiDd0F2oMZWEl7R4fdOHc7sPEqDg=' https://challenges.cloudflare.com; style-src 'sha256-gTPf0bhNvWhNYpLKgiA5ZWYEVuZ59JgfTo8PIaNOzyE='; img-src 'self'; connect-src https://api.sidekickagent.app https://wdjlokfsehsnvcipkods.supabase.co; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <script>/* Clickjacking guard: a page framed by another page is hidden, stopped and moved to the top. */ (function () { if (window.top === window.self) return; document.documentElement.style.setProperty('display', 'none', 'important'); try { window.stop(); } catch (e) {} try { window.top.location.replace(window.location.href); } catch (e) {} })();</script>
   <script>(() => {
@@ -127,6 +127,46 @@
     .sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
     .sheet-heading h2 { margin: 0; font-size: 20px; line-height: 28px; }
     #login-methods-close { padding: 8px; }
+    #login-methods.login-methods {
+      position: fixed;
+      inset: auto 0 max(0px, calc(100dvh - var(--login-visible-height, 100dvh) - var(--login-visible-top, 0px)));
+      max-width: 100%;
+      max-height: calc(min(100dvh, var(--login-visible-height, 100dvh)) - var(--space-3, 12px));
+      padding-bottom: calc(var(--space-6, 24px) + env(safe-area-inset-bottom, 0px));
+      border: 0;
+      background: var(--on-ink, #fff);
+      overscroll-behavior: contain;
+    }
+    #login-methods.login-methods::backdrop {
+      background: rgb(0 0 0 / 54%);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+    #login-methods.login-methods .options { gap: var(--space-3, 12px); }
+    #login-methods.login-methods #login-methods-close {
+      min-width: var(--control-h, 44px);
+      padding-inline: var(--space-3, 12px);
+      border-radius: var(--radius-pill, 999px);
+      background: var(--sunken);
+      color: var(--ink);
+    }
+    #login-methods.login-methods #login-methods-close:focus:not(:focus-visible) { outline: none; }
+    #login-methods.login-methods #login-methods-close:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--ink) 64%, transparent);
+      outline-offset: 2px;
+    }
+    #login-methods.login-methods #handoff-email {
+      border-color: color-mix(in srgb, var(--ink) 44%, transparent);
+      background: var(--sunken);
+      color: var(--ink);
+    }
+    #login-methods.login-methods .sheet-consent {
+      margin: var(--space-5, 20px) 0 0;
+      color: var(--muted);
+      font-size: var(--text-xs, 12px);
+      line-height: 1.6;
+      text-align: center;
+    }
     .legal { margin: 18px 8px 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; text-align: center; }
     .legal a { color: var(--ink-soft); font-weight: 600; text-underline-offset: 3px; }
     :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
@@ -177,7 +217,7 @@
 
           <button type="button" id="handoff-phone" class="option primary" data-login-option="phone" data-method="phone" aria-pressed="false" aria-controls="otp-block">휴대폰 번호로 시작하기</button>
         <button type="button" id="login-alternatives" class="quiet" aria-haspopup="dialog">다른 방법으로 로그인</button>
-        <dialog id="login-methods" aria-labelledby="login-methods-title">
+        <dialog id="login-methods" class="login-methods" aria-labelledby="login-methods-title">
           <div class="sheet-heading"><h2 id="login-methods-title">다른 방법으로 로그인</h2><button type="button" id="login-methods-close" class="quiet">닫기</button></div>
         <div class="options" role="group" aria-label="로그인 방법">
           <button type="button" id="handoff-kakao" class="option brand kakao" data-login-option="kakao"><svg class="brand-icon" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#000000" d="M9 1.5C4.58 1.5 1 4.29 1 7.73c0 2.22 1.48 4.17 3.71 5.27l-.95 3.47c-.08.3.26.54.52.37l4.14-2.74c.19.02.38.03.58.03 4.42 0 8-2.79 8-6.23S13.42 1.5 9 1.5z"/></svg><span class="door-label">카카오로 이어서 하기</span></button>
@@ -186,7 +226,7 @@
           <button type="button" id="handoff-apple" class="option brand apple" data-login-option="apple"><svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#ffffff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span class="door-label">Apple로 계속하기</span></button>
           <button type="button" id="handoff-email" class="option" data-login-option="email" data-method="email" aria-pressed="false" aria-controls="otp-block">이메일로 이어서 하기</button>
         </div>
-
+          <p class="sheet-consent">계속하면 만 14세 이상이며 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다</p>
         </dialog>
 
         <div id="otp-block" class="panel" hidden>
