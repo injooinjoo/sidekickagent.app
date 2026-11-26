@@ -553,6 +553,46 @@ li + li { margin-top: 8px; }
 .signin-sheet.phone-first .sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .signin-sheet.phone-first .sheet-heading h2 { margin: 0; font-size: 20px; line-height: 28px; }
 .signin-sheet.phone-first #login-methods-close { padding: 8px; }
+#login-methods.login-methods {
+  position: fixed;
+  inset: auto 0 max(0px, calc(100dvh - var(--login-visible-height, 100dvh) - var(--login-visible-top, 0px)));
+  max-width: 100%;
+  max-height: calc(min(100dvh, var(--login-visible-height, 100dvh)) - var(--space-3, 12px));
+  padding-bottom: calc(var(--space-6, 24px) + env(safe-area-inset-bottom, 0px));
+  border: 0;
+  background: var(--on-ink, #fff);
+  overscroll-behavior: contain;
+}
+#login-methods.login-methods::backdrop {
+  background: rgb(0 0 0 / 54%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+#login-methods.login-methods .options { gap: var(--space-3, 12px); }
+#login-methods.login-methods #login-methods-close {
+  min-width: var(--control-h, 44px);
+  padding-inline: var(--space-3, 12px);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--sunken);
+  color: var(--ink);
+}
+#login-methods.login-methods #login-methods-close:focus:not(:focus-visible) { outline: none; }
+#login-methods.login-methods #login-methods-close:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink) 64%, transparent);
+  outline-offset: 2px;
+}
+#login-methods.login-methods #handoff-email {
+  border-color: color-mix(in srgb, var(--ink) 44%, transparent);
+  background: var(--sunken);
+  color: var(--ink);
+}
+#login-methods.login-methods .sheet-consent {
+  margin: var(--space-5, 20px) 0 0;
+  color: var(--muted);
+  font-size: var(--text-xs, 12px);
+  line-height: 1.6;
+  text-align: center;
+}
 .signin-sheet.phone-first .legal { margin: 18px 8px 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; text-align: center; }
 .signin-sheet.phone-first .legal a { color: var(--ink-soft); font-weight: 600; text-underline-offset: 3px; }
 .signin-sheet.phone-first :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
