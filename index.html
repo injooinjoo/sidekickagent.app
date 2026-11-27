@@ -22,8 +22,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="사이드킥" />
   <meta property="og:locale" content="ko_KR" />
-  <meta property="og:title" content="사이드킥: 시작하고 싶은 일을 고르면, AI 팀이 움직여요" />
-  <meta property="og:description" content="유튜브, 블로그처럼 해보고 싶던 일을 고르세요. 사이드킥이 팀을 꾸려 첫 결과까지 가져와요." />
+  <meta property="og:title" content="하고 싶던 일, 이제 내 AI 팀과." />
+  <meta property="og:description" content="유튜브부터 블로그까지. 하고 싶은 일을 고르면 첫 결과를 준비해요." />
   <meta property="og:url" content="https://sidekickagent.app/" />
   <meta property="og:image" content="https://sidekickagent.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -35,6 +35,7 @@
   <meta name="theme-color" content="#faf9f6" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="motion.css" />
+  <link rel="stylesheet" href="landing-shots.css" />
   <script src="/maintenance.js" defer></script>
   <script src="/auth.js" defer></script>
   <script src="/scroll-light.js" defer></script>
@@ -80,74 +81,63 @@
     <div><strong>곧 만나요</strong><p>앱은 출시 준비 중이에요. 먼저 일하는 모습을 살펴보세요.</p></div>
     <button type="button" id="availability-close" aria-label="출시 안내 닫기">×</button>
   </aside>
-  <!-- 2. Moments (#4021): a creator's situation, the result in one line, and the conversation that gets there.
+  <!-- 2. Moments (#4021, #6793): a situation, the result in one line, and what the app really shows.
        Situations, not a feature list. Each stage is one of the app's cloud palettes (theme/stagePalettes,
-       owner's HEX), drawn as soft CSS light in styles.css. The conversations are examples and say
-       so; they are replaced by captures of finished real runs before this is published (issue #4021). -->
+       owner's HEX), drawn as soft CSS light in styles.css. Each picture is a crop of the release build's own
+       simulator capture (build 519), light and dark; assets/landing-app/build.py makes them. Nothing here is
+       a hand-written conversation. -->
   <section class="moments" id="moments" aria-labelledby="moments-h">
     <span id="how" class="story-sr-only" aria-hidden="true"></span><span id="principles" class="story-sr-only" aria-hidden="true"></span>
     <div class="wrap-wide">
       <div class="sec-head" data-reveal>
-        <p class="moments-kicker">크리에이터의 이런 순간에</p>
+        <p class="moments-kicker">지금 앱에서 보이는 그대로</p>
         <h2 class="section-h" id="moments-h">기능을 찾지 말고, <br>지금 상황을 말해 주세요</h2>
         <p class="section-p">팀이 다음 할 일을 준비해 와요. 올리기·보내기처럼 되돌리기 어려운 일은 먼저 물어봐요.</p>
       </div>
       <ol class="moment-list">
         <li class="moment cloud-dried-rose" data-reveal>
           <div class="moment-copy">
-            <p class="moment-when"><span class="moment-no">01</span>방송 끝나고</p>
-            <h3>방송에서 나온 이야기가 <br>다음 영상 기획이 돼요</h3>
-            <p>반응이 좋았던 이야기를 말해 주면, 제목 후보와 대본 흐름부터 잡아 와요.</p>
+            <p class="moment-when"><span class="moment-no">01</span>고를 게 생기면</p>
+            <h3>길게 묻지 않고, <br>고를 것만 짧게 물어요</h3>
+            <p>조사한 내용을 먼저 말하고, 추천 하나를 표시한 선택지를 보여 줘요. 마음에 드는 게 없으면 직접 써도 돼요.</p>
           </div>
           <figure class="moment-stage">
-            <div class="moment-chat" role="img" aria-label="예시 대화: 방송에서 반응이 좋았던 이야기를 말하자 팀장이 제목 후보와 대본 흐름을 준비하고, 고르면 대본을 이어서 쓰겠다고 묻는 모습">
-              <p class="moment-cap" aria-hidden="true"><span>예시 대화</span></p>
-              <div class="msg me" aria-hidden="true">오늘 방송에서 캠핑 의자 얘기 반응이 좋았어. 이걸로 다음 영상 만들자.</div>
-              <div class="msg ai" aria-hidden="true"><span class="from">팀장</span>좋아요. 의자 고르는 기준으로 제목 후보와 대본 흐름을 잡아 봤어요.</div>
-              <div class="moment-card" aria-hidden="true">
-                <div class="moment-card-top"><b>다음 영상 기획</b><span class="badge done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>준비됨</span></div>
-                <ul class="moment-items"><li>제목 후보</li><li>대본 흐름</li><li>썸네일 문구</li></ul>
-                <div class="moment-actions"><span class="ink">이걸로 대본 쓰기</span><span class="line">다른 방향</span></div>
-              </div>
-            </div>
+            <figcaption class="moment-cap"><span>실제 앱 화면</span></figcaption>
+            <picture class="app-shot">
+              <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="/assets/landing-app/choice-dark.avif">
+              <source type="image/avif" srcset="/assets/landing-app/choice-light.avif">
+              <img src="/assets/landing-app/choice-light.jpg" width="460" height="422" alt="실제 앱 화면: 직원이 기사에서 확인한 내용을 말하고 이번 영상 주제를 묻자, 추천 표시가 붙은 주제 선택지와 직접 입력 칸이 아래에 뜬 모습" loading="lazy" decoding="async">
+            </picture>
           </figure>
         </li>
         <li class="moment cloud-apricot-evening" data-reveal>
           <div class="moment-copy">
-            <p class="moment-when"><span class="moment-no">02</span>광고 제안 메일이 왔을 때</p>
-            <h3>조건 정리부터 답장 초안까지, <br>보내기 전엔 꼭 물어봐요</h3>
-            <p>메일 속 조건을 한눈에 정리하고, 빠진 내용은 묻는 답장으로 준비해요.</p>
+            <p class="moment-when"><span class="moment-no">02</span>결과가 나오면</p>
+            <h3>결과는 카드 한 장으로, <br>참고 자료는 한 줄로</h3>
+            <p>무엇을 했는지 한 문장으로 말하고, 결과는 다시 열어 볼 수 있는 카드로 남겨요. 참고한 자료는 한 줄로 접어 둬요.</p>
           </div>
           <figure class="moment-stage">
-            <div class="moment-chat" role="img" aria-label="예시 대화: 광고 제안 메일의 조건을 정리하고, 빠진 금액을 묻는 답장 초안을 보내기 전에 확인받는 모습">
-              <p class="moment-cap" aria-hidden="true"><span>예시 대화</span></p>
-              <div class="msg me" aria-hidden="true">광고 제안 메일 왔어. 조건 정리해서 답장 초안 써 줘.</div>
-              <div class="msg ai" aria-hidden="true"><span class="from">팀장</span>일정, 영상 길이, 수정 횟수, 광고 표기를 정리했어요. 금액이 빠져 있어서 그걸 묻는 답장을 써 뒀어요.</div>
-              <div class="moment-card" aria-hidden="true">
-                <div class="moment-card-top"><b>답장 보내기 전에 확인해 주세요</b><span class="badge wait">확인 필요</span></div>
-                <p class="moment-quote">제안 감사합니다. 진행을 검토하려면 예산 범위를 알려 주실 수 있을까요?</p>
-                <div class="moment-actions"><span class="ink">보내기</span><span class="line">고쳐 줘</span></div>
-              </div>
-            </div>
+            <figcaption class="moment-cap"><span>실제 앱 화면</span></figcaption>
+            <picture class="app-shot">
+              <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="/assets/landing-app/result-dark.avif">
+              <source type="image/avif" srcset="/assets/landing-app/result-light.avif">
+              <img src="/assets/landing-app/result-light.jpg" width="460" height="714" alt="실제 앱 화면: 쇼츠 첫 장면 분석을 마쳤다는 답 아래에 분석 결과 카드와 접힌 참고 자료 줄이 있는 대화" loading="lazy" decoding="async">
+            </picture>
           </figure>
         </li>
         <li class="moment cloud-rosy-mist" data-reveal>
           <div class="moment-copy">
-            <p class="moment-when"><span class="moment-no">03</span>썸네일 뽑기 전에</p>
-            <h3>문구 후보를 먼저 보고, <br>고른 문구로 시안을 만들어요</h3>
-            <p>영상 내용에서 짧은 문구를 뽑아 보여 주고, 고른 것으로 시안을 이어서 만들어요.</p>
+            <p class="moment-when"><span class="moment-no">03</span>일이 막혔을 때</p>
+            <h3>멈춘 곳을 숨기지 않고, <br>다음에 할 일을 보여 줘요</h3>
+            <p>어느 단계에서 왜 멈췄는지 말하고, 다시 실행하거나 건너뛰거나 처음부터 할 수 있게 해요. 이미 만든 것은 그대로 남아요.</p>
           </div>
           <figure class="moment-stage">
-            <div class="moment-chat" role="img" aria-label="예시 대화: 썸네일을 만들기 전에 팀이 문구 후보를 보여 주고, 하나를 고르면 그 문구로 시안을 만들겠다고 묻는 모습">
-              <p class="moment-cap" aria-hidden="true"><span>예시 대화</span></p>
-              <div class="msg me" aria-hidden="true">썸네일 만들기 전에 문구부터 같이 정하자.</div>
-              <div class="msg ai" aria-hidden="true"><span class="from">팀장</span>영상 내용에서 짧은 문구를 뽑았어요. 고르면 그 문구로 시안을 만들어 볼게요.</div>
-              <div class="moment-card" aria-hidden="true">
-                <div class="moment-card-top"><b>썸네일 문구 고르기</b><span class="badge work">고르는 중</span></div>
-                <ul class="moment-picks"><li class="picked">의자 하나로 캠핑이 달라져요</li><li>캠핑 의자, 이것만 보세요</li><li>초보 캠퍼의 첫 의자</li></ul>
-                <div class="moment-actions"><span class="ink">이 문구로 시안 만들기</span></div>
-              </div>
-            </div>
+            <figcaption class="moment-cap"><span>실제 앱 화면</span></figcaption>
+            <picture class="app-shot">
+              <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="/assets/landing-app/stopped-dark.avif">
+              <source type="image/avif" srcset="/assets/landing-app/stopped-light.avif">
+              <img src="/assets/landing-app/stopped-light.jpg" width="460" height="786" alt="실제 앱 화면: 매일 하는 쇼츠 루틴이 내레이션·배경음 단계에서 멈췄다고 알리고, 보관된 음원과 다시 실행 버튼을 보여 주는 화면" loading="lazy" decoding="async">
+            </picture>
           </figure>
         </li>
       </ol>
@@ -196,37 +186,39 @@
     </div>
   </section>
 
-  <!-- Motion band: an edge-to-edge breath between sections (owner, 2026-10-17).
+  <!-- Motion band: an edge-to-edge breath between sections (owner, 2026-10-17), since #6793 the release
+       build's own office home (a real capture, a slow push in) in place of the stock footage.
        A still first; landing.js loads the muted loop (the -m cut on a phone)
        only near the window, plays it only while it is on screen, and never
        under reduced motion, where the still is the whole band. -->
   <div class="motion-band" id="band-morning">
     <div class="band-media" aria-hidden="true">
-      <picture><source media="(max-width: 700px)" srcset="/assets/landing-v2/film/hero-poster-m.webp" width="640" height="1146"><img src="/assets/landing-v2/film/hero-poster.webp" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
-      <video data-band-motion data-src="/assets/landing-v2/film/hero.mp4" data-src-webm="/assets/landing-v2/film/hero.webm" data-src-webm-m="/assets/landing-v2/film/hero-m.webm" data-src-m="/assets/landing-v2/film/hero-m.mp4" width="1280" height="714" muted loop playsinline preload="none" tabindex="-1"></video>
+      <picture><source media="(max-width: 700px)" srcset="/assets/landing-app/office-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-app/office-poster.jpg" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
+      <video data-band-motion data-src="/assets/landing-app/office.mp4" data-src-m="/assets/landing-app/office-m.mp4" width="1280" height="714" muted loop playsinline preload="none" tabindex="-1"></video>
     </div>
     <p class="band-line">내가 쉬는 동안에도,<br>팀은 일을 이어가요.</p>
   </div>
 
-  <!-- Film: one person's morning with the team, 73 seconds, no dialogue
-       (owner, 2026-10-17). Nothing of it loads until it is played: a still
-       (the -m cut on a phone), and the video's own controls without script.
-       With landing.js a play button covers the still, a tap plays the film
+  <!-- Film (#6793): the release build's real screens one after another, 20 seconds, no sound: the office,
+       a request taken in full, an answer, a short question, a result, an honest stop, what was learned.
+       Made by assets/landing-app/build.py from build 519's captures; no stock footage and no actors.
+       Nothing of it loads until it is played: a still (the -m cut on a phone), and the video's own
+       controls without script. With landing.js a play button covers the still, a tap plays the film
        with its controls, and it pauses once scrolled away. -->
   <section class="film-feature" id="film" aria-labelledby="film-h">
     <div class="wrap-wide">
       <div class="sec-head" data-reveal>
-        <h2 class="section-h" id="film-h">말로 맡기고, 확인만 하는 아침</h2>
-        <p class="section-p">한 사람이 사이드킥 팀과 보내는 아침을 1분 남짓한 영상에 담았어요.</p>
+        <h2 class="section-h" id="film-h">말로 맡기고, 확인만 하면 돼요</h2>
+        <p class="section-p">지금 앱의 실제 화면을 이어 붙였어요. 맡기고, 묻고, 결과를 받고, 막히면 알려 주는 흐름이에요.</p>
       </div>
       <figure class="film-frame" data-reveal>
-        <picture class="film-poster"><source media="(max-width: 700px)" srcset="/assets/landing-v2/film/film-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-v2/film/film-poster.jpg" width="1280" height="714" alt="" loading="lazy" decoding="async"></picture>
-        <video class="film-video" data-film controls preload="none" playsinline width="1280" height="714" aria-label="데모 영상: 휴대폰에 말로 일을 맡기고, 노트북으로 자료를 살피고, 제품을 찍고, 휴대폰으로 결과를 확인하는 한 사람의 아침. 1분 13초, 대사 없음.">
-          <source src="/assets/landing-v2/film/film-m.mp4" type="video/mp4" media="(max-width: 700px)">
-          <source src="/assets/landing-v2/film/film.mp4" type="video/mp4">
+        <picture class="film-poster"><source media="(max-width: 700px)" srcset="/assets/landing-app/app-film-poster-m.jpg" width="640" height="1146"><img src="/assets/landing-app/app-film-poster.jpg" width="1280" height="720" alt="" loading="lazy" decoding="async"></picture>
+        <video class="film-video" data-film controls preload="none" playsinline width="1280" height="720" aria-label="실제 앱 화면 영상: 사무실 홈, 일을 맡기는 대화, 답, 짧은 선택 질문, 결과 카드, 멈춘 단계 안내, 직원이 기억한 것과 능력을 차례로 보여 줘요. 20초, 소리 없음.">
+          <source src="/assets/landing-app/app-film-m.mp4" type="video/mp4" media="(max-width: 700px)">
+          <source src="/assets/landing-app/app-film.mp4" type="video/mp4">
         </video>
-        <button class="film-play" type="button" aria-label="데모 영상 재생, 1분 13초" hidden><span class="film-play-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.7 5.1a.8.8 0 0 0-1.2.7Z" fill="currentColor"/></svg></span><span class="film-play-label">영상 보기 · 1:13</span></button>
-        <figcaption class="film-note">데모 영상 · 한 사람의 어느 아침</figcaption>
+        <button class="film-play" type="button" aria-label="실제 앱 화면 영상 재생, 20초" hidden><span class="film-play-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.7 5.1a.8.8 0 0 0-1.2.7Z" fill="currentColor"/></svg></span><span class="film-play-label">영상 보기 · 0:20</span></button>
+        <figcaption class="film-note">실제 앱 화면 · 출시 빌드에서 캡처</figcaption>
       </figure>
     </div>
   </section>
@@ -237,13 +229,16 @@
     <div class="wrap trust-layout">
       <div class="approval-stage" data-reveal>
         <div class="character-media companion-art" aria-hidden="true"><img src="/assets/product-story/05-cheer.jpg" width="320" height="320" alt="" decoding="async" loading="lazy"><video data-character-motion data-src="/assets/product-story/05-cheer-hero.mp4" width="512" height="512" muted loop playsinline preload="none" tabindex="-1"></video></div>
-        <div class="approval-paper">
-          <p class="sample-caption">확인 과정 예시</p>
-          <h3>보내기 전에, 확인해주세요</h3>
-          <p>준비한 글을 확인하고 다음 단계를 정해요.</p>
-          <blockquote>안녕하세요.<br>요청하신 자료를 정리했어요.<br><br>첨부한 내용을 확인하고, 더 필요한 내용이 있으면 알려주세요.</blockquote>
-          <p class="approval-note">내용을 살핀 뒤, 확인하거나 수정을 요청해요.</p>
-        </div>
+        <figure class="approval-paper">
+          <figcaption class="sample-caption">실제 앱 화면</figcaption>
+          <h3>기억한 것도 보이고, 지울 수 있어요</h3>
+          <p>직원이 나에 대해 기억한 것과 일하며 익힌 능력을 그대로 보여 줘요. 필요 없으면 바로 지워요.</p>
+          <picture class="app-shot">
+            <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="/assets/landing-app/memory-dark.avif">
+            <source type="image/avif" srcset="/assets/landing-app/memory-light.avif">
+            <img src="/assets/landing-app/memory-light.jpg" width="460" height="604" alt="실제 앱 화면: 직원의 기억과 능력 화면. 기억한 내용마다 지우기 버튼이 있고, 능력마다 켜고 끄는 스위치가 있어요" loading="lazy" decoding="async">
+          </picture>
+        </figure>
       </div>
       <div class="trust-copy">
       <h2 class="section-h" id="trust-h" data-reveal>필요할 때만 꺼내 보고,<br>확인하면 팀이 이어가요.</h2>

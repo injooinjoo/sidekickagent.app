@@ -1,5 +1,5 @@
 {
-  "export_rules_sha256": "487d4b00b14550d8f4ebcd37e79cfe3a5309313a5e02044696e9530fb407c3fb",
+  "export_rules_sha256": "c6e712354d593108f85f1edfaf2ac7b9bee31410831ef6e55229af27be413ff9",
   "files": {
     ".nojekyll": {
       "bytes": 0,
@@ -689,6 +689,86 @@
       "bytes": 147480,
       "sha256": "3de7807e5c0b643e9d95ccf0a83dd8ce53136911bbc03dcbe2a0c06e8187900e"
     },
+    "assets/landing-app/app-film-m.mp4": {
+      "bytes": 469355,
+      "sha256": "04743cc11754f660eacabba42be73f7c9a2413155783726fd228f300fbd07a41"
+    },
+    "assets/landing-app/app-film-poster-m.jpg": {
+      "bytes": 45589,
+      "sha256": "4a0849b808aeb05a4b28a8dad1498361463a65241626a876299cbfc46ebff7a2"
+    },
+    "assets/landing-app/app-film-poster.jpg": {
+      "bytes": 40589,
+      "sha256": "2e12995d8940c4d8465ebe80b559d0c2e5e7852ac4e1266c0841e637f37fc535"
+    },
+    "assets/landing-app/app-film.mp4": {
+      "bytes": 483546,
+      "sha256": "c5e0a761ac361bb192097a222e0f722ede56c26f9101899bf2b4eb16b7745ceb"
+    },
+    "assets/landing-app/choice-dark.avif": {
+      "bytes": 13331,
+      "sha256": "ebe49ccd0088e3bcff56ff52af9d9f764a914913e643b186cebd7e4bd00badb0"
+    },
+    "assets/landing-app/choice-light.avif": {
+      "bytes": 14446,
+      "sha256": "332168f581dde39e45b9d4fd23adc3d21fa0dd20efa561c619090846d0fe7761"
+    },
+    "assets/landing-app/choice-light.jpg": {
+      "bytes": 36337,
+      "sha256": "7a9d70a5e0ec94a210be265e4443b3c05ecd17cd7773a99a71bacd466e3868ac"
+    },
+    "assets/landing-app/memory-dark.avif": {
+      "bytes": 16190,
+      "sha256": "c93cb334d2c8e8197184381d1ac73ca3f3706e0dc20f1dd07995249824552dfd"
+    },
+    "assets/landing-app/memory-light.avif": {
+      "bytes": 17412,
+      "sha256": "5fbe2e1a3520a2a59c439c4bedb3862676dcb8293bff0c1bfce6e9da4d65268d"
+    },
+    "assets/landing-app/memory-light.jpg": {
+      "bytes": 46457,
+      "sha256": "822411fc7c5073e36fd6ef14fd4bea898a128f0c060efe4698065010c10e0d10"
+    },
+    "assets/landing-app/office-m.mp4": {
+      "bytes": 164502,
+      "sha256": "f38d7104f3dc7bea9354b3a4f653bde71d02f415c3ae8b13fc2075b975769d1c"
+    },
+    "assets/landing-app/office-poster-m.jpg": {
+      "bytes": 46075,
+      "sha256": "a9586b0bfd5ef11e236efc99d4578fc3304b310852b604e70e2eca5a7a71e897"
+    },
+    "assets/landing-app/office-poster.jpg": {
+      "bytes": 39308,
+      "sha256": "2cf45c55b60738ded2528c44e05fa7231b05027d23e3f760881987c4f81451bb"
+    },
+    "assets/landing-app/office.mp4": {
+      "bytes": 112552,
+      "sha256": "5b934eb397f5779a6d638fc24256ee7f1cff6de783630cfc181ad7e4492ca571"
+    },
+    "assets/landing-app/result-dark.avif": {
+      "bytes": 18270,
+      "sha256": "31c9caeaa199b8204041c4b81d4020a6713a544ef19780263aa810e93bf26817"
+    },
+    "assets/landing-app/result-light.avif": {
+      "bytes": 18817,
+      "sha256": "1a3379793b3aead29064abea71fef0febb61f4e1b6d712993b767fffa0e6d0d8"
+    },
+    "assets/landing-app/result-light.jpg": {
+      "bytes": 48875,
+      "sha256": "ad993ded8acdc556f71732f2fcf19b9ff9ea74406ce4ee7ce8be4e0b75c0cbcc"
+    },
+    "assets/landing-app/stopped-dark.avif": {
+      "bytes": 20911,
+      "sha256": "0b78eced00d818005d41ace1530b35907473487efb8ddfaeb4f67ac8f574a63d"
+    },
+    "assets/landing-app/stopped-light.avif": {
+      "bytes": 21946,
+      "sha256": "f7e64f72461f0139798a4de8e2928bbf4525cd772d2a0feb41bd57f7b804ac57"
+    },
+    "assets/landing-app/stopped-light.jpg": {
+      "bytes": 61375,
+      "sha256": "bf485f6089e8bf2046a466c9f37fa4d5571a33597c51de182efb0381361b519a"
+    },
     "assets/landing-v2/film/ending-m.mp4": {
       "bytes": 1023031,
       "sha256": "4a177796c8800741e4b2a038b8dca9d928f6de724b1b34f80ad9f717128dfa8e"
@@ -704,54 +784,6 @@
     "assets/landing-v2/film/ending.mp4": {
       "bytes": 1367708,
       "sha256": "bc16532e5b86a26d62d3d179e40e9de868d0cbfb995e3d7283fbd2cd5f47bee6"
-    },
-    "assets/landing-v2/film/film-m.mp4": {
-      "bytes": 4530632,
-      "sha256": "dba24d2cde329d1e738292e7222e94626091de4007ab24e1ff731df2959d8991"
-    },
-    "assets/landing-v2/film/film-poster-m.jpg": {
-      "bytes": 49617,
-      "sha256": "b3d01e851fb847e0eb751b753cf882a1a52ac5f7a3f9355aa76f318620cd3ffb"
-    },
-    "assets/landing-v2/film/film-poster.jpg": {
-      "bytes": 54153,
-      "sha256": "ec2531f17fc6c7bdf3cf074e8ef511ee8a0b0af68a02e3ad55a861aeded204c5"
-    },
-    "assets/landing-v2/film/film.mp4": {
-      "bytes": 6173851,
-      "sha256": "64f2880499720996076963366b16f28a9fcc3e6ae643373b282bf4a7b5cf663c"
-    },
-    "assets/landing-v2/film/hero-m.mp4": {
-      "bytes": 442053,
-      "sha256": "249cc129f7d70bf6921603c78dd2ad3a73b1d6417e18add3bf528dd9d5056763"
-    },
-    "assets/landing-v2/film/hero-m.webm": {
-      "bytes": 655184,
-      "sha256": "b1c9935b595b6b3a3603bb370040f3568069ca9b182d20686b7efeee24fd60b2"
-    },
-    "assets/landing-v2/film/hero-poster-m.jpg": {
-      "bytes": 42536,
-      "sha256": "dd19781390fc6454164ef21ada38acb89ba1e29b5ae1494e9eec155bb15987a3"
-    },
-    "assets/landing-v2/film/hero-poster-m.webp": {
-      "bytes": 20618,
-      "sha256": "7bb66980b41983a541bb09bb908e8b9dc7ae151c7c5acec48c16a25e6298f442"
-    },
-    "assets/landing-v2/film/hero-poster.jpg": {
-      "bytes": 57643,
-      "sha256": "c1a2c12622200d9558d16f059b94cc97727049eaccff06cb0168ef7c844fa0ea"
-    },
-    "assets/landing-v2/film/hero-poster.webp": {
-      "bytes": 30094,
-      "sha256": "b021378995bb2194e4fd055b602d3458cb765906005c6ccd586598d192af5632"
-    },
-    "assets/landing-v2/film/hero.mp4": {
-      "bytes": 879196,
-      "sha256": "e2e38d8349d7b6b25da127e1e074ee189482a4a285ae322c5b25d8e33eac2ad8"
-    },
-    "assets/landing-v2/film/hero.webm": {
-      "bytes": 953145,
-      "sha256": "1847b3e315eebf1743405abdec3c37a2e8e3356b3569072f4cd6b77e1a80837d"
     },
     "assets/og-image.png": {
       "bytes": 178088,
@@ -930,8 +962,8 @@
       "sha256": "7cb4676f3f2a2f517e797cf534988b619c97cc66a4f0dbdc865195dfddbe4fe4"
     },
     "index.html": {
-      "bytes": 43810,
-      "sha256": "104e8f90bd17256652b8fdd53bff35f6e2042eb3e37e1098208b7f940f2a459e"
+      "bytes": 42936,
+      "sha256": "5194dac7c344b80acd63fc6f0fb7bd5c5316e1f602e29ec6e5b0d3b6d451879e"
     },
     "invite/index.html": {
       "bytes": 11085,
@@ -952,6 +984,10 @@
     "landing-prices.js": {
       "bytes": 2633,
       "sha256": "f32ac932ac862a0deb7c1b90fa0c915c03619e347579a764e2df20a438fc38a7"
+    },
+    "landing-shots.css": {
+      "bytes": 1167,
+      "sha256": "10801f9dcfb6ec6b5f393dea5975a449465fc3336aaba5f51db372c76ff47c49"
     },
     "landing-start.js": {
       "bytes": 1812,
@@ -1096,5 +1132,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "c4698013b795f17404d776c6e8e578dbe694cc3d"
+  "source_sha": "050e47a6133743aeb83a91d7d65448e34423b04b"
 }

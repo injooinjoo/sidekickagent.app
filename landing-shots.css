@@ -1,0 +1,16 @@
+/* Real app captures on the landing (#6793): the moments, the trust sample and nothing else.
+ * Each picture is a crop of the release build's own simulator capture (assets/landing-app/build.py), the dark
+ * crop under a dark system. The stage around it (cloud palette, padding) stays in styles.css; this file only
+ * frames the screen like the phone it came from and keeps it inside its column. */
+.product-story .app-shot { display: block; width: 100%; max-width: 380px; margin: 0 auto; }
+.product-story .app-shot img { display: block; width: 100%; height: auto; border-radius: 24px; background: #f4f1f4; box-shadow: 0 18px 48px rgba(22, 27, 34, 0.16); }
+.product-story .moment-stage > .moment-cap { max-width: 380px; margin: 0 auto var(--space-3, 12px); }
+.product-story figure.approval-paper { margin: 0; }
+.product-story .approval-paper .app-shot { max-width: 340px; margin-top: 20px; }
+@media (max-width: 700px) {
+  .product-story .app-shot { max-width: 340px; }
+  .product-story .app-shot img { border-radius: 20px; }
+}
+@media (prefers-color-scheme: dark) {
+  .product-story .app-shot img { background: #1c1d22; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45); }
+}
