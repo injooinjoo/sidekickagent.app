@@ -548,7 +548,6 @@
     if (item.detail) card.append(node('p', item.detail));
     if (item.status === 'expired' && !item.info) card.append(node('p', '연결이 만료됐어요. 다시 연결하면 이어서 써요.'));
     if (item.status === 'error' && !item.info) card.append(node('p', '연결에 문제가 있어요. 다시 연결해 주세요.'));
-    if (item.status === 'unavailable' && !item.info) card.append(node('p', '지금은 새 연결을 준비하고 있어요.'));
     if (item.notFree) card.append(node('p', '이 연결로 하는 일에는 크레딧이 들어요.'));
     if (item.kind === 'free_api') {
       const service = freeService(item.serviceId);
@@ -630,7 +629,8 @@
   }
   function renderCatalog() {
     const search = $('service-search').value.trim().toLocaleLowerCase('ko');
-    const visible = state.items.filter((item) => item.name.toLocaleLowerCase('ko').includes(search));
+    // A service that cannot be connected right now is not listed (owner 2026-11-27, #7038); it appears once ready.
+    const visible = state.items.filter((item) => (item.info || item.status !== 'unavailable') && item.name.toLocaleLowerCase('ko').includes(search));
     const groups = $('service-groups'); groups.replaceChildren();
     const devices = deviceSection(visible);
     if (devices) groups.append(devices);
@@ -640,7 +640,7 @@
       if (!rows.length && !aiDoor) continue;
       const section = node('section', '', 'service-group'); section.dataset.group = group.id;
       section.append(node('h2', group.title), node('p', group.line, 'service-group-line'));
-      const mine = rows.filter((item) => item.info || !['disconnected', 'unavailable'].includes(item.status));
+      const mine = rows.filter((item) => item.info || item.status !== 'disconnected');
       const rest = rows.filter((item) => !mine.includes(item));
       if (mine.length) { const list = node('div', '', 'service-grid'); mine.forEach((item) => list.append(rowNode(item))); section.append(list); }
       if (rest.length) {
