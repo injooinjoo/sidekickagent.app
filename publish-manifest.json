@@ -882,8 +882,8 @@
       "sha256": "28d46b56191c625ccd9278f76caae86a2a02104b2d173f84317c340b058ba928"
     },
     "auth.js": {
-      "bytes": 160718,
-      "sha256": "86ab9071d23bf951798bbfa3869100f5aade908d85d0e9a3684709e6ff0ca5c6"
+      "bytes": 161066,
+      "sha256": "900e46590ee74ee356cf63ae682e986d6a1ac5f6e9eebc3926740ca605ff9fc4"
     },
     "connections/connections.css": {
       "bytes": 5581,
@@ -978,12 +978,12 @@
       "sha256": "51038bc1559cfc8f1c5ad8388c9e2f70435ed3504b64540c00e0368355cb9c76"
     },
     "login-with-app.js": {
-      "bytes": 18813,
-      "sha256": "17086ecea301e7ec114b9f6e6ed8aaf3dd3920f5bd1c294bca2391e1cf668ade"
+      "bytes": 21150,
+      "sha256": "b0589849172d6da2215fe7b8a50f76ff2cfb894b7432751af6a3489199a44ab5"
     },
     "login/index.html": {
-      "bytes": 23969,
-      "sha256": "63d8419ac58be285493604ffb5564d7ada16e0a36d2f1422be338971f018bebc"
+      "bytes": 24059,
+      "sha256": "c0b66972dcc60b4101e808702e94626f6ac366d7d296314de8c314b7f03cd86d"
     },
     "maintenance.js": {
       "bytes": 13901,
@@ -1096,5 +1096,5 @@
   },
   "schema_version": 1,
   "source_repository": "injooinjoo/sidekick",
-  "source_sha": "ef176ad1681d4c89ff2a5cfa80bb3e29a1caad55"
+  "source_sha": "a08cd3a1c682994485c28164d12d6f94a75095c9"
 }

@@ -1,5 +1,8 @@
-// '앱으로 로그인' on /login/: the website opens a login request and shows it as a QR code; the signed-in Sidekick app
-// scans it and approves (owner decision 2026-11-20 23:0x on #6028: QR, approve/deny only, two minutes).
+// '앱으로 로그인' on /login/: the website opens a login request for the typed phone number, so the server pushes that
+// person's Sidekick app, and shows the request as a QR code too for when no push arrives; the app approves (owner
+// decisions on #6028: 11-20 "push the app, approve there, the web gets in"; QR, approve/deny only, two minutes).
+// The sign-in sheet's '앱으로 로그인' link leaves a one-tab marker (SidekickAuth.takeAppLoginStart); with it /login/ opens
+// the phone field at once and makes this the main button (#7150). The number goes only in the start request's body.
 //
 // The page sends an S256 challenge and a state (POST /auth/push-login/start), draws the answer's request id as a QR
 // code, and asks POST /auth/push-login/check with the verifier until the app has answered. The QR holds only the
@@ -26,8 +29,13 @@
     expired: '시간이 지났어요. 새로 만들거나 인증번호로 로그인해 주세요.',
     cancelled: '요청이 취소됐어요.',
     conflict: '이 브라우저에는 다른 계정이 로그인돼 있어요. 로그아웃한 뒤 다시 시도해 주세요.',
-    failed: '사이드킥에 연결하지 못했어요. 인터넷 연결을 확인하거나 잠시 뒤 다시 시도해 주세요.'
+    failed: '사이드킥에 연결하지 못했어요. 인터넷 연결을 확인하거나 잠시 뒤 다시 시도해 주세요.',
+    needPhone: '휴대폰 번호 뒤 8자리를 입력하면 앱으로 알림을 보내요.',
+    waitHuman: '보안 확인이 끝나면 앱으로 알림을 보낼 수 있어요. 잠시 뒤 다시 눌러 주세요.',
+    phoneGuide: '번호를 넣고 앱으로 로그인을 누르면 휴대폰으로 알림이 가요'
   };
+  const CHOICES_WAIT_MS = 100;
+  const CHOICES_WAIT_TRIES = 100;
 
   // ---- The pure part ---------------------------------------------------------------------------------------
 
@@ -67,6 +75,15 @@
   // What the QR carries for one request: the app link with the request id, nothing else; '' for anything else.
   function appLink(requestId) {
     return REQUEST_ID.test(String(requestId || '')) ? APP_LINK_PREFIX + requestId : '';
+  }
+
+  // The number the start request names, as the code sign-in sends it ('010-1234-5678'): the field holds the eight
+  // digits after 010 (or a whole 010 number); anything else is ''.
+  function phoneForPush(value) {
+    let digits = String(value || '').replace(/\D/g, '');
+    if (/^\d{8}$/.test(digits)) digits = '010' + digits;
+    if (!/^010\d{8}$/.test(digits) || /[^\d\s-]/.test(String(value || ''))) return '';
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
   }
 
   const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -385,8 +402,10 @@
 
     async function begin() {
       if (busy || flow) return;
+      const phone = phoneForPush(el('email') && el('email').value);
+      if (!phone) { say(el('auth-status'), COPY.needPhone, true); return; }
       const token = auth.humanCheckToken();
-      if (token === '') return;
+      if (token === '') { say(el('auth-status'), COPY.waitHuman, true); return; }
       busy = true;
       refresh();
       let answer = null;
@@ -397,6 +416,7 @@
           code_challenge: proof.challenge,
           code_challenge_method: 'S256',
           state: proof.state,
+          phone,
           turnstile_token: token || null
         }) });
       } catch (error) {
@@ -433,9 +453,25 @@
     if (cancelButton) cancelButton.addEventListener('click', () => { finish(true); closePanel(); });
     window.addEventListener('pagehide', () => { stopTimers(); flow = null; });
     refresh();
+    if (typeof auth.takeAppLoginStart === 'function' && auth.takeAppLoginStart()) openPhoneField(0);
     return true;
+
+    // From the sheet's link: once the start choices show (the stored session is checked first), the phone door opens
+    // and this button becomes the main one. Nothing is sent before the person types the number.
+    function openPhoneField(tries) {
+      const choices = el('handoff-choices');
+      const door = el('handoff-phone');
+      if (!choices || !door) return;
+      if (choices.hidden) { if (tries < CHOICES_WAIT_TRIES) setTimeout(() => openPhoneField(tries + 1), CHOICES_WAIT_MS); return; }
+      door.click();
+      primary(button);
+      const status = el('handoff-status');
+      if (status) status.textContent = COPY.phoneGuide;
+      const field = el('email');
+      if (field && typeof field.focus === 'function') field.focus();
+    }
   }
 
-  window.SidekickAppLogin = Object.freeze({ appLoginView, pollDelayMs, makeProof, appLink, qrMatrix });
+  window.SidekickAppLogin = Object.freeze({ appLoginView, pollDelayMs, makeProof, appLink, qrMatrix, phoneForPush });
   bindLoginPage();
 })();
