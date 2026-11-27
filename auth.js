@@ -110,6 +110,7 @@
   // with ChatGPT (owner 2026-10-17), so nothing writes it any more; a tab that
   // still holds one from before may use it, and 로그아웃 clears it.
   const HANDOFF_KEY = 'sidekick_web_chatgpt_handoff';
+  const APP_LOGIN_START_KEY = 'sidekick_web_app_login_start'; // per tab: the sheet's 앱으로 로그인 was pressed (#7150)
   // The server keeps the account for a day (CHATGPT_LOGIN_HANDOFF_SECONDS);
   // the page stops offering it a little before that.
   const HANDOFF_MAX_AGE_MS = 23 * 60 * 60 * 1000;
@@ -3022,6 +3023,7 @@
     }
     $('google-button').addEventListener('click', () => startSupabaseLogin('google'));
     $('apple-button').addEventListener('click', () => startSupabaseLogin('apple'));
+    sheet.querySelector('.app-login-link')?.addEventListener('click', () => writeTab(APP_LOGIN_START_KEY, '1'));
     if (phoneFirstPage()) bindLoginDoors();
     else {
       // Older cached page HTML still uses the code toggle and method tabs.
@@ -3117,12 +3119,7 @@
     NETWORK_COPY,
     EXPIRED_COPY,
     DELETION_PENDING_COPY,
-    init,
-    api,
-    whoami,
-    open,
-    requireSignIn,
-    close,
+    init, api, whoami, open, requireSignIn, close,
     signOut,
     copyText,
     httpsUrl,
@@ -3133,6 +3130,7 @@
     forgetChatGptHandoff,
     appWebHandoff,
     webHandoffWorkspace,
+    takeAppLoginStart: () => { const on = readTab(APP_LOGIN_START_KEY) === '1'; writeTab(APP_LOGIN_START_KEY, ''); return on; },
     adoptSignIn, loginMode: () => (loginInput && ['app', 'web'].includes(loginInput.mode) ? loginInput.mode : 'none'),
     // login-with-app.js: the Turnstile token spent as sendCode spends it (null when off; '' after the wait sentence).
     humanCheckToken: () => { if (!TURNSTILE_SITE_KEY) return null; const t = turnstile.token; if (!t) { sayTurnstile(TURNSTILE_WAIT_COPY); return ''; } holdTurnstileToken(''); turnstile.stale = true; prepareTurnstile(); return t; },
